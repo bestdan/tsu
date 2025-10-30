@@ -5,6 +5,8 @@ import { gitRoot } from './commands/git-root.js';
 import { gitChanged } from './commands/git-changed.js';
 import { gitBranch } from './commands/git-branch.js';
 import { gitIsMain } from './commands/git-is-main.js';
+import { gitCommitMsg } from './commands/git-commit-msg.js';
+import { gitPRDescription } from './commands/git-pr-description.js';
 import { filesFilter } from './commands/files-filter.js';
 
 const program = new Command();
@@ -91,6 +93,30 @@ git
       gitIsMain(path, options);
     }
   );
+
+git
+  .command('commit-msg')
+  .description('Generate a commit message from staged changes using Claude')
+  .option('-c, --commit', 'automatically create the commit with generated message')
+  .option('-v, --verbose', 'show progress messages (output to stderr)')
+  .action((options: { commit?: boolean; verbose?: boolean }) => {
+    gitCommitMsg(options);
+  });
+
+git
+  .command('pr-description')
+  .description(
+    'Generate a GitHub PR description from branch changes using Claude'
+  )
+  .option(
+    '-b, --base-branch <branch>',
+    'base branch to compare against',
+    'main'
+  )
+  .option('-v, --verbose', 'show progress messages (output to stderr)')
+  .action((options: { baseBranch?: string; verbose?: boolean }) => {
+    gitPRDescription(options);
+  });
 
 // Files subcommand namespace
 const files = program.command('files').description('File manipulation utilities');
