@@ -60,3 +60,17 @@ jobs:
       
       - name: Run tests
         run: pnpm test:run
+
+  coverage:
+    runs-on: ubuntu-latest
+    needs: [lint, typecheck, build]
+    
+    permissions:
+      contents: read
+    
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      
+      - name: Run tests with coverage
+        run: pnpm test:coverage
