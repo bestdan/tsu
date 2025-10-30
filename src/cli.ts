@@ -3,6 +3,8 @@ import { Command } from 'commander';
 import { gitCheck } from './commands/git-check.js';
 import { gitRoot } from './commands/git-root.js';
 import { gitChanged } from './commands/git-changed.js';
+import { gitBranch } from './commands/git-branch.js';
+import { gitIsMain } from './commands/git-is-main.js';
 import { filesFilter } from './commands/files-filter.js';
 
 const program = new Command();
@@ -59,6 +61,34 @@ git
       verbose?: boolean;
     }) => {
       gitChanged(options);
+    }
+  );
+
+git
+  .command('branch')
+  .description('Get the current git branch name')
+  .argument('[path]', 'path to check (defaults to current directory)')
+  .option('-v, --verbose', 'show human-readable label (output to stderr)')
+  .action((path: string | undefined, options: { verbose?: boolean }) => {
+    gitBranch(path, options);
+  });
+
+git
+  .command('is-main')
+  .description('Check if current branch is main (exit code only)')
+  .argument('[path]', 'path to check (defaults to current directory)')
+  .option(
+    '-b, --branch <name>',
+    'main branch name to check against',
+    'main'
+  )
+  .option(
+    '-v, --verbose',
+    'show human-readable status messages (output to stderr)'
+  )
+  .action(
+    (path: string | undefined, options: { verbose?: boolean; branch?: string }) => {
+      gitIsMain(path, options);
     }
   );
 
