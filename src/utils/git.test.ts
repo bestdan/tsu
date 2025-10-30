@@ -612,3 +612,6 @@ describe('isMainBranch', () => {
     }
   });
 });
+
+// Note: generateCommitMessage and generatePRDescription require Claude CLI
+// and are marked with c8 ignore comments for coverage exclusion
