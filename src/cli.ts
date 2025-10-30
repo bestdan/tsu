@@ -8,6 +8,11 @@ import { gitIsMain } from './commands/git-is-main.js';
 import { gitCommitMsg } from './commands/git-commit-msg.js';
 import { gitPRDescription } from './commands/git-pr-description.js';
 import { filesFilter } from './commands/files-filter.js';
+import { dartCheck } from './commands/dart-check.js';
+import { dartRoot } from './commands/dart-root.js';
+import { dartPackage } from './commands/dart-package.js';
+import { dartChanged } from './commands/dart-changed.js';
+import { dartChangedDownstream } from './commands/dart-changed-downstream.js';
 
 const program = new Command();
 
@@ -131,5 +136,94 @@ filesFilterCmd
   .action((suffixes: string[], options: { verbose?: boolean }) => {
     filesFilter(suffixes, options);
   });
+
+// Dart subcommand namespace
+const dart = program.command('dart').description('Dart package utilities');
+
+dart
+  .command('check')
+  .description(
+    'Check if current directory is in a Dart package (exit code only)'
+  )
+  .argument('[path]', 'path to check (defaults to current directory)')
+  .option(
+    '-v, --verbose',
+    'show human-readable status messages (output to stderr)'
+  )
+  .action((path: string | undefined, options: { verbose?: boolean }) => {
+    dartCheck(path, options);
+  });
+
+dart
+  .command('root')
+  .description('Get the root directory of the Dart package')
+  .argument('[path]', 'path to check (defaults to current directory)')
+  .option('-v, --verbose', 'show human-readable label (output to stderr)')
+  .action((path: string | undefined, options: { verbose?: boolean }) => {
+    dartRoot(path, options);
+  });
+
+dart
+  .command('package')
+  .description('Get the package root containing a specific file (useful in mono-repos)')
+  .argument('<file>', 'path to the file')
+  .option('-v, --verbose', 'show human-readable label (output to stderr)')
+  .action((file: string, options: { verbose?: boolean }) => {
+    dartPackage(file, options);
+  });
+
+// Dart changed subcommand
+const dartChangedCmd = dart
+  .command('changed')
+  .description('Show Dart files that have changed');
+
+dartChangedCmd
+  .description('Show Dart files that have changed compared to main branch')
+  .option('-s, --staged', 'show staged changes only')
+  .option('-u, --unstaged', 'show unstaged changes only')
+  .option('-a, --all', 'show all changes (committed, staged, and unstaged)')
+  .option(
+    '-b, --base-branch <branch>',
+    'base branch to compare against',
+    'main'
+  )
+  .option('-v, --verbose', 'show headers and counts (output to stderr)')
+  .action(
+    (options: {
+      staged?: boolean;
+      unstaged?: boolean;
+      all?: boolean;
+      baseBranch?: string;
+      verbose?: boolean;
+    }) => {
+      dartChanged(options);
+    }
+  );
+
+dartChangedCmd
+  .command('downstream')
+  .description('Find all Dart files that depend on changed Dart files')
+  .option('-s, --staged', 'analyze staged changes only')
+  .option('-u, --unstaged', 'analyze unstaged changes only')
+  .option('-a, --all', 'analyze all changes (committed, staged, and unstaged)')
+  .option(
+    '-b, --base-branch <branch>',
+    'base branch to compare against',
+    'main'
+  )
+  .option('--relative', 'output relative paths instead of absolute paths')
+  .option('-v, --verbose', 'show detailed progress information (output to stderr)')
+  .action(
+    (options: {
+      staged?: boolean;
+      unstaged?: boolean;
+      all?: boolean;
+      baseBranch?: string;
+      relative?: boolean;
+      verbose?: boolean;
+    }) => {
+      dartChangedDownstream(options);
+    }
+  );
 
 program.parse();
