@@ -6,7 +6,8 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
-    "tsutils": "./dist/cli.js"
+    "tsutils": "./dist/cli.js",
+    "tsu": "./dist/cli.js"
   },
   "files": [
     "dist"
