@@ -54,12 +54,6 @@ pnpm typecheck
 After building, you can run the CLI:
 
 ```bash
-# Greet someone
-node dist/cli.js greet World
-
-# Greet in uppercase
-node dist/cli.js greet World --uppercase
-
 # Check if current directory is in a git repository (exit code only)
 node dist/cli.js git check
 
@@ -95,7 +89,6 @@ node dist/cli.js git check --verbose
 Or if you've linked the package globally (`pnpm link --global`):
 
 ```bash
-tsutils greet World
 tsutils git check
 tsutils git root
 tsutils git changed
@@ -187,8 +180,6 @@ src/
 ├── cli.ts              # CLI entry point
 ├── index.ts            # Library exports
 ├── commands/           # CLI commands
-│   ├── greet.ts
-│   ├── greet.test.ts
 │   ├── git-check.ts    # Check if in git repo (exit code only)
 │   ├── git-root.ts     # Get git root path (outputs path)
 │   └── git-changed.ts  # Show changed files
