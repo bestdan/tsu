@@ -277,7 +277,7 @@ Start immediately with the commit message in Conventional Commits format:
 
 Types: feat, fix, docs, style, refactor, perf, test, build, ci, chore
 
-Do not ask questions. Do not add commentary. Output only the commit message.`;
+IMPORTANT: Do not ask questions. Do not add commentary. Do not add any attribution text, signatures, or metadata. Do not add "Generated with" text or "Co-Authored-By" lines. Output ONLY the commit message itself, nothing else.`;
 
     // Call Claude CLI with the diff as stdin
     const result = execSync('claude -p', {
@@ -360,7 +360,7 @@ Brief overview of what this PR accomplishes (2-3 sentences max)
 ## Testing
 Brief notes on how to test these changes or what was tested
 
-Start immediately with the PR description. Do not ask questions. Do not add meta-commentary about the PR itself.`;
+IMPORTANT: Start immediately with the PR description. Do not ask questions. Do not add meta-commentary about the PR itself. Do not add any attribution text, signatures, or metadata. Do not add "Generated with" text or "Co-Authored-By" lines. Output ONLY the PR description content itself, nothing else.`;
 
     // Call Claude CLI with the diff as stdin
     const result = execSync('claude -p', {
