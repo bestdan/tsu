@@ -13,7 +13,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc && cp -r src/__fixtures__ dist/__fixtures__",
+    "build": "tsc && rm -rf dist/__fixtures__ && cp -r src/__fixtures__ dist/__fixtures__",
     "dev": "tsc --watch",
     "test": "vitest",
     "test:run": "vitest run",
@@ -35,7 +35,7 @@
     "commander": "^14.0.2"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=22.0.0"
   },
   "packageManager": "pnpm@9.0.0",
   "devDependencies": {

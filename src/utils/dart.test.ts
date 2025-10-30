@@ -103,6 +103,24 @@ describe('extractImports', () => {
     const imports = extractImports('/fake/path/file.dart', fixtureDir);
     expect(imports).toEqual([]);
   });
+
+  it('should handle monorepo with subpackage lib directories', () => {
+    const monorepoDir = resolve(__dirname, '../__fixtures__/dart-monorepo');
+    const mainFile = join(monorepoDir, 'lib', 'main.dart');
+    const imports = extractImports(mainFile, monorepoDir);
+
+    // Should find the features/lib/account/profile.dart import
+    expect(imports).toContain('features/lib/account/profile.dart');
+  });
+
+  it('should handle non-standard package structures', () => {
+    const nonstandardDir = resolve(__dirname, '../__fixtures__/dart-nonstandard');
+    const mainFile = join(nonstandardDir, 'main.dart');
+    const imports = extractImports(mainFile, nonstandardDir);
+
+    // Should find the custom_pkg/util.dart import (without lib/)
+    expect(imports).toContain('custom_pkg/util.dart');
+  });
 });
 
 describe('resolveImportPath', () => {

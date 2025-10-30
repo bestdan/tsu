@@ -4,10 +4,10 @@
 
 The codebase maintains high test coverage with comprehensive test suites for all major functionality. Current coverage levels as of the latest test run:
 
-- **Statements**: ~82%
-- **Branches**: ~72%
-- **Functions**: ~91%
-- **Lines**: ~82%
+- **Statements**: ~85.5%
+- **Branches**: ~74.8%
+- **Functions**: ~90.6%
+- **Lines**: ~85.5%
 
 ## Intentionally Uncovered Code
 
@@ -16,13 +16,13 @@ The following code sections are intentionally not covered by automated tests due
 ### 1. Claude CLI Integration Functions (`src/utils/git.ts`)
 
 **Functions:**
-- `generateCommitMessage()` (lines 257-311)
+- `generateCommitMessage()` (lines 257-312)
 - `generatePRDescription()` (lines 327-387)
 
 **Reason:** These functions require the external Claude CLI tool to be installed and configured. They:
 - Make external API calls that would require mocking complex external services
 - Are integration points for AI-powered features
-- Are marked with `/* c8 ignore */` comments (though vitest v8 doesn't fully support these)
+- Are marked with `/* c8 ignore start/stop */` comments for the v8 coverage provider
 - Are tested manually through the CLI commands that use them
 
 **Testing approach:** These are tested manually and through integration testing, not unit tests.
@@ -41,28 +41,27 @@ These catch blocks only execute when git commands fail in unexpected ways that a
 
 ### 3. Edge Cases in Dart Package Import Resolution (`src/utils/dart.ts`)
 
-**Lines:** 82, 87, 104-105, 116-119
+**Lines:** 82
 
-**Reason:** These are edge cases in Dart package import resolution:
-- Line 82: Defensive check for undefined import paths
-- Line 87: Dart SDK import continue statement (tested but branch not covered)
-- Lines 104-105, 116-119: Non-standard package import resolution paths for complex mono-repo structures
+**Reason:** Line 82 is a defensive check for undefined import paths that would only occur if the regex match failed unexpectedly. This edge case is nearly impossible to trigger in practice.
 
-These would require complex test fixtures with specific Dart package structures that are not commonly used.
+**Note:** Lines 104-105 and 116-119 (monorepo and non-standard package structures) are now covered by comprehensive test fixtures added in `src/__fixtures__/dart-monorepo` and `src/__fixtures__/dart-nonstandard`.
 
 ## Coverage Thresholds
 
 The project maintains the following coverage thresholds in `vitest.config.ts`:
 
-- Statements: 82%
-- Branches: 72%
-- Functions: 91%
-- Lines: 82%
+- Statements: 85%
+- Branches: 74%
+- Functions: 90%
+- Lines: 85%
 
 These thresholds are set to:
 1. Ensure all meaningful code paths are tested
 2. Allow for reasonable exceptions for external integrations and defensive error handling
 3. Prevent coverage regressions
+
+**Note on Coverage Provider**: The project uses v8 coverage provider, which is the default and most performant option for Node.js 22+. Requires Node.js 22.0.0 or higher.
 
 ## Improving Coverage
 
@@ -72,8 +71,8 @@ To improve coverage beyond current levels:
 
 2. **For error handling blocks**: Consider adding tests that force git command failures through environment manipulation or complex mocking.
 
-3. **For Dart edge cases**: Create comprehensive test fixtures covering all possible Dart package structure variations.
+3. **For Dart edge cases**: ✅ **DONE** - Comprehensive test fixtures now cover monorepo and non-standard package structures.
 
 ## Note on c8 Ignore Comments
 
-The codebase includes `/* c8 ignore start/stop */` comments around the Claude CLI functions. While these are standard for c8 coverage, vitest's v8 coverage provider doesn't fully honor these comments in all cases. This is a known limitation documented in vitest issue trackers.
+The codebase includes `/* c8 ignore start/stop */` comments around the Claude CLI functions to exclude them from coverage reporting. These comments are honored by the v8 coverage provider and prevent these external integration functions from counting against coverage metrics.

@@ -16,10 +16,10 @@ export default defineConfig({
         'src/gcaim.sh',
       ],
       thresholds: {
-        statements: 82,
-        branches: 71,
+        statements: 85,
+        branches: 74,
         functions: 90,
-        lines: 82,
+        lines: 85,
       },
     },
   },
