@@ -1,6 +1,6 @@
-import { filterFilesBySuffix } from '../utils/git.js';
+import { filterFilesBySuffix } from '../utils/files.js';
 
-export interface GitFilterOptions {
+export interface FilesFilterOptions {
   verbose?: boolean;
 }
 
@@ -8,9 +8,9 @@ export interface GitFilterOptions {
  * Filters stdin file list by removing files that match the specified suffix patterns.
  * Reads from stdin, filters, and outputs to stdout.
  */
-export function gitFilter(
+export function filesFilter(
   suffixPatterns: string[],
-  options: GitFilterOptions = {}
+  options: FilesFilterOptions = {}
 ): void {
   const verbose = options.verbose || false;
 
@@ -60,7 +60,7 @@ export function gitFilter(
   // Handle case where stdin is not piped (TTY)
   if (stdin.isTTY) {
     console.error('Error: This command expects input from stdin (pipe)');
-    console.error('Usage: tsutils git changed | tsutils git filter .g.dart');
+    console.error('Usage: tsutils git changed | tsutils files filter suffix .g.dart');
     process.exit(1);
   }
 }

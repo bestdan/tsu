@@ -5,7 +5,7 @@ export {
   getGitRoot,
   getChangedFiles,
   getCurrentBranch,
-  filterFilesBySuffix,
   type ChangeType,
   type GetChangedFilesOptions,
 } from './utils/git.js';
+export { filterFilesBySuffix } from './utils/files.js';
