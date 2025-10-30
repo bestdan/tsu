@@ -189,6 +189,59 @@ export function getStagedDiff(cwd: string = process.cwd()): string | null {
   }
 }
 
+/**
+ * Gets the diff between a base branch and HEAD.
+ * @param options - Configuration options
+ * @returns The diff as a string, or null if not in a git repo or on error
+ */
+export function getBranchDiff(
+  baseBranch = 'main',
+  cwd: string = process.cwd()
+): string | null {
+  try {
+    if (!isGitRepo(cwd)) {
+      return null;
+    }
+
+    const resolvedCwd = resolve(cwd);
+
+    // Check if base branch exists
+    try {
+      execSync(`git rev-parse --verify ${baseBranch}`, {
+        cwd: resolvedCwd,
+        stdio: 'pipe',
+      });
+    } catch {
+      return null;
+    }
+
+    const result = execSync(`git diff ${baseBranch}...HEAD`, {
+      cwd: resolvedCwd,
+      stdio: 'pipe',
+      encoding: 'utf-8',
+    });
+
+    const diff = result.trim();
+    return diff.length > 0 ? diff : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Checks if the current branch is the main branch.
+ * @param mainBranch - The name of the main branch to check against. Defaults to 'main'
+ * @param cwd - The directory to check. Defaults to process.cwd()
+ * @returns true if on main branch, false otherwise
+ */
+export function isMainBranch(
+  mainBranch = 'main',
+  cwd: string = process.cwd()
+): boolean {
+  const currentBranch = getCurrentBranch(cwd);
+  return currentBranch === mainBranch;
+}
+
 export interface GenerateCommitMessageOptions {
   /** The directory to run git commands in. Defaults to process.cwd() */
   cwd?: string;
@@ -245,6 +298,79 @@ Do not ask questions. Do not add commentary. Output only the commit message.`;
     );
 
     return filteredLines.join('\n').trim();
+  } catch (error) {
+    // Check if it's a command not found error
+    if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+      throw new Error(
+        'Claude CLI not found. Please install it from https://github.com/anthropics/claude-cli'
+      );
+    }
+    throw error;
+  }
+}
+
+export interface GeneratePRDescriptionOptions {
+  /** The base branch to compare against. Defaults to 'main' */
+  baseBranch?: string;
+  /** The directory to run git commands in. Defaults to process.cwd() */
+  cwd?: string;
+}
+
+/**
+ * Generates a GitHub PR description from branch changes using Claude CLI.
+ * @param options - Configuration options
+ * @returns The generated PR description, or null on error
+ * @throws Error if Claude CLI is not available or fails, or if on main branch
+ */
+export function generatePRDescription(
+  options: GeneratePRDescriptionOptions = {}
+): string | null {
+  const { baseBranch = 'main', cwd = process.cwd() } = options;
+
+  try {
+    // Check if on main branch
+    if (isMainBranch(baseBranch, cwd)) {
+      throw new Error(
+        `Cannot generate PR description: currently on ${baseBranch} branch`
+      );
+    }
+
+    // Get branch diff
+    const diff = getBranchDiff(baseBranch, cwd);
+    if (!diff) {
+      throw new Error(
+        `No changes found between ${baseBranch} and current branch`
+      );
+    }
+
+    // Prepare the prompt for Claude
+    const prompt = `Generate a GitHub pull request description from the git diff provided via stdin.
+
+Output format: Plain text with markdown formatting. Use standard GitHub PR description structure.
+
+Structure:
+## Summary
+Brief overview of what this PR accomplishes (2-3 sentences max)
+
+## Changes
+- Bullet point list of key changes
+- Focus on what changed and why
+- Group related changes together
+
+## Testing
+Brief notes on how to test these changes or what was tested
+
+Start immediately with the PR description. Do not ask questions. Do not add meta-commentary about the PR itself.`;
+
+    // Call Claude CLI with the diff as stdin
+    const result = execSync('claude -p', {
+      cwd: resolve(cwd),
+      input: `${prompt}\n\n${diff}`,
+      stdio: ['pipe', 'pipe', 'pipe'],
+      encoding: 'utf-8',
+    });
+
+    return result.trim();
   } catch (error) {
     // Check if it's a command not found error
     if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {

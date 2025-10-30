@@ -5,6 +5,8 @@ import {
   getChangedFiles,
   getCurrentBranch,
   getStagedDiff,
+  getBranchDiff,
+  isMainBranch,
   createCommit,
 } from './git.js';
 import { mkdtempSync, rmSync, realpathSync, writeFileSync } from 'node:fs';
@@ -441,6 +443,170 @@ describe('createCommit', () => {
         encoding: 'utf-8',
       });
       expect(log.trim()).toBe(message);
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('getBranchDiff', () => {
+  it('should return null for non-git directory', () => {
+    const tempDir = mkdtempSync(join(tmpdir(), 'not-git-'));
+    try {
+      const diff = getBranchDiff('main', tempDir);
+      expect(diff).toBeNull();
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it('should return null when base branch does not exist', () => {
+    const tempDir = realpathSync(mkdtempSync(join(tmpdir(), 'git-test-')));
+    try {
+      execSync('git init', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git config user.email "test@test.com"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git config user.name "Test User"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+
+      // Create initial commit
+      writeFileSync(join(tempDir, 'file1.txt'), 'content1');
+      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "initial"', { cwd: tempDir, stdio: 'pipe' });
+
+      const diff = getBranchDiff('nonexistent', tempDir);
+      expect(diff).toBeNull();
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it('should return null when on base branch with no changes', () => {
+    const tempDir = realpathSync(mkdtempSync(join(tmpdir(), 'git-test-')));
+    try {
+      execSync('git init', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git config user.email "test@test.com"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git config user.name "Test User"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git checkout -b main', { cwd: tempDir, stdio: 'pipe' });
+
+      // Create initial commit
+      writeFileSync(join(tempDir, 'file1.txt'), 'content1');
+      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "initial"', { cwd: tempDir, stdio: 'pipe' });
+
+      const diff = getBranchDiff('main', tempDir);
+      expect(diff).toBeNull();
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it('should return diff between branches', () => {
+    const tempDir = realpathSync(mkdtempSync(join(tmpdir(), 'git-test-')));
+    try {
+      execSync('git init', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git config user.email "test@test.com"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git config user.name "Test User"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git checkout -b main', { cwd: tempDir, stdio: 'pipe' });
+
+      // Create initial commit on main
+      writeFileSync(join(tempDir, 'file1.txt'), 'content1');
+      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "initial"', { cwd: tempDir, stdio: 'pipe' });
+
+      // Create feature branch with changes
+      execSync('git checkout -b feature', { cwd: tempDir, stdio: 'pipe' });
+      writeFileSync(join(tempDir, 'file2.txt'), 'new content');
+      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "add file2"', { cwd: tempDir, stdio: 'pipe' });
+
+      const diff = getBranchDiff('main', tempDir);
+      expect(diff).toBeTruthy();
+      expect(diff).toContain('file2.txt');
+      expect(diff).toContain('new content');
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('isMainBranch', () => {
+  it('should return false for non-git directory', () => {
+    const tempDir = mkdtempSync(join(tmpdir(), 'not-git-'));
+    try {
+      const result = isMainBranch('main', tempDir);
+      expect(result).toBe(false);
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it('should return true when on main branch', () => {
+    const tempDir = realpathSync(mkdtempSync(join(tmpdir(), 'git-test-')));
+    try {
+      execSync('git init', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git config user.email "test@test.com"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git config user.name "Test User"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git checkout -b main', { cwd: tempDir, stdio: 'pipe' });
+
+      // Create initial commit
+      writeFileSync(join(tempDir, 'file1.txt'), 'content1');
+      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "initial"', { cwd: tempDir, stdio: 'pipe' });
+
+      const result = isMainBranch('main', tempDir);
+      expect(result).toBe(true);
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it('should return false when on different branch', () => {
+    const tempDir = realpathSync(mkdtempSync(join(tmpdir(), 'git-test-')));
+    try {
+      execSync('git init', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git config user.email "test@test.com"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git config user.name "Test User"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git checkout -b main', { cwd: tempDir, stdio: 'pipe' });
+
+      // Create initial commit
+      writeFileSync(join(tempDir, 'file1.txt'), 'content1');
+      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "initial"', { cwd: tempDir, stdio: 'pipe' });
+
+      // Switch to feature branch
+      execSync('git checkout -b feature', { cwd: tempDir, stdio: 'pipe' });
+
+      const result = isMainBranch('main', tempDir);
+      expect(result).toBe(false);
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
     }
