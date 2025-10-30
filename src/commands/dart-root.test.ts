@@ -57,4 +57,15 @@ describe('dartRoot', () => {
     expect(consoleErrorSpy).toHaveBeenCalledWith('Dart package root:');
     expect(consoleLogSpy).toHaveBeenCalledWith(fixtureDir);
   });
+
+  it('should show verbose error when not in a Dart package', () => {
+    expect(() => {
+      dartRoot('/tmp', { verbose: true });
+    }).toThrow('process.exit(1)');
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      expect.stringContaining('Not inside a Dart package')
+    );
+    expect(processExitSpy).toHaveBeenCalledWith(1);
+  });
 });

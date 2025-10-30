@@ -13,6 +13,8 @@ import {
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { dirname } from 'node:path';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -101,6 +103,24 @@ describe('extractImports', () => {
     const imports = extractImports('/fake/path/file.dart', fixtureDir);
     expect(imports).toEqual([]);
   });
+
+  it('should handle monorepo with subpackage lib directories', () => {
+    const monorepoDir = resolve(__dirname, '../__fixtures__/dart-monorepo');
+    const mainFile = join(monorepoDir, 'lib', 'main.dart');
+    const imports = extractImports(mainFile, monorepoDir);
+
+    // Should find the features/lib/account/profile.dart import
+    expect(imports).toContain('features/lib/account/profile.dart');
+  });
+
+  it('should handle non-standard package structures', () => {
+    const nonstandardDir = resolve(__dirname, '../__fixtures__/dart-nonstandard');
+    const mainFile = join(nonstandardDir, 'main.dart');
+    const imports = extractImports(mainFile, nonstandardDir);
+
+    // Should find the custom_pkg/util.dart import (without lib/)
+    expect(imports).toContain('custom_pkg/util.dart');
+  });
 });
 
 describe('resolveImportPath', () => {
@@ -142,6 +162,17 @@ describe('findAllDartFiles', () => {
     const files = findAllDartFiles('/this/path/definitely/does/not/exist/12345');
     expect(files === null || Array.isArray(files)).toBe(true);
   });
+
+  it('should return empty array when no dart files found', () => {
+    // Create a temp directory with no dart files
+    const tempDir = mkdtempSync(join(tmpdir(), 'no-dart-'));
+    try {
+      const files = findAllDartFiles(tempDir);
+      expect(files).toEqual([]);
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
 });
 
 describe('buildDependencyGraph', () => {
@@ -179,6 +210,24 @@ describe('buildReverseDependencyGraph', () => {
     const userImporters = reverseGraph.get(userFile!);
     expect(userImporters).toBeDefined();
     expect(userImporters!.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('should handle files that are imported but not in the graph', () => {
+    // Create a dependency graph with a file that imports another file
+    const graph = new Map<string, string[]>();
+    const file1 = '/path/to/file1.dart';
+    const file2 = '/path/to/file2.dart';
+    const file3 = '/path/to/file3.dart';
+    
+    // file1 imports file2 and file3, but file3 is not in the graph keys
+    graph.set(file1, [file2, file3]);
+    graph.set(file2, []);
+    
+    const reverseGraph = buildReverseDependencyGraph(graph);
+    
+    // file3 should be in the reverse graph even though it wasn't a key in original
+    expect(reverseGraph.has(file3)).toBe(true);
+    expect(reverseGraph.get(file3)).toEqual([file1]);
   });
 });
 
