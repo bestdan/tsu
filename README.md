@@ -33,7 +33,7 @@ pnpm test
 # Run tests once
 pnpm test:run
 
-# Run tests with coverage (enforces 100% coverage threshold)
+# Run tests with coverage (enforces coverage threshold)
 pnpm test:coverage
 
 # Lint code
@@ -296,17 +296,19 @@ src/
 
 ## Test Coverage
 
-This project enforces 100% test coverage for all code. Coverage checks are:
+This project enforces test coverage for all code. Coverage checks are:
 
 - **Runnable locally**: Use `pnpm test:coverage` to check coverage
-- **Enforced in CI**: The GitHub Actions workflow includes a coverage job that will fail if coverage drops below 100%
+- **Enforced in CI**: The GitHub Actions workflow includes a coverage job that will fail if coverage drops below the threshold
 - **Coverage reports**: Generated in text, JSON, and HTML formats in the `coverage/` directory
 
-Coverage thresholds are configured in `vitest.config.ts` and require 100% coverage for:
-- Statements
-- Branches
-- Functions
-- Lines
+Coverage thresholds are configured in `vitest.config.ts` and currently require:
+- Statements: 77%
+- Branches: 65%
+- Functions: 77%
+- Lines: 77%
+
+The thresholds will be gradually increased as test coverage improves.
 
 ## License
 
