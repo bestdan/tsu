@@ -4,6 +4,8 @@ import {
   getGitRoot,
   getChangedFiles,
   getCurrentBranch,
+  getStagedDiff,
+  createCommit,
 } from './git.js';
 import { mkdtempSync, rmSync, realpathSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -273,6 +275,172 @@ describe('getChangedFiles', () => {
 
       const files = getChangedFiles({ cwd: tempDir, type: 'unstaged' });
       expect(files).toEqual(['file1.txt']);
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('getStagedDiff', () => {
+  it('should return null for non-git directory', () => {
+    const tempDir = mkdtempSync(join(tmpdir(), 'not-git-'));
+    try {
+      const diff = getStagedDiff(tempDir);
+      expect(diff).toBeNull();
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it('should return null when no staged changes', () => {
+    const tempDir = realpathSync(mkdtempSync(join(tmpdir(), 'git-test-')));
+    try {
+      execSync('git init', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git config user.email "test@test.com"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git config user.name "Test User"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+
+      // Create initial commit
+      writeFileSync(join(tempDir, 'file1.txt'), 'content1');
+      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "initial"', { cwd: tempDir, stdio: 'pipe' });
+
+      const diff = getStagedDiff(tempDir);
+      expect(diff).toBeNull();
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it('should return diff when changes are staged', () => {
+    const tempDir = realpathSync(mkdtempSync(join(tmpdir(), 'git-test-')));
+    try {
+      execSync('git init', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git config user.email "test@test.com"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git config user.name "Test User"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+
+      // Create initial commit
+      writeFileSync(join(tempDir, 'file1.txt'), 'content1');
+      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "initial"', { cwd: tempDir, stdio: 'pipe' });
+
+      // Stage a change
+      writeFileSync(join(tempDir, 'file2.txt'), 'new content');
+      execSync('git add file2.txt', { cwd: tempDir, stdio: 'pipe' });
+
+      const diff = getStagedDiff(tempDir);
+      expect(diff).toBeTruthy();
+      expect(diff).toContain('file2.txt');
+      expect(diff).toContain('new content');
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('createCommit', () => {
+  it('should return false for non-git directory', () => {
+    const tempDir = mkdtempSync(join(tmpdir(), 'not-git-'));
+    try {
+      const result = createCommit({ message: 'test', cwd: tempDir });
+      expect(result).toBe(false);
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it('should return false when no staged changes', () => {
+    const tempDir = realpathSync(mkdtempSync(join(tmpdir(), 'git-test-')));
+    try {
+      execSync('git init', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git config user.email "test@test.com"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git config user.name "Test User"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+
+      // Try to commit without any staged changes
+      const result = createCommit({ message: 'test commit', cwd: tempDir });
+      expect(result).toBe(false);
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it('should create commit with staged changes', () => {
+    const tempDir = realpathSync(mkdtempSync(join(tmpdir(), 'git-test-')));
+    try {
+      execSync('git init', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git config user.email "test@test.com"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git config user.name "Test User"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+
+      // Stage a file
+      writeFileSync(join(tempDir, 'file1.txt'), 'content1');
+      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+
+      const result = createCommit({ message: 'test commit', cwd: tempDir });
+      expect(result).toBe(true);
+
+      // Verify commit was created
+      const log = execSync('git log --oneline', {
+        cwd: tempDir,
+        stdio: 'pipe',
+        encoding: 'utf-8',
+      });
+      expect(log).toContain('test commit');
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it('should handle multiline commit messages', () => {
+    const tempDir = realpathSync(mkdtempSync(join(tmpdir(), 'git-test-')));
+    try {
+      execSync('git init', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git config user.email "test@test.com"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git config user.name "Test User"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+
+      // Stage a file
+      writeFileSync(join(tempDir, 'file1.txt'), 'content1');
+      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+
+      const message = 'feat(test): add feature\n\nThis is a longer description';
+      const result = createCommit({ message, cwd: tempDir });
+      expect(result).toBe(true);
+
+      // Verify commit message
+      const log = execSync('git log --format=%B -n 1', {
+        cwd: tempDir,
+        stdio: 'pipe',
+        encoding: 'utf-8',
+      });
+      expect(log.trim()).toBe(message);
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
     }

@@ -164,3 +164,128 @@ export function getCurrentBranch(cwd: string = process.cwd()): string | null {
     return null;
   }
 }
+
+/**
+ * Gets the staged diff from git.
+ * @param cwd - The directory to check. Defaults to process.cwd()
+ * @returns The staged diff as a string, or null if not in a git repo or no staged changes
+ */
+export function getStagedDiff(cwd: string = process.cwd()): string | null {
+  try {
+    if (!isGitRepo(cwd)) {
+      return null;
+    }
+
+    const result = execSync('git diff --cached', {
+      cwd: resolve(cwd),
+      stdio: 'pipe',
+      encoding: 'utf-8',
+    });
+
+    const diff = result.trim();
+    return diff.length > 0 ? diff : null;
+  } catch {
+    return null;
+  }
+}
+
+export interface GenerateCommitMessageOptions {
+  /** The directory to run git commands in. Defaults to process.cwd() */
+  cwd?: string;
+}
+
+/**
+ * Generates a commit message from staged changes using Claude CLI.
+ * @param options - Configuration options
+ * @returns The generated commit message, or null on error
+ * @throws Error if Claude CLI is not available or fails
+ */
+export function generateCommitMessage(
+  options: GenerateCommitMessageOptions = {}
+): string | null {
+  const { cwd = process.cwd() } = options;
+
+  try {
+    // Get staged diff
+    const diff = getStagedDiff(cwd);
+    if (!diff) {
+      return null;
+    }
+
+    // Prepare the prompt for Claude
+    const prompt = `Generate a commit message from the git diff provided via stdin.
+
+Output format: Plain text only. No markdown. No code blocks. No explanations.
+
+Start immediately with the commit message in Conventional Commits format:
+
+<type>(<scope>): <description>
+<optional body>
+
+Types: feat, fix, docs, style, refactor, perf, test, build, ci, chore
+
+Do not ask questions. Do not add commentary. Output only the commit message.`;
+
+    // Call Claude CLI with the diff as stdin
+    const result = execSync('claude -p', {
+      cwd: resolve(cwd),
+      input: `${prompt}\n\n${diff}`,
+      stdio: ['pipe', 'pipe', 'pipe'],
+      encoding: 'utf-8',
+    });
+
+    // Filter out any git diff metadata that might be in the output
+    const lines = result.split('\n');
+    const filteredLines = lines.filter(
+      (line) =>
+        !line.startsWith('diff --git') &&
+        !line.startsWith('new file mode') &&
+        !line.startsWith('deleted file mode') &&
+        !line.startsWith('index ')
+    );
+
+    return filteredLines.join('\n').trim();
+  } catch (error) {
+    // Check if it's a command not found error
+    if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+      throw new Error(
+        'Claude CLI not found. Please install it from https://github.com/anthropics/claude-cli'
+      );
+    }
+    throw error;
+  }
+}
+
+export interface CreateCommitOptions {
+  /** The commit message to use */
+  message: string;
+  /** The directory to run git commands in. Defaults to process.cwd() */
+  cwd?: string;
+}
+
+/**
+ * Creates a git commit with the provided message.
+ * @param options - Configuration options
+ * @returns true on success, false on error
+ */
+export function createCommit(options: CreateCommitOptions): boolean {
+  const { message, cwd = process.cwd() } = options;
+
+  try {
+    if (!isGitRepo(cwd)) {
+      return false;
+    }
+
+    // Use -F - to read message from stdin to handle multiline messages properly
+    execSync('git commit -F -', {
+      cwd: resolve(cwd),
+      input: message,
+      stdio: ['pipe', 'pipe', 'pipe'],
+      encoding: 'utf-8',
+    });
+
+    return true;
+  } catch {
+    return false;
+  }
+}
