@@ -21,7 +21,6 @@ src/
 ├── cli.ts              # CLI entry point with Commander.js
 ├── index.ts            # Library exports for programmatic use
 ├── commands/           # CLI command implementations
-│   ├── greet.ts        # Example command
 │   ├── git-check.ts    # Check if in git repo (exit code only)
 │   ├── git-root.ts     # Get git root path (outputs to stdout)
 │   └── git-changed.ts  # Show changed files
@@ -54,7 +53,7 @@ src/
 
 ### Testing
 - Write tests using Vitest
-- Place test files next to the code they test (e.g., `greet.ts` → `greet.test.ts`)
+- Place test files next to the code they test (e.g., `git.ts` → `git.test.ts`)
 - Use descriptive test names with `describe` and `it/test` blocks
 - Test both success and error cases
 - Mock external dependencies (like file system, git commands)

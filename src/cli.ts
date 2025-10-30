@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
-import { greet } from './commands/greet.js';
 import { gitCheck } from './commands/git-check.js';
 import { gitRoot } from './commands/git-root.js';
 import { gitChanged } from './commands/git-changed.js';
@@ -12,15 +11,6 @@ program
   .name('tsutils')
   .description('TypeScript command line utilities')
   .version('0.1.0');
-
-program
-  .command('greet')
-  .description('Greet a user')
-  .argument('[name]', 'name to greet', 'World')
-  .option('-u, --uppercase', 'convert greeting to uppercase')
-  .action((name: string, options: { uppercase?: boolean }) => {
-    greet(name, options.uppercase);
-  });
 
 // Git subcommand namespace
 const git = program.command('git').description('Git repository utilities');
