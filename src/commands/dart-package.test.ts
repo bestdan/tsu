@@ -59,4 +59,26 @@ describe('dartPackage', () => {
     );
     expect(consoleLogSpy).toHaveBeenCalledWith(fixtureDir);
   });
+
+  it('should show verbose error when file does not exist', () => {
+    expect(() => {
+      dartPackage('/fake/path/file.dart', { verbose: true });
+    }).toThrow('process.exit(1)');
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      expect.stringContaining('File not found')
+    );
+    expect(processExitSpy).toHaveBeenCalledWith(1);
+  });
+
+  it('should show verbose error when not in a Dart package', () => {
+    expect(() => {
+      dartPackage('/tmp', { verbose: true });
+    }).toThrow('process.exit(1)');
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      expect.stringContaining('Not inside a Dart package')
+    );
+    expect(processExitSpy).toHaveBeenCalledWith(1);
+  });
 });
