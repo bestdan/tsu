@@ -27,14 +27,6 @@ pnpm add -g github:bestdan/tsu
 yarn global add github:bestdan/tsu
 ```
 
-If you want to develop/contribute to it: 
-
-```bash
-git clone https://github.com/bestdan/tsu.git
-cd tsu
-pnpm install
-```
-
 ## Usage
 
 After building, link the package globally (`pnpm link --global`):
@@ -133,6 +125,8 @@ src/
     ├── git.ts             # Git utilities
     └── git.test.ts
 ```
+
+[Contributing](CONTRIBUTING.md)
 
 ## License
 

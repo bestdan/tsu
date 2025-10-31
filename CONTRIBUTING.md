@@ -1,6 +1,15 @@
 
 ## Development
 
+If you want to develop/contribute to it: 
+
+```bash
+git clone https://github.com/bestdan/tsu.git
+cd tsu
+pnpm install
+```
+
+
 Standard Typescript package commands: 
 
 ```bash
