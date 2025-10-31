@@ -14,100 +14,30 @@ This project uses:
 
 ## Installation
 
-```bash
-pnpm install
+For straight usage: 
+
+```bash 
+# Using npm:
+npm install -g github:bestdan/tsu
+
+# Using pnpm:
+pnpm add -g github:bestdan/tsu
+
+# Using yarn:
+yarn global add github:bestdan/tsu
 ```
 
-## Development
+If you want to develop/contribute to it: 
 
 ```bash
-# Build the project
-pnpm build
-
-# Watch mode for development
-pnpm dev
-
-# Run tests
-pnpm test
-
-# Run tests once
-pnpm test:run
-
-# Run tests with coverage (enforces coverage threshold)
-pnpm test:coverage
-
-# Lint code
-pnpm lint
-
-# Fix linting issues
-pnpm lint:fix
-
-# Format code
-pnpm format
-
-# Check formatting
-pnpm format:check
-
-# Type check without emitting
-pnpm typecheck
+git clone https://github.com/bestdan/tsu.git
+cd tsu
+pnpm install
 ```
 
 ## Usage
 
-After building, you can run the CLI:
-
-```bash
-# Check if current directory is in a git repository (exit code only)
-node dist/cli.js git check
-
-# Check if a specific path is in a git repository (exit code only)
-node dist/cli.js git check /path/to/directory
-
-# Get the git root directory (outputs path to stdout)
-node dist/cli.js git root
-
-# Get the git root of a specific path
-node dist/cli.js git root /path/to/directory
-
-# Show files changed compared to main branch (default)
-node dist/cli.js git changed
-
-# Show files changed compared to a specific branch
-node dist/cli.js git changed --base-branch develop
-
-# Show only staged changes
-node dist/cli.js git changed --staged
-
-# Show only unstaged changes
-node dist/cli.js git changed --unstaged
-
-# Show all changes (committed, staged, and unstaged)
-node dist/cli.js git changed --all
-
-# Add --verbose flag to see human-readable headers (output to stderr)
-node dist/cli.js git changed --verbose
-node dist/cli.js git check --verbose
-
-# Generate a commit message from staged changes using Claude
-node dist/cli.js git commit-msg
-
-# Generate and automatically create the commit
-node dist/cli.js git commit-msg --commit
-
-# Generate with verbose output
-node dist/cli.js git commit-msg --verbose
-
-# Generate a PR description from branch changes using Claude
-node dist/cli.js git pr-description
-
-# Generate PR description comparing to a different base branch
-node dist/cli.js git pr-description --base-branch develop
-
-# Generate with verbose output
-node dist/cli.js git pr-description --verbose
-```
-
-Or if you've linked the package globally (`pnpm link --global`):
+After building, link the package globally (`pnpm link --global`):
 
 ```bash
 tsutils git check
@@ -179,91 +109,9 @@ gh pr create --title "Feature: $(git branch --show-current)" --body "$(tsutils g
 - **`git pr-description`**: Generates a GitHub PR description from branch changes using Claude CLI. Outputs markdown description to stdout. Compares current branch to main (or `--base-branch`).
 - **`--verbose`**: All commands support this flag to show human-readable headers/messages to stderr (won't interfere with piping).
 
-### Available Utilities
-
-You can also import utilities directly in your TypeScript/JavaScript projects:
-
-```typescript
-import {
-  isGitRepo,
-  getGitRoot,
-  getChangedFiles,
-  getCurrentBranch,
-  getStagedDiff,
-  getBranchDiff,
-  isMainBranch,
-  generateCommitMessage,
-  generatePRDescription,
-  createCommit
-} from 'tsutils';
-
-// Check if current directory is in a git repo
-if (isGitRepo()) {
-  console.log('Git root:', getGitRoot());
-}
-
-// Check a specific directory
-if (isGitRepo('/some/path')) {
-  console.log('It is a git repo!');
-}
-
-// Get current branch name
-const branch = getCurrentBranch();
-console.log('Current branch:', branch);
-
-// Get committed changes compared to main
-const committedFiles = getChangedFiles({ type: 'committed', baseBranch: 'main' });
-console.log('Changed files:', committedFiles);
-
-// Get staged changes
-const stagedFiles = getChangedFiles({ type: 'staged' });
-console.log('Staged files:', stagedFiles);
-
-// Get unstaged changes
-const unstagedFiles = getChangedFiles({ type: 'unstaged' });
-console.log('Unstaged files:', unstagedFiles);
-
-// Get staged diff
-const diff = getStagedDiff();
-if (diff) {
-  console.log('Staged diff:', diff);
-}
-
-// Get branch diff
-const branchDiff = getBranchDiff('main');
-if (branchDiff) {
-  console.log('Changes since main:', branchDiff);
-}
-
-// Check if on main branch
-if (isMainBranch('main')) {
-  console.log('Currently on main branch');
-}
-
-// Generate commit message from staged changes (requires Claude CLI)
-const message = generateCommitMessage();
-if (message) {
-  console.log('Generated message:', message);
-
-  // Create the commit
-  const success = createCommit({ message });
-  if (success) {
-    console.log('Commit created!');
-  }
-}
-
-// Generate PR description from branch changes (requires Claude CLI)
-if (!isMainBranch('main')) {
-  const prDescription = generatePRDescription({ baseBranch: 'main' });
-  if (prDescription) {
-    console.log('PR Description:', prDescription);
-  }
-}
-```
-
 ## Requirements
 
-- **Node.js**: >=18.0.0
+- **Node.js**: >=22.0.0
 - **Claude CLI**: Required for `git commit-msg` command. Install from https://github.com/anthropics/claude-cli
 
 ## Project Structure
@@ -285,30 +133,6 @@ src/
     ├── git.ts             # Git utilities
     └── git.test.ts
 ```
-
-## Adding New Commands
-
-1. Create a new file in `src/commands/`
-2. Export your command function
-3. Add it to `src/cli.ts`
-4. Write tests in a `.test.ts` file
-5. Export utilities from `src/index.ts` if needed
-
-## Test Coverage
-
-This project enforces test coverage for all code. Coverage checks are:
-
-- **Runnable locally**: Use `pnpm test:coverage` to check coverage
-- **Enforced in CI**: The GitHub Actions workflow includes a coverage job that will fail if coverage drops below the threshold
-- **Coverage reports**: Generated in text, JSON, and HTML formats in the `coverage/` directory
-
-Coverage thresholds are configured in `vitest.config.ts` and currently require:
-- Statements: 77%
-- Branches: 65%
-- Functions: 77%
-- Lines: 77%
-
-The thresholds will be gradually increased as test coverage improves.
 
 ## License
 
