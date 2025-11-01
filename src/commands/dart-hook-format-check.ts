@@ -1,7 +1,7 @@
 import { execSync } from 'node:child_process';
 import {
   isGitRepo,
-  getChangedFiles,
+  getAllChangedFiles,
   hasUnstagedChanges,
 } from '../utils/git.js';
 import { isDartPackage } from '../utils/dart.js';
@@ -24,22 +24,6 @@ export interface DartHookFormatCheckOptions {
   verbose?: boolean;
   /** Suffixes to exclude from formatting. Defaults to COMMON_DART_CODEGEN_SUFFIXES */
   excludeSuffixes?: string[];
-}
-
-/**
- * Gets all changed files (committed, staged, and unstaged) combined into a single unique list.
- * @param cwd - The directory to run git commands in
- * @returns Array of unique file paths
- */
-function getAllChangedFiles(cwd: string): string[] {
-  const committedFiles = getChangedFiles({ type: 'committed', cwd }) || [];
-  const stagedFiles = getChangedFiles({ type: 'staged', cwd }) || [];
-  const unstagedFiles = getChangedFiles({ type: 'unstaged', cwd }) || [];
-
-  // Combine all changed files and remove duplicates
-  return Array.from(
-    new Set([...committedFiles, ...stagedFiles, ...unstagedFiles])
-  );
 }
 
 /**

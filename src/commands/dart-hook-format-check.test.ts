@@ -14,7 +14,7 @@ describe('dartHookFormatCheck', () => {
   let processExitSpy: any;
   let isGitRepoSpy: any;
   let isDartPackageSpy: any;
-  let getChangedFilesSpy: any;
+  let getAllChangedFilesSpy: any;
   let hasUnstagedChangesSpy: any;
 
   beforeEach(() => {
@@ -24,7 +24,7 @@ describe('dartHookFormatCheck', () => {
     });
     isGitRepoSpy = vi.spyOn(gitUtils, 'isGitRepo');
     isDartPackageSpy = vi.spyOn(dartUtils, 'isDartPackage');
-    getChangedFilesSpy = vi.spyOn(gitUtils, 'getChangedFiles');
+    getAllChangedFilesSpy = vi.spyOn(gitUtils, 'getAllChangedFiles');
     hasUnstagedChangesSpy = vi.spyOn(gitUtils, 'hasUnstagedChanges');
   });
 
@@ -33,7 +33,7 @@ describe('dartHookFormatCheck', () => {
     processExitSpy.mockRestore();
     isGitRepoSpy.mockRestore();
     isDartPackageSpy.mockRestore();
-    getChangedFilesSpy.mockRestore();
+    getAllChangedFilesSpy.mockRestore();
     hasUnstagedChangesSpy.mockRestore();
     vi.clearAllMocks();
   });
@@ -68,7 +68,7 @@ describe('dartHookFormatCheck', () => {
   it('should exit with success if no Dart source files modified', () => {
     isGitRepoSpy.mockReturnValue(true);
     isDartPackageSpy.mockReturnValue(true);
-    getChangedFilesSpy.mockReturnValue([]);
+    getAllChangedFilesSpy.mockReturnValue([]);
 
     expect(() => {
       dartHookFormatCheck({ verbose: true });
@@ -83,7 +83,7 @@ describe('dartHookFormatCheck', () => {
   it('should exit with success if only generated files are modified', () => {
     isGitRepoSpy.mockReturnValue(true);
     isDartPackageSpy.mockReturnValue(true);
-    getChangedFilesSpy.mockReturnValue([
+    getAllChangedFilesSpy.mockReturnValue([
       'lib/models/user.g.dart',
       'lib/models/user.freezed.dart',
       'lib/graphql/query.gql.dart',
@@ -102,7 +102,7 @@ describe('dartHookFormatCheck', () => {
   it('should format files and exit with success if no changes needed', () => {
     isGitRepoSpy.mockReturnValue(true);
     isDartPackageSpy.mockReturnValue(true);
-    getChangedFilesSpy.mockReturnValue(['lib/user.dart', 'lib/main.dart']);
+    getAllChangedFilesSpy.mockReturnValue(['lib/user.dart', 'lib/main.dart']);
     hasUnstagedChangesSpy.mockReturnValue(false); // No unstaged changes
 
     // Mock execSync for dart format
@@ -127,7 +127,7 @@ describe('dartHookFormatCheck', () => {
   it('should exit with error if formatting creates changes', () => {
     isGitRepoSpy.mockReturnValue(true);
     isDartPackageSpy.mockReturnValue(true);
-    getChangedFilesSpy.mockReturnValue(['lib/user.dart']);
+    getAllChangedFilesSpy.mockReturnValue(['lib/user.dart']);
     hasUnstagedChangesSpy.mockReturnValue(true); // Has unstaged changes
 
     // Mock execSync for dart format
@@ -154,7 +154,7 @@ describe('dartHookFormatCheck', () => {
   it('should handle multiple files with changes', () => {
     isGitRepoSpy.mockReturnValue(true);
     isDartPackageSpy.mockReturnValue(true);
-    getChangedFilesSpy.mockReturnValue([
+    getAllChangedFilesSpy.mockReturnValue([
       'lib/user.dart',
       'lib/main.dart',
       'lib/utils.dart',

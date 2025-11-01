@@ -144,6 +144,22 @@ export function getChangedFiles(
 }
 
 /**
+ * Gets all changed files (committed, staged, and unstaged) combined into a single unique list.
+ * @param cwd - The directory to run git commands in. Defaults to process.cwd()
+ * @returns Array of unique file paths
+ */
+export function getAllChangedFiles(cwd: string = process.cwd()): string[] {
+  const committedFiles = getChangedFiles({ type: 'committed', cwd }) || [];
+  const stagedFiles = getChangedFiles({ type: 'staged', cwd }) || [];
+  const unstagedFiles = getChangedFiles({ type: 'unstaged', cwd }) || [];
+
+  // Combine all changed files and remove duplicates
+  return Array.from(
+    new Set([...committedFiles, ...stagedFiles, ...unstagedFiles])
+  );
+}
+
+/**
  * Gets the current git branch name.
  * @param cwd - The directory to check. Defaults to process.cwd()
  * @returns The branch name, or null if not in a git repo

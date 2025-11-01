@@ -5,6 +5,7 @@ export {
   isGitRepo,
   getGitRoot,
   getChangedFiles,
+  getAllChangedFiles,
   getCurrentBranch,
   getStagedDiff,
   getBranchDiff,
