@@ -8,6 +8,16 @@ export interface DartHookFormatCheckOptions {
 }
 
 /**
+ * Escapes a shell argument to prevent injection attacks.
+ * @param arg - The argument to escape
+ * @returns The escaped argument
+ */
+function escapeShellArg(arg: string): string {
+  // Replace single quotes with '\'' (end quote, escaped quote, start quote)
+  return "'" + arg.replace(/'/g, "'\\''") + "'";
+}
+
+/**
  * Checks if a file has unstaged changes in git.
  * @param file - The file path to check
  * @param cwd - The directory to run git commands in
@@ -15,7 +25,7 @@ export interface DartHookFormatCheckOptions {
  */
 function hasUnstagedChanges(file: string, cwd: string): boolean {
   try {
-    execSync(`git diff --quiet "${file}"`, {
+    execSync(`git diff --quiet -- ${escapeShellArg(file)}`, {
       cwd,
       stdio: 'pipe',
     });
@@ -87,7 +97,7 @@ export function dartHookFormatCheck(
 
   // Format the files
   try {
-    const fileArgs = modifiedFiles.map((f) => `"${f}"`).join(' ');
+    const fileArgs = modifiedFiles.map(escapeShellArg).join(' ');
     execSync(`dart format ${fileArgs}`, {
       cwd,
       stdio: 'pipe',
