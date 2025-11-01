@@ -9,6 +9,57 @@ cd tsu
 pnpm install
 ```
 
+## Git Hooks (Lefthook)
+
+This project uses [Lefthook](https://github.com/evilmartians/lefthook) to manage git hooks. After running `pnpm install`, the hooks will be automatically installed.
+
+**Pre-push Hook:**
+Before you push to the repository, the pre-push hook will automatically run:
+- **Lint** - Check only changed TypeScript files for linting errors using `pnpm eslint`
+- **Typecheck** - Verify TypeScript types only if TypeScript files changed using `pnpm typecheck`
+- **Build** - Ensure the project builds successfully using `pnpm build`
+
+These commands run in parallel to save time. If any of these checks fail, the push will be prevented.
+
+To run in verbose mode, with dry-run
+```bash
+LEFTHOOK_VERBOSE=1 git push --dry-run
+```
+
+To bypass the hook in case of emergency (not recommended):
+```bash
+git push --no-verify
+```
+
+### Customizing Hooks Locally
+
+You can skip specific checks by creating a `.lefthook-local.yml` file in the project root (this file is gitignored):
+
+**Skip the build check:**
+```yaml
+# .lefthook-local.yml
+pre-push:
+  commands:
+    build:
+      skip: true
+```
+
+**Skip multiple checks:**
+```yaml
+# .lefthook-local.yml
+pre-push:
+  commands:
+    build:
+      skip: true
+    typecheck:
+      skip: true
+```
+
+**Enable verbose output:**
+```bash
+LEFTHOOK_VERBOSE=1 git push
+```
+
 
 Standard Typescript package commands: 
 

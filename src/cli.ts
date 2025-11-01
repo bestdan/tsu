@@ -84,17 +84,16 @@ git
   .command('is-main')
   .description('Check if current branch is main (exit code only)')
   .argument('[path]', 'path to check (defaults to current directory)')
-  .option(
-    '-b, --branch <name>',
-    'main branch name to check against',
-    'main'
-  )
+  .option('-b, --branch <name>', 'main branch name to check against', 'main')
   .option(
     '-v, --verbose',
     'show human-readable status messages (output to stderr)'
   )
   .action(
-    (path: string | undefined, options: { verbose?: boolean; branch?: string }) => {
+    (
+      path: string | undefined,
+      options: { verbose?: boolean; branch?: string }
+    ) => {
       gitIsMain(path, options);
     }
   );
@@ -102,7 +101,10 @@ git
 git
   .command('commit-msg')
   .description('Generate a commit message from staged changes using Claude')
-  .option('-c, --commit', 'automatically create the commit with generated message')
+  .option(
+    '-c, --commit',
+    'automatically create the commit with generated message'
+  )
   .option('-v, --verbose', 'show progress messages (output to stderr)')
   .action((options: { commit?: boolean; verbose?: boolean }) => {
     gitCommitMsg(options);
@@ -124,14 +126,21 @@ git
   });
 
 // Files subcommand namespace
-const files = program.command('files').description('File manipulation utilities');
+const files = program
+  .command('files')
+  .description('File manipulation utilities');
 
-const filesFilterCmd = files.command('filter').description('Filter files from stdin');
+const filesFilterCmd = files
+  .command('filter')
+  .description('Filter files from stdin');
 
 filesFilterCmd
   .command('suffix')
   .description('Filter files by removing those matching suffix patterns')
-  .argument('<suffixes...>', 'suffix patterns to filter out (e.g., .g.dart .gql.dart)')
+  .argument(
+    '<suffixes...>',
+    'suffix patterns to filter out (e.g., .g.dart .gql.dart)'
+  )
   .option('-v, --verbose', 'show filter statistics (output to stderr)')
   .action((suffixes: string[], options: { verbose?: boolean }) => {
     filesFilter(suffixes, options);
@@ -165,7 +174,9 @@ dart
 
 dart
   .command('package')
-  .description('Get the package root containing a specific file (useful in mono-repos)')
+  .description(
+    'Get the package root containing a specific file (useful in mono-repos)'
+  )
   .argument('<file>', 'path to the file')
   .option('-v, --verbose', 'show human-readable label (output to stderr)')
   .action((file: string, options: { verbose?: boolean }) => {
@@ -212,7 +223,10 @@ dartChangedCmd
     'main'
   )
   .option('--relative', 'output relative paths instead of absolute paths')
-  .option('-v, --verbose', 'show detailed progress information (output to stderr)')
+  .option(
+    '-v, --verbose',
+    'show detailed progress information (output to stderr)'
+  )
   .action(
     (options: {
       staged?: boolean;

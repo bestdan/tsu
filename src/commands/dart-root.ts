@@ -7,7 +7,10 @@ export interface DartRootOptions {
 /**
  * Get the root directory of the Dart package
  */
-export function dartRoot(path: string | undefined, options: DartRootOptions): void {
+export function dartRoot(
+  path: string | undefined,
+  options: DartRootOptions
+): void {
   const cwd = path || process.cwd();
   const root = findDartPackageRoot(cwd);
 
