@@ -16,7 +16,6 @@ import { dartChangedDownstream } from './commands/dart-changed-downstream.js';
 
 const program = new Command();
 
-// just testing lint error
 program
   .name('tsutils')
   .description('TypeScript command line utilities')
