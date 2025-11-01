@@ -9,7 +9,7 @@ cd tsu
 pnpm install
 ```
 
-### Git Hooks
+## Git Hooks (Lefthook)
 
 This project uses [Lefthook](https://github.com/evilmartians/lefthook) to manage git hooks. After running `pnpm install`, the hooks will be automatically installed.
 
@@ -21,11 +21,6 @@ Before you push to the repository, the pre-push hook will automatically run:
 
 These commands run in parallel to save time. If any of these checks fail, the push will be prevented.
 
-To run in verbose mode:
-```bash
-LEFTHOOK_VERBOSE=1 git push 
-```
-
 To run in verbose mode, with dry-run
 ```bash
 LEFTHOOK_VERBOSE=1 git push --dry-run
@@ -34,6 +29,35 @@ LEFTHOOK_VERBOSE=1 git push --dry-run
 To bypass the hook in case of emergency (not recommended):
 ```bash
 git push --no-verify
+```
+
+### Customizing Hooks Locally
+
+You can skip specific checks by creating a `.lefthook-local.yml` file in the project root (this file is gitignored):
+
+**Skip the build check:**
+```yaml
+# .lefthook-local.yml
+pre-push:
+  commands:
+    build:
+      skip: true
+```
+
+**Skip multiple checks:**
+```yaml
+# .lefthook-local.yml
+pre-push:
+  commands:
+    build:
+      skip: true
+    typecheck:
+      skip: true
+```
+
+**Enable verbose output:**
+```bash
+LEFTHOOK_VERBOSE=1 git push
 ```
 
 
