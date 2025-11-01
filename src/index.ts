@@ -12,12 +12,16 @@ export {
   generateCommitMessage,
   generatePRDescription,
   createCommit,
+  hasUnstagedChanges,
   type ChangeType,
   type GetChangedFilesOptions,
   type GenerateCommitMessageOptions,
   type GeneratePRDescriptionOptions,
   type CreateCommitOptions,
 } from './utils/git.js';
+
+// Shell utilities
+export { escapeShellArg } from './utils/shell.js';
 
 // File utilities
 export { filterFilesBySuffix } from './utils/files.js';
@@ -29,3 +33,10 @@ export {
   isDartPackage,
   findAllDartFiles,
 } from './utils/dart.js';
+
+// Dart hook utilities
+export {
+  dartHookFormatCheck,
+  COMMON_DART_CODEGEN_SUFFIXES,
+  type DartHookFormatCheckOptions,
+} from './commands/dart-hook-format-check.js';

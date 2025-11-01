@@ -1,6 +1,7 @@
 import { execSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { escapeShellArg } from './shell.js';
 
 /**
  * Checks if the given directory (or current working directory) is inside a git repository.
@@ -417,5 +418,30 @@ export function createCommit(options: CreateCommitOptions): boolean {
     return true;
   } catch {
     return false;
+  }
+}
+
+/**
+ * Checks if a file has unstaged changes in git.
+ * @param file - The file path to check (relative to cwd)
+ * @param cwd - The directory to run git commands in. Defaults to process.cwd()
+ * @returns true if the file has unstaged changes, false otherwise
+ */
+export function hasUnstagedChanges(
+  file: string,
+  cwd: string = process.cwd()
+): boolean {
+  try {
+    if (!isGitRepo(cwd)) {
+      return false;
+    }
+
+    execSync(`git diff --quiet -- ${escapeShellArg(file)}`, {
+      cwd: resolve(cwd),
+      stdio: 'pipe',
+    });
+    return false; // No changes
+  } catch {
+    return true; // Has changes
   }
 }

@@ -15,6 +15,7 @@ describe('dartHookFormatCheck', () => {
   let isGitRepoSpy: any;
   let isDartPackageSpy: any;
   let getChangedFilesSpy: any;
+  let hasUnstagedChangesSpy: any;
 
   beforeEach(() => {
     consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -24,6 +25,7 @@ describe('dartHookFormatCheck', () => {
     isGitRepoSpy = vi.spyOn(gitUtils, 'isGitRepo');
     isDartPackageSpy = vi.spyOn(dartUtils, 'isDartPackage');
     getChangedFilesSpy = vi.spyOn(gitUtils, 'getChangedFiles');
+    hasUnstagedChangesSpy = vi.spyOn(gitUtils, 'hasUnstagedChanges');
   });
 
   afterEach(() => {
@@ -32,6 +34,7 @@ describe('dartHookFormatCheck', () => {
     isGitRepoSpy.mockRestore();
     isDartPackageSpy.mockRestore();
     getChangedFilesSpy.mockRestore();
+    hasUnstagedChangesSpy.mockRestore();
     vi.clearAllMocks();
   });
 
@@ -100,15 +103,12 @@ describe('dartHookFormatCheck', () => {
     isGitRepoSpy.mockReturnValue(true);
     isDartPackageSpy.mockReturnValue(true);
     getChangedFilesSpy.mockReturnValue(['lib/user.dart', 'lib/main.dart']);
+    hasUnstagedChangesSpy.mockReturnValue(false); // No unstaged changes
 
     // Mock execSync for dart format
     const execSyncMock = vi.mocked(execSync);
     execSyncMock.mockImplementation((cmd) => {
       if (typeof cmd === 'string' && cmd.startsWith('dart format')) {
-        return Buffer.from('');
-      }
-      if (typeof cmd === 'string' && cmd.startsWith('git diff --quiet')) {
-        // No changes - exit 0 (but we check this by not throwing)
         return Buffer.from('');
       }
       return Buffer.from('');
@@ -128,16 +128,13 @@ describe('dartHookFormatCheck', () => {
     isGitRepoSpy.mockReturnValue(true);
     isDartPackageSpy.mockReturnValue(true);
     getChangedFilesSpy.mockReturnValue(['lib/user.dart']);
+    hasUnstagedChangesSpy.mockReturnValue(true); // Has unstaged changes
 
-    // Mock execSync
+    // Mock execSync for dart format
     const execSyncMock = vi.mocked(execSync);
     execSyncMock.mockImplementation((cmd) => {
       if (typeof cmd === 'string' && cmd.startsWith('dart format')) {
         return Buffer.from('');
-      }
-      if (typeof cmd === 'string' && cmd.startsWith('git diff --quiet')) {
-        // Has changes - throw error (exit 1)
-        throw new Error('git diff detected changes');
       }
       return Buffer.from('');
     });
@@ -162,16 +159,13 @@ describe('dartHookFormatCheck', () => {
       'lib/main.dart',
       'lib/utils.dart',
     ]);
+    hasUnstagedChangesSpy.mockReturnValue(true); // Has unstaged changes
 
-    // Mock execSync
+    // Mock execSync for dart format
     const execSyncMock = vi.mocked(execSync);
     execSyncMock.mockImplementation((cmd) => {
       if (typeof cmd === 'string' && cmd.startsWith('dart format')) {
         return Buffer.from('');
-      }
-      if (typeof cmd === 'string' && cmd.startsWith('git diff --quiet')) {
-        // Has changes - throw error (exit 1)
-        throw new Error('git diff detected changes');
       }
       return Buffer.from('');
     });

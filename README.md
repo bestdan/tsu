@@ -98,31 +98,6 @@ tsutils git pr-description > pr-description.md
 
 # Use PR description with gh CLI to create PR
 gh pr create --title "Feature: $(git branch --show-current)" --body "$(tsutils git pr-description)"
-
-# Check if Dart files are properly formatted (for git hooks)
-tsutils dart hook format check
-```
-
-### Dart Hook Format Check
-
-The `dart hook format check` command replicates the functionality of a pre-push hook for Dart projects. It:
-
-1. Gets all modified Dart files (excluding generated files like `.g.dart`, `.freezed.dart`, `.gql.dart`, etc.)
-2. Runs `dart format` on those files
-3. Checks if formatting created any changes
-4. Exits with error (exit code 1) if files were formatted, prompting you to commit the changes
-
-This is ideal for use in git hooks (e.g., pre-push) to ensure all Dart code is properly formatted before pushing:
-
-```bash
-# In your .git/hooks/pre-push or lefthook.yml
-tsu dart hook format check --verbose
-
-# Or in a shell script
-if ! tsu dart hook format check; then
-  echo "Please commit the formatting changes before pushing"
-  exit 1
-fi
 ```
 
 **Command Design for Piping:**

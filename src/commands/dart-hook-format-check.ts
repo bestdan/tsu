@@ -1,38 +1,29 @@
 import { execSync } from 'node:child_process';
-import { isGitRepo, getChangedFiles } from '../utils/git.js';
+import {
+  isGitRepo,
+  getChangedFiles,
+  hasUnstagedChanges,
+} from '../utils/git.js';
 import { isDartPackage } from '../utils/dart.js';
 import { filterFilesBySuffix } from '../utils/files.js';
+import { escapeShellArg } from '../utils/shell.js';
+
+/**
+ * Common Dart code generation file suffixes.
+ * These files are typically auto-generated and should be excluded from formatting checks.
+ */
+export const COMMON_DART_CODEGEN_SUFFIXES = [
+  '.g.dart',
+  '.freezed.dart',
+  '.gql.dart',
+  '.fakes.dart',
+  '.golden.dart',
+] as const;
 
 export interface DartHookFormatCheckOptions {
   verbose?: boolean;
-}
-
-/**
- * Escapes a shell argument to prevent injection attacks.
- * @param arg - The argument to escape
- * @returns The escaped argument
- */
-function escapeShellArg(arg: string): string {
-  // Replace single quotes with '\'' (end quote, escaped quote, start quote)
-  return "'" + arg.replace(/'/g, "'\\''") + "'";
-}
-
-/**
- * Checks if a file has unstaged changes in git.
- * @param file - The file path to check
- * @param cwd - The directory to run git commands in
- * @returns true if the file has unstaged changes, false otherwise
- */
-function hasUnstagedChanges(file: string, cwd: string): boolean {
-  try {
-    execSync(`git diff --quiet -- ${escapeShellArg(file)}`, {
-      cwd,
-      stdio: 'pipe',
-    });
-    return false; // No changes
-  } catch {
-    return true; // Has changes
-  }
+  /** Suffixes to exclude from formatting. Defaults to COMMON_DART_CODEGEN_SUFFIXES */
+  excludeSuffixes?: string[];
 }
 
 /**
@@ -47,6 +38,9 @@ export function dartHookFormatCheck(
   options: DartHookFormatCheckOptions = {}
 ): void {
   const verbose = options.verbose || false;
+  const excludeSuffixes = options.excludeSuffixes || [
+    ...COMMON_DART_CODEGEN_SUFFIXES,
+  ];
 
   if (verbose) {
     console.error('🎨 Running dart format on modified files...');
@@ -79,14 +73,7 @@ export function dartHookFormatCheck(
   const dartFiles = allChangedFiles.filter((file) => file.endsWith('.dart'));
 
   // Filter out generated files
-  const generatedSuffixes = [
-    '.g.dart',
-    '.freezed.dart',
-    '.gql.dart',
-    '.fakes.dart',
-    '.golden.dart',
-  ];
-  const modifiedFiles = filterFilesBySuffix(dartFiles, generatedSuffixes);
+  const modifiedFiles = filterFilesBySuffix(dartFiles, excludeSuffixes);
 
   if (modifiedFiles.length === 0) {
     if (verbose) {
