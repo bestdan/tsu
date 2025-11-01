@@ -1,0 +1,12 @@
+# Lefthook configuration
+# See https://github.com/evilmartians/lefthook for documentation
+
+pre-push:
+  parallel: true
+  commands:
+    lint:
+      run: pnpm lint
+    typecheck:
+      run: pnpm typecheck
+    build:
+      run: pnpm build
