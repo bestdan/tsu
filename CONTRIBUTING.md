@@ -9,6 +9,23 @@ cd tsu
 pnpm install
 ```
 
+### Git Hooks
+
+This project uses [Lefthook](https://github.com/evilmartians/lefthook) to manage git hooks. After running `pnpm install`, the hooks will be automatically installed.
+
+**Pre-push Hook:**
+Before you push to the repository, the pre-push hook will automatically run:
+- `pnpm lint` - Check code for linting errors
+- `pnpm typecheck` - Verify TypeScript types
+- `pnpm build` - Ensure the project builds successfully
+
+These commands run in parallel to save time. If any of these checks fail, the push will be prevented.
+
+To bypass the hook in case of emergency (not recommended):
+```bash
+git push --no-verify
+```
+
 
 Standard Typescript package commands: 
 
