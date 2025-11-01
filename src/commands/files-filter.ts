@@ -60,7 +60,9 @@ export function filesFilter(
   // Handle case where stdin is not piped (TTY)
   if (stdin.isTTY) {
     console.error('Error: This command expects input from stdin (pipe)');
-    console.error('Usage: tsutils git changed | tsutils files filter suffix .g.dart');
+    console.error(
+      'Usage: tsutils git changed | tsutils files filter suffix .g.dart'
+    );
     process.exit(1);
   }
 }

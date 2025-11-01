@@ -7,7 +7,9 @@ import { execSync } from 'node:child_process';
  * @param startPath - Path to start searching from (defaults to current directory)
  * @returns Path to the directory containing pubspec.yaml, or null if not found
  */
-export function findDartPackageRoot(startPath: string = process.cwd()): string | null {
+export function findDartPackageRoot(
+  startPath: string = process.cwd()
+): string | null {
   let currentPath = resolve(startPath);
   const root = resolve('/');
 
@@ -29,7 +31,10 @@ export function findDartPackageRoot(startPath: string = process.cwd()): string |
  * @param workspaceRoot - Root of the workspace to search within
  * @returns Path to the package containing the file
  */
-export function findFilePackageRoot(filePath: string, workspaceRoot: string): string {
+export function findFilePackageRoot(
+  filePath: string,
+  workspaceRoot: string
+): string {
   let currentPath = dirname(filePath);
   const root = resolve('/');
 
@@ -61,7 +66,10 @@ export function isDartPackage(cwd: string = process.cwd()): boolean {
  * @param packageRoot - Root directory of the Dart package
  * @returns Array of imported file paths (resolved where possible)
  */
-export function extractImports(filePath: string, packageRoot: string): string[] {
+export function extractImports(
+  filePath: string,
+  packageRoot: string
+): string[] {
   if (!existsSync(filePath)) {
     return [];
   }
@@ -99,7 +107,12 @@ export function extractImports(filePath: string, packageRoot: string): string[] 
         // package:features/account/foo.dart -> features/lib/account/foo.dart
 
         // 1. Try subdirectory package with lib (like features/lib/)
-        const subPackageWithLib = resolve(packageRoot, packageName, 'lib', packagePath);
+        const subPackageWithLib = resolve(
+          packageRoot,
+          packageName,
+          'lib',
+          packagePath
+        );
         if (existsSync(subPackageWithLib)) {
           imports.push(`${packageName}/lib/${packagePath}`);
           continue;
@@ -155,7 +168,9 @@ export function resolveImportPath(
  * @param rootDir - Root directory to search (defaults to current directory)
  * @returns Array of absolute paths to Dart files, or null on error
  */
-export function findAllDartFiles(rootDir: string = process.cwd()): string[] | null {
+export function findAllDartFiles(
+  rootDir: string = process.cwd()
+): string[] | null {
   try {
     // Find all .dart files, excluding common directories like .dart_tool, build, .symlinks
     const output = execSync(

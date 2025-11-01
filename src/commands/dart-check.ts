@@ -7,7 +7,10 @@ export interface DartCheckOptions {
 /**
  * Check if current directory is in a Dart package (exit code only)
  */
-export function dartCheck(path: string | undefined, options: DartCheckOptions): void {
+export function dartCheck(
+  path: string | undefined,
+  options: DartCheckOptions
+): void {
   const cwd = path || process.cwd();
   const isPackage = isDartPackage(cwd);
 

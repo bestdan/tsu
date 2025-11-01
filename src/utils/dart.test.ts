@@ -95,7 +95,7 @@ describe('extractImports', () => {
     const imports = extractImports(mainFile, fixtureDir);
 
     // Should not contain any dart: imports
-    const dartImports = imports.filter(imp => imp.startsWith('dart:'));
+    const dartImports = imports.filter((imp) => imp.startsWith('dart:'));
     expect(dartImports).toHaveLength(0);
   });
 
@@ -114,7 +114,10 @@ describe('extractImports', () => {
   });
 
   it('should handle non-standard package structures', () => {
-    const nonstandardDir = resolve(__dirname, '../__fixtures__/dart-nonstandard');
+    const nonstandardDir = resolve(
+      __dirname,
+      '../__fixtures__/dart-nonstandard'
+    );
     const mainFile = join(nonstandardDir, 'main.dart');
     const imports = extractImports(mainFile, nonstandardDir);
 
@@ -149,7 +152,7 @@ describe('findAllDartFiles', () => {
     expect(files!.length).toBeGreaterThan(0);
 
     // Check that it found our test files
-    const fileNames = files!.map(f => f.split('/').pop());
+    const fileNames = files!.map((f) => f.split('/').pop());
     expect(fileNames).toContain('main.dart');
     expect(fileNames).toContain('user.dart');
     expect(fileNames).toContain('auth.dart');
@@ -159,7 +162,9 @@ describe('findAllDartFiles', () => {
 
   it('should return null for errors', () => {
     // This might not error on all systems, but if it does, should return null
-    const files = findAllDartFiles('/this/path/definitely/does/not/exist/12345');
+    const files = findAllDartFiles(
+      '/this/path/definitely/does/not/exist/12345'
+    );
     expect(files === null || Array.isArray(files)).toBe(true);
   });
 
@@ -184,7 +189,7 @@ describe('buildDependencyGraph', () => {
     expect(graph.size).toBeGreaterThan(0);
 
     // Find main.dart in the graph
-    const mainFile = files!.find(f => f.endsWith('lib/main.dart'));
+    const mainFile = files!.find((f) => f.endsWith('lib/main.dart'));
     expect(mainFile).toBeDefined();
 
     const mainDeps = graph.get(mainFile!);
@@ -204,7 +209,7 @@ describe('buildReverseDependencyGraph', () => {
     expect(reverseGraph.size).toBe(graph.size);
 
     // user.dart should be imported by main.dart and auth.dart
-    const userFile = files!.find(f => f.endsWith('models/user.dart'));
+    const userFile = files!.find((f) => f.endsWith('models/user.dart'));
     expect(userFile).toBeDefined();
 
     const userImporters = reverseGraph.get(userFile!);
@@ -218,13 +223,13 @@ describe('buildReverseDependencyGraph', () => {
     const file1 = '/path/to/file1.dart';
     const file2 = '/path/to/file2.dart';
     const file3 = '/path/to/file3.dart';
-    
+
     // file1 imports file2 and file3, but file3 is not in the graph keys
     graph.set(file1, [file2, file3]);
     graph.set(file2, []);
-    
+
     const reverseGraph = buildReverseDependencyGraph(graph);
-    
+
     // file3 should be in the reverse graph even though it wasn't a key in original
     expect(reverseGraph.has(file3)).toBe(true);
     expect(reverseGraph.get(file3)).toEqual([file1]);
@@ -240,7 +245,7 @@ describe('findDownstreamDependencies', () => {
     const reverseGraph = buildReverseDependencyGraph(graph);
 
     // Find dependencies of user.dart
-    const userFile = files!.find(f => f.endsWith('models/user.dart'));
+    const userFile = files!.find((f) => f.endsWith('models/user.dart'));
     expect(userFile).toBeDefined();
 
     const downstream = findDownstreamDependencies([userFile!], reverseGraph);
@@ -249,8 +254,10 @@ describe('findDownstreamDependencies', () => {
     expect(downstream.size).toBeGreaterThan(0);
 
     const downstreamArray = Array.from(downstream);
-    const hasMain = downstreamArray.some(f => f.endsWith('lib/main.dart'));
-    const hasAuth = downstreamArray.some(f => f.endsWith('services/auth.dart'));
+    const hasMain = downstreamArray.some((f) => f.endsWith('lib/main.dart'));
+    const hasAuth = downstreamArray.some((f) =>
+      f.endsWith('services/auth.dart')
+    );
 
     expect(hasMain || hasAuth).toBe(true);
   });
@@ -263,7 +270,7 @@ describe('findDownstreamDependencies', () => {
     const reverseGraph = buildReverseDependencyGraph(graph);
 
     // main.dart typically has no downstream dependencies (nothing imports it)
-    const mainFile = files!.find(f => f.endsWith('lib/main.dart'));
+    const mainFile = files!.find((f) => f.endsWith('lib/main.dart'));
     expect(mainFile).toBeDefined();
 
     const downstream = findDownstreamDependencies([mainFile!], reverseGraph);

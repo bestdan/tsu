@@ -9,7 +9,10 @@ export interface DartPackageOptions {
 /**
  * Get the package root that contains a specific file (useful in mono-repos)
  */
-export function dartPackage(filePath: string, options: DartPackageOptions): void {
+export function dartPackage(
+  filePath: string,
+  options: DartPackageOptions
+): void {
   const absolutePath = resolve(filePath);
 
   if (!existsSync(absolutePath)) {
