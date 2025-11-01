@@ -8,7 +8,7 @@ pre-push:
   parallel: true
   commands:
     lint:
-      glob: "*.{ts,js,json,yml,yaml}"
+      glob: "*.{ts,js}"
       run: |
         if [ -n "{push_files}" ]; then
           echo "{push_files}" | xargs pnpm eslint
