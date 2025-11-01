@@ -5,8 +5,46 @@ pre-push:
   parallel: true
   commands:
     lint:
-      run: pnpm lint
+      glob: "*.{ts,js,json,yml,yaml,md}"
+      run: |
+        # Get TypeScript files changed using TSU utilities
+        # Compare current HEAD against the tracking branch or use git diff
+        REMOTE_BRANCH=$(git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null || echo "")
+        if [ -n "$REMOTE_BRANCH" ]; then
+          # If we have a tracking branch, diff against it
+          CHANGED_FILES=$(git diff --name-only "$REMOTE_BRANCH"...HEAD || true)
+        else
+          # Otherwise use TSU to get all uncommitted and committed changes
+          CHANGED_FILES=$(node dist/cli.js git changed --all | sed 's/^[^:]*://' || true)
+        fi
+        
+        # Filter to only .ts files using TSU utilities
+        CHANGED_TS_FILES=$(echo "$CHANGED_FILES" | node dist/cli.js files filter suffix .js .json .md .yml .yaml || true)
+        
+        if [ -n "$CHANGED_TS_FILES" ]; then
+          echo "$CHANGED_TS_FILES" | xargs pnpm eslint
+        else
+          echo "No TypeScript files changed, skipping lint"
+        fi
     typecheck:
-      run: pnpm typecheck
+      glob: "*.{ts,js,json,yml,yaml,md}"
+      run: |
+        # Only run typecheck if TypeScript files changed
+        REMOTE_BRANCH=$(git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null || echo "")
+        if [ -n "$REMOTE_BRANCH" ]; then
+          CHANGED_FILES=$(git diff --name-only "$REMOTE_BRANCH"...HEAD || true)
+        else
+          CHANGED_FILES=$(node dist/cli.js git changed --all | sed 's/^[^:]*://' || true)
+        fi
+        
+        # Filter to only .ts files using TSU utilities
+        CHANGED_TS_FILES=$(echo "$CHANGED_FILES" | node dist/cli.js files filter suffix .js .json .md .yml .yaml || true)
+        
+        if [ -n "$CHANGED_TS_FILES" ]; then
+          pnpm typecheck
+        else
+          echo "No TypeScript files changed, skipping typecheck"
+        fi
     build:
+      glob: "*.{ts,js,json,yml,yaml,md}"
       run: pnpm build

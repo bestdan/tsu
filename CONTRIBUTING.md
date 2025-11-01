@@ -15,9 +15,11 @@ This project uses [Lefthook](https://github.com/evilmartians/lefthook) to manage
 
 **Pre-push Hook:**
 Before you push to the repository, the pre-push hook will automatically run:
-- `pnpm lint` - Check code for linting errors
-- `pnpm typecheck` - Verify TypeScript types
-- `pnpm build` - Ensure the project builds successfully
+- **Lint** - Check only changed TypeScript files for linting errors using `pnpm eslint`
+- **Typecheck** - Verify TypeScript types only if TypeScript files changed using `pnpm typecheck`
+- **Build** - Ensure the project builds successfully using `pnpm build`
+
+The hook uses TSU's own utilities (`git changed` and `files filter`) to intelligently detect which files have changed and only lint/typecheck those files, making the checks faster as the project grows.
 
 These commands run in parallel to save time. If any of these checks fail, the push will be prevented.
 
