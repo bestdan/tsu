@@ -1,50 +1,28 @@
 # Lefthook configuration
 # See https://github.com/evilmartians/lefthook for documentation
 
+# If you want to turn on/on verbosity or which hooks run
+# you can modify .lefthooks-local.yml
+
 pre-push:
   parallel: true
   commands:
     lint:
-      glob: "*.{ts,js,json,yml,yaml,md}"
+      glob: "*.{ts,js,json,yml,yaml}"
       run: |
-        # Get TypeScript files changed using TSU utilities
-        # Compare current HEAD against the tracking branch or use git diff
-        REMOTE_BRANCH=$(git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null || echo "")
-        if [ -n "$REMOTE_BRANCH" ]; then
-          # If we have a tracking branch, diff against it
-          CHANGED_FILES=$(git diff --name-only "$REMOTE_BRANCH"...HEAD || true)
-        else
-          # Otherwise use TSU to get all uncommitted and committed changes
-          CHANGED_FILES=$(node dist/cli.js git changed --all | sed 's/^[^:]*://' || true)
-        fi
-        
-        # Filter to only .ts files using TSU utilities
-        CHANGED_TS_FILES=$(echo "$CHANGED_FILES" | node dist/cli.js files filter suffix .js .json .md .yml .yaml || true)
-        
-        if [ -n "$CHANGED_TS_FILES" ]; then
-          echo "$CHANGED_TS_FILES" | xargs pnpm eslint
-        else
-          echo "No TypeScript files changed, skipping lint"
+        if [ -n "{push_files}" ]; then
+          echo "{push_files}" | xargs pnpm eslint
+        elif [ "${LEFTHOOK_VERBOSE}" = "1" ]; then
+          echo "No files matching glob, skipping lint"
         fi
     typecheck:
-      glob: "*.{ts,js,json,yml,yaml,md}"
+      glob: "*.{ts}"
       run: |
-        # Only run typecheck if TypeScript files changed
-        REMOTE_BRANCH=$(git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null || echo "")
-        if [ -n "$REMOTE_BRANCH" ]; then
-          CHANGED_FILES=$(git diff --name-only "$REMOTE_BRANCH"...HEAD || true)
-        else
-          CHANGED_FILES=$(node dist/cli.js git changed --all | sed 's/^[^:]*://' || true)
-        fi
-        
-        # Filter to only .ts files using TSU utilities
-        CHANGED_TS_FILES=$(echo "$CHANGED_FILES" | node dist/cli.js files filter suffix .js .json .md .yml .yaml || true)
-        
-        if [ -n "$CHANGED_TS_FILES" ]; then
+        if [ -n "{push_files}" ]; then
           pnpm typecheck
-        else
-          echo "No TypeScript files changed, skipping typecheck"
+        elif [ "${LEFTHOOK_VERBOSE}" = "1" ]; then
+          echo "No TS files changed, skipping typecheck"
         fi
     build:
-      glob: "*.{ts,js,json,yml,yaml,md}"
+      glob: "*.{ts,json,yml,yaml}"
       run: pnpm build

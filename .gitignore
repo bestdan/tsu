@@ -31,6 +31,9 @@ pnpm-debug.log*
 .env.local
 .env.*.local
 
+# Lefthook local configuration
+.lefthook-local.yml
+
 # Temporary files
 *.tmp
 .cache/
