@@ -242,7 +242,9 @@ dartChangedCmd
   );
 
 // Dart hook subcommand namespace
-const dartHook = dart.command('hook').description('Git hook utilities for Dart');
+const dartHook = dart
+  .command('hook')
+  .description('Git hook utilities for Dart');
 
 dartHook
   .command('format')

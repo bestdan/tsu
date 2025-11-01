@@ -56,7 +56,9 @@ describe('dartHookFormatCheck', () => {
       dartHookFormatCheck({ verbose: false });
     }).toThrow('process.exit(1)');
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Error: Not in a Dart package');
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      'Error: Not in a Dart package'
+    );
     expect(processExitSpy).toHaveBeenCalledWith(1);
   });
 
