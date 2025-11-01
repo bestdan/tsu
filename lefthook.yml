@@ -2,7 +2,7 @@
 # See https://github.com/evilmartians/lefthook for documentation
 
 # If you want to turn on/on verbosity or which hooks run
-# you can modify .lefthooks-local.yml
+# you can modify .lefthook-local.yml
 
 pre-push:
   parallel: true
