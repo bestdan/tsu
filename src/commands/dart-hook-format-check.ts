@@ -27,6 +27,22 @@ export interface DartHookFormatCheckOptions {
 }
 
 /**
+ * Gets all changed files (committed, staged, and unstaged) combined into a single unique list.
+ * @param cwd - The directory to run git commands in
+ * @returns Array of unique file paths
+ */
+function getAllChangedFiles(cwd: string): string[] {
+  const committedFiles = getChangedFiles({ type: 'committed', cwd }) || [];
+  const stagedFiles = getChangedFiles({ type: 'staged', cwd }) || [];
+  const unstagedFiles = getChangedFiles({ type: 'unstaged', cwd }) || [];
+
+  // Combine all changed files and remove duplicates
+  return Array.from(
+    new Set([...committedFiles, ...stagedFiles, ...unstagedFiles])
+  );
+}
+
+/**
  * Formats Dart files and checks if formatting created changes.
  * This replicates the functionality of a pre-push hook that:
  * 1. Gets modified Dart files (excluding generated files)
@@ -60,14 +76,7 @@ export function dartHookFormatCheck(
   const cwd = process.cwd();
 
   // Get all changed Dart files (committed, staged, and unstaged)
-  const committedFiles = getChangedFiles({ type: 'committed' }) || [];
-  const stagedFiles = getChangedFiles({ type: 'staged' }) || [];
-  const unstagedFiles = getChangedFiles({ type: 'unstaged' }) || [];
-
-  // Combine all changed files and remove duplicates
-  const allChangedFiles = Array.from(
-    new Set([...committedFiles, ...stagedFiles, ...unstagedFiles])
-  );
+  const allChangedFiles = getAllChangedFiles(cwd);
 
   // Filter to only Dart files
   const dartFiles = allChangedFiles.filter((file) => file.endsWith('.dart'));
@@ -98,12 +107,9 @@ export function dartHookFormatCheck(
   }
 
   // Check if formatting created changes in the files we formatted
-  const filesWithChanges: string[] = [];
-  for (const file of modifiedFiles) {
-    if (hasUnstagedChanges(file, cwd)) {
-      filesWithChanges.push(file);
-    }
-  }
+  const filesWithChanges = modifiedFiles.filter((file) =>
+    hasUnstagedChanges(file, cwd)
+  );
 
   if (filesWithChanges.length > 0) {
     console.error('');

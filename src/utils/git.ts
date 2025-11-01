@@ -423,12 +423,12 @@ export function createCommit(options: CreateCommitOptions): boolean {
 
 /**
  * Checks if a file has unstaged changes in git.
- * @param file - The file path to check (relative to cwd)
+ * @param file - The file path to check (relative to cwd). If not provided, checks the entire repository.
  * @param cwd - The directory to run git commands in. Defaults to process.cwd()
- * @returns true if the file has unstaged changes, false otherwise
+ * @returns true if the file (or repository) has unstaged changes, false otherwise
  */
 export function hasUnstagedChanges(
-  file: string,
+  file?: string,
   cwd: string = process.cwd()
 ): boolean {
   try {
@@ -436,7 +436,11 @@ export function hasUnstagedChanges(
       return false;
     }
 
-    execSync(`git diff --quiet -- ${escapeShellArg(file)}`, {
+    const command = file
+      ? `git diff --quiet -- ${escapeShellArg(file)}`
+      : 'git diff --quiet';
+
+    execSync(command, {
       cwd: resolve(cwd),
       stdio: 'pipe',
     });
