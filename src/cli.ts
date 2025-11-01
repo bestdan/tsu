@@ -16,7 +16,6 @@ import { dartChangedDownstream } from './commands/dart-changed-downstream.js';
 
 const program = new Command();
 
-// thing
 program
   .name('tsutils')
   .description('TypeScript command line utilities')

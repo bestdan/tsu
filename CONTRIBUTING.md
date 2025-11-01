@@ -19,9 +19,17 @@ Before you push to the repository, the pre-push hook will automatically run:
 - **Typecheck** - Verify TypeScript types only if TypeScript files changed using `pnpm typecheck`
 - **Build** - Ensure the project builds successfully using `pnpm build`
 
-The hook uses TSU's own utilities (`git changed` and `files filter`) to intelligently detect which files have changed and only lint/typecheck those files, making the checks faster as the project grows.
-
 These commands run in parallel to save time. If any of these checks fail, the push will be prevented.
+
+To run in verbose mode:
+```bash
+LEFTHOOK_VERBOSE=1 git push 
+```
+
+To run in verbose mode, with dry-run
+```bash
+LEFTHOOK_VERBOSE=1 git push --dry-run
+```
 
 To bypass the hook in case of emergency (not recommended):
 ```bash
