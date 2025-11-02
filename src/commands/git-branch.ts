@@ -1,8 +1,7 @@
 import { getCurrentBranch, isGitRepo } from '../utils/git.js';
+import type { GetValueCommandOptions } from '../types/command-options.js';
 
-export interface GitBranchOptions {
-  verbose?: boolean;
-}
+export interface GitBranchOptions extends GetValueCommandOptions {}
 
 export function gitBranch(
   path: string | undefined,

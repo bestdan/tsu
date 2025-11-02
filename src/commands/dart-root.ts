@@ -1,8 +1,7 @@
 import { findDartPackageRoot } from '../utils/dart.js';
+import type { GetValueCommandOptions } from '../types/command-options.js';
 
-export interface DartRootOptions {
-  verbose?: boolean;
-}
+export interface DartRootOptions extends GetValueCommandOptions {}
 
 /**
  * Get the root directory of the Dart package

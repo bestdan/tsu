@@ -1,19 +1,10 @@
 import { getChangedFiles, type ChangeType } from './git.js';
+import type { ChangedFilesOptions } from '../types/command-options.js';
 
 /**
  * Options for displaying changed files
  */
-export interface DisplayChangedFilesOptions {
-  /** Show only staged files */
-  staged?: boolean;
-  /** Show only unstaged files */
-  unstaged?: boolean;
-  /** Show all types of changes (committed, staged, unstaged) */
-  all?: boolean;
-  /** Base branch to compare against for committed changes */
-  baseBranch?: string;
-  /** Show verbose headers and counts to stderr */
-  verbose?: boolean;
+export interface DisplayChangedFilesOptions extends ChangedFilesOptions {
   /** Optional filter function to filter files (e.g., only .dart files) */
   filter?: (file: string) => boolean;
   /** Optional prefix for the type in verbose output (e.g., "Dart") */

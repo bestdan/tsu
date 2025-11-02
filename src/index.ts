@@ -1,5 +1,13 @@
 // Export utilities that can be imported by other packages
 
+// Types
+export type {
+  BaseCommandOptions,
+  CheckCommandOptions,
+  GetValueCommandOptions,
+  ChangedFilesOptions,
+} from './types/command-options.js';
+
 // Git utilities
 export {
   isGitRepo,

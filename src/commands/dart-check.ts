@@ -1,8 +1,7 @@
 import { isDartPackage } from '../utils/dart.js';
+import type { CheckCommandOptions } from '../types/command-options.js';
 
-export interface DartCheckOptions {
-  verbose?: boolean;
-}
+export interface DartCheckOptions extends CheckCommandOptions {}
 
 /**
  * Check if current directory is in a Dart package (exit code only)

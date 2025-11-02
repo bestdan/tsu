@@ -1,14 +1,9 @@
 import { isGitRepo } from '../utils/git.js';
 import { isDartPackage } from '../utils/dart.js';
 import { displayChangedFiles } from '../utils/command-helpers.js';
+import type { ChangedFilesOptions } from '../types/command-options.js';
 
-export interface DartChangedOptions {
-  staged?: boolean;
-  unstaged?: boolean;
-  all?: boolean;
-  baseBranch?: string;
-  verbose?: boolean;
-}
+export interface DartChangedOptions extends ChangedFilesOptions {}
 
 /**
  * Show Dart files that have changed

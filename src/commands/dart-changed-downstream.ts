@@ -9,13 +9,10 @@ import {
   findFilePackageRoot,
 } from '../utils/dart.js';
 import { getChangedFilesWithOptions } from '../utils/command-helpers.js';
+import type { ChangedFilesOptions } from '../types/command-options.js';
 
-export interface DartChangedDownstreamOptions {
-  staged?: boolean;
-  unstaged?: boolean;
-  all?: boolean;
-  baseBranch?: string;
-  verbose?: boolean;
+export interface DartChangedDownstreamOptions extends ChangedFilesOptions {
+  /** Output relative paths instead of absolute paths */
   relative?: boolean;
 }
 

@@ -1,13 +1,8 @@
 import { isGitRepo } from '../utils/git.js';
 import { displayChangedFiles } from '../utils/command-helpers.js';
+import type { ChangedFilesOptions } from '../types/command-options.js';
 
-export interface GitChangedOptions {
-  staged?: boolean;
-  unstaged?: boolean;
-  all?: boolean;
-  baseBranch?: string;
-  verbose?: boolean;
-}
+export interface GitChangedOptions extends ChangedFilesOptions {}
 
 export function gitChanged(options: GitChangedOptions = {}): void {
   if (!isGitRepo()) {
