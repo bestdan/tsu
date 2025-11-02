@@ -20,3 +20,4 @@ export function logWarn(message: string): void {
 export function logInfo(message: string): void {
   log(message, LogLevel.INFO);
 }
+
