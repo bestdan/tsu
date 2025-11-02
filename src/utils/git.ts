@@ -1,6 +1,7 @@
 import { execSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { escapeShellArg } from './shell.js';
 
 /**
  * Checks if the given directory (or current working directory) is inside a git repository.
@@ -140,6 +141,22 @@ export function getChangedFiles(
   } catch {
     return null;
   }
+}
+
+/**
+ * Gets all changed files (committed, staged, and unstaged) combined into a single unique list.
+ * @param cwd - The directory to run git commands in. Defaults to process.cwd()
+ * @returns Array of unique file paths
+ */
+export function getAllChangedFiles(cwd: string = process.cwd()): string[] {
+  const committedFiles = getChangedFiles({ type: 'committed', cwd }) || [];
+  const stagedFiles = getChangedFiles({ type: 'staged', cwd }) || [];
+  const unstagedFiles = getChangedFiles({ type: 'unstaged', cwd }) || [];
+
+  // Combine all changed files and remove duplicates
+  return Array.from(
+    new Set([...committedFiles, ...stagedFiles, ...unstagedFiles])
+  );
 }
 
 /**
@@ -417,5 +434,34 @@ export function createCommit(options: CreateCommitOptions): boolean {
     return true;
   } catch {
     return false;
+  }
+}
+
+/**
+ * Checks if a file has unstaged changes in git.
+ * @param file - The file path to check (relative to cwd). If not provided, checks the entire repository.
+ * @param cwd - The directory to run git commands in. Defaults to process.cwd()
+ * @returns true if the file (or repository) has unstaged changes, false otherwise
+ */
+export function hasUnstagedChanges(
+  file?: string,
+  cwd: string = process.cwd()
+): boolean {
+  try {
+    if (!isGitRepo(cwd)) {
+      return false;
+    }
+
+    const command = file
+      ? `git diff --quiet -- ${escapeShellArg(file)}`
+      : 'git diff --quiet';
+
+    execSync(command, {
+      cwd: resolve(cwd),
+      stdio: 'pipe',
+    });
+    return false; // No changes
+  } catch {
+    return true; // Has changes
   }
 }

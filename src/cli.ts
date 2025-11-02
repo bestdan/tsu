@@ -13,6 +13,7 @@ import { dartRoot } from './commands/dart-root.js';
 import { dartPackage } from './commands/dart-package.js';
 import { dartChanged } from './commands/dart-changed.js';
 import { dartChangedDownstream } from './commands/dart-changed-downstream.js';
+import { dartHookFormatCheck } from './commands/dart-hook-format-check.js';
 
 const program = new Command();
 
@@ -239,5 +240,24 @@ dartChangedCmd
       dartChangedDownstream(options);
     }
   );
+
+// Dart hook subcommand namespace
+const dartHook = dart
+  .command('hook')
+  .description('Git hook utilities for Dart');
+
+dartHook
+  .command('format')
+  .command('check')
+  .description(
+    'Check if Dart files are properly formatted (suitable for pre-push hooks)'
+  )
+  .option(
+    '-v, --verbose',
+    'show human-readable status messages (output to stderr)'
+  )
+  .action((options: { verbose?: boolean }) => {
+    dartHookFormatCheck(options);
+  });
 
 program.parse();
