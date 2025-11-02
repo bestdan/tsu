@@ -28,7 +28,9 @@ describe('dartFix', () => {
       throw new Error(`process.exit(${code})`);
     });
     isCommandInstalledSpy = vi.spyOn(shellUtils, 'isCommandInstalled');
-    escapeShellArgSpy = vi.spyOn(shellUtils, 'escapeShellArg').mockImplementation((arg) => `'${arg}'`);
+    escapeShellArgSpy = vi
+      .spyOn(shellUtils, 'escapeShellArg')
+      .mockImplementation((arg) => `'${arg}'`);
     findAffectedPackagesSpy = vi.spyOn(dartUtils, 'findAffectedPackages');
     existsSyncSpy = vi.mocked(existsSync);
   });
@@ -80,7 +82,9 @@ describe('dartFix', () => {
     }).toThrow('process.exit(0)');
 
     expect(execSync).toHaveBeenCalledWith(
-      expect.stringMatching(/^dart fix --dry-run.*lib\/main\.dart.*lib\/utils\.dart$/),
+      expect.stringMatching(
+        /^dart fix --dry-run.*lib\/main\.dart.*lib\/utils\.dart$/
+      ),
       expect.objectContaining({ cwd: expect.any(String) })
     );
     expect(processExitSpy).toHaveBeenCalledWith(0);
@@ -182,13 +186,15 @@ describe('dartFix', () => {
 
   it('should exit with error if package path does not exist when using --packages', () => {
     isCommandInstalledSpy.mockReturnValue(true);
-    findAffectedPackagesSpy.mockReturnValue(
-      new Map([['packages/app', 'app']])
-    );
+    findAffectedPackagesSpy.mockReturnValue(new Map([['packages/app', 'app']]));
     existsSyncSpy.mockReturnValue(false);
 
     expect(() => {
-      dartFix({ verbose: true, files: ['packages/app/lib/main.dart'], packages: true });
+      dartFix({
+        verbose: true,
+        files: ['packages/app/lib/main.dart'],
+        packages: true,
+      });
     }).toThrow('process.exit(1)');
 
     expect(consoleErrorSpy).toHaveBeenCalledWith(

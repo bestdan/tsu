@@ -304,7 +304,7 @@ export function findDownstreamDependencies(
 
 /**
  * Structure of a package entry in the TSU_PACKAGE_INDEX file.
- * 
+ *
  * The TSU_PACKAGE_INDEX file is only relevant for mono-repos where you have multiple
  * Dart packages. It provides an efficient way to map files to their containing packages
  * without having to walk the directory tree. For single-package repos or when the file
@@ -319,12 +319,12 @@ export interface PackageIndexEntry {
 
 /**
  * Reads and parses the TSU_PACKAGE_INDEX file from the workspace root.
- * 
+ *
  * The TSU_PACKAGE_INDEX file is optional and only relevant for large mono-repos with
  * multiple Dart packages. It provides efficient package lookup by maintaining a JSON
  * index of all packages. If the file doesn't exist, the dart utilities will automatically
  * fall back to walking the directory tree to find pubspec.yaml files.
- * 
+ *
  * @param workspaceRoot - Root directory of the workspace (defaults to current directory)
  * @returns Array of package entries, or null if file doesn't exist or is invalid
  */
@@ -377,11 +377,11 @@ export function readPackageName(packageRoot: string): string | null {
 
 /**
  * Finds which package(s) contain the given files.
- * 
+ *
  * For mono-repos: If TSU_PACKAGE_INDEX exists, uses it for efficient lookup.
- * For single-package repos or when TSU_PACKAGE_INDEX is missing: Falls back to 
+ * For single-package repos or when TSU_PACKAGE_INDEX is missing: Falls back to
  * walking up the directory tree to find pubspec.yaml files.
- * 
+ *
  * @param files - Array of file paths (relative or absolute)
  * @param workspaceRoot - Root directory of the workspace
  * @returns Map of package location to package name
@@ -391,7 +391,7 @@ export function findAffectedPackages(
   workspaceRoot: string = process.cwd()
 ): Map<string, string> {
   const packages = readPackageIndex(workspaceRoot);
-  
+
   // If PACKAGE_INDEX exists, use it for efficient lookup
   if (packages) {
     // Sort packages by location length (longest first) to match most specific packages first
@@ -429,7 +429,7 @@ export function findAffectedPackages(
   for (const file of files) {
     const absolutePath = resolve(workspaceRoot, file);
     const packageRoot = findFilePackageRoot(absolutePath, workspaceRoot);
-    
+
     if (packageRoot) {
       // Convert to relative path for consistency with PACKAGE_INDEX format
       let location: string;
@@ -443,7 +443,7 @@ export function findAffectedPackages(
         // Package is outside workspace, use absolute path
         location = packageRoot;
       }
-      
+
       // Get package name from pubspec.yaml
       const packageName = readPackageName(packageRoot);
       if (packageName) {

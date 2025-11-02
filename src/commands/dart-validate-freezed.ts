@@ -98,9 +98,7 @@ export function dartValidateFreezed(
     // Find the package root for this file
     const packageRoot = findDartPackageRoot(dirname(file));
     if (!packageRoot) {
-      console.error(
-        `❌ Could not find package root for ${basename(file)}`
-      );
+      console.error(`❌ Could not find package root for ${basename(file)}`);
       hasErrors = true;
       continue;
     }

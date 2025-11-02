@@ -103,10 +103,10 @@ describe('dartValidateFormat', () => {
 
   it('should validate specific files when provided', () => {
     isCommandInstalledSpy.mockReturnValue(true);
-    getChangedFilesSpy.mockReturnValue([]);  // No staged files
+    getChangedFilesSpy.mockReturnValue([]); // No staged files
     findAffectedPackagesSpy.mockReturnValue(new Map());
     existsSyncSpy.mockReturnValue(true);
-    
+
     // Make execSync succeed without throwing
     vi.mocked(execSync).mockImplementationOnce(() => {
       // Simulate successful format
@@ -130,9 +130,7 @@ describe('dartValidateFormat', () => {
   it('should exit with error if formatting check fails', () => {
     isCommandInstalledSpy.mockReturnValue(true);
     getChangedFilesSpy.mockReturnValue(['packages/app/lib/main.dart']);
-    findAffectedPackagesSpy.mockReturnValue(
-      new Map([['packages/app', 'app']])
-    );
+    findAffectedPackagesSpy.mockReturnValue(new Map([['packages/app', 'app']]));
     existsSyncSpy.mockReturnValue(true);
     vi.mocked(execSync).mockImplementation(() => {
       throw new Error('Formatting check failed');
@@ -148,10 +146,10 @@ describe('dartValidateFormat', () => {
 
   it('should filter out generated files', () => {
     isCommandInstalledSpy.mockReturnValue(true);
-    getChangedFilesSpy.mockReturnValue([]);  // No staged files
+    getChangedFilesSpy.mockReturnValue([]); // No staged files
     findAffectedPackagesSpy.mockReturnValue(new Map());
     existsSyncSpy.mockReturnValue(true);
-    
+
     // Make execSync succeed without throwing
     vi.mocked(execSync).mockImplementationOnce(() => {
       return Buffer.from('');

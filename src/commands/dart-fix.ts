@@ -17,12 +17,12 @@ export interface DartFixOptions {
 
 /**
  * Runs `dart fix` on Dart code.
- * 
+ *
  * Supports three modes:
  * 1. User provides package directories: Runs on those packages directly
  * 2. User provides files with --packages flag: Infers packages from files and runs on packages
  * 3. User provides files without --packages: Runs on individual files
- * 
+ *
  * By default runs in dry-run mode (--dry-run), use --apply to actually apply fixes.
  */
 export function dartFix(options: DartFixOptions = {}): void {
@@ -46,11 +46,11 @@ export function dartFix(options: DartFixOptions = {}): void {
   );
 
   const cwd = process.cwd();
-  
+
   // Separate package directories from regular files
   const packageDirs: string[] = [];
   const regularFiles: string[] = [];
-  
+
   for (const file of files) {
     const absolutePath = resolve(cwd, file);
     if (isPackageDirectory(absolutePath)) {
@@ -78,19 +78,21 @@ export function dartFix(options: DartFixOptions = {}): void {
       const packageName = readPackageName(pkgDir);
       if (packageName) {
         // Convert to relative path for consistency
-        const relativePath = pkgDir.startsWith(cwd) 
+        const relativePath = pkgDir.startsWith(cwd)
           ? pkgDir.substring(cwd.length + 1)
           : pkgDir;
         packages.set(relativePath, packageName);
       } else {
-        console.error(`⚠️  Warning: Could not read package name from ${pkgDir}`);
+        console.error(
+          `⚠️  Warning: Could not read package name from ${pkgDir}`
+        );
       }
     }
-    
+
     if (packages.size > 0) {
       runFixOnPackages(packages, cwd, verbose, apply);
     }
-    
+
     // If there are also regular files, handle them
     if (hasRegularFiles) {
       if (usePackages) {
@@ -104,7 +106,7 @@ export function dartFix(options: DartFixOptions = {}): void {
         runFixOnFiles(regularFiles, cwd, verbose, apply);
       }
     }
-    
+
     if (verbose) {
       console.error('✓ All dart fix checks passed');
     }
@@ -168,7 +170,7 @@ function runFixOnFiles(
       console.error('💡 Run with --apply to automatically apply fixes');
       process.exit(1);
     }
-    
+
     console.error('❌ dart fix failed');
     if (verbose && error instanceof Error) {
       const execError = error as { stdout?: string; stderr?: string };
