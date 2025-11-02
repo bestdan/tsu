@@ -376,17 +376,3 @@ export function findAffectedPackages(
 
   return affectedPackages;
 }
-
-/**
- * Checks if a command exists and is available.
- * @param command - Command name to check
- * @returns true if command is available, false otherwise
- */
-export function isCommandAvailable(command: string): boolean {
-  try {
-    execSync(`command -v ${command}`, { stdio: 'pipe' });
-    return true;
-  } catch {
-    return false;
-  }
-}

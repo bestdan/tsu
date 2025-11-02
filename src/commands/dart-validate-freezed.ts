@@ -2,7 +2,7 @@ import { execSync } from 'node:child_process';
 import { resolve, dirname, basename } from 'node:path';
 import { existsSync, readFileSync } from 'node:fs';
 import { ensureCondition } from '../utils/command-helpers.js';
-import { isCommandInstalled } from '../utils/shell.js';
+import { isCommandInstalled, escapeShellArg } from '../utils/shell.js';
 import { getChangedFiles } from '../utils/git.js';
 
 export interface DartValidateFreezedOptions {
@@ -112,7 +112,7 @@ export function dartValidateFreezed(
     try {
       // Run build_runner on the specific file
       execSync(
-        `dart run build_runner build --delete-conflicting-outputs --build-filter="${file}"`,
+        `dart run build_runner build --delete-conflicting-outputs --build-filter=${escapeShellArg(file)}`,
         {
           cwd: packageRoot,
           stdio: 'pipe',
@@ -120,10 +120,13 @@ export function dartValidateFreezed(
       );
 
       // Check if the generated file was modified
-      const result = execSync(`git status --porcelain "${generatedFile}"`, {
-        cwd: packageRoot,
-        encoding: 'utf-8',
-      });
+      const result = execSync(
+        `git status --porcelain ${escapeShellArg(generatedFile)}`,
+        {
+          cwd: packageRoot,
+          encoding: 'utf-8',
+        }
+      );
 
       if (result.trim().length > 0) {
         console.error(
