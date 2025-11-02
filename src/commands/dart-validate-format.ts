@@ -171,6 +171,11 @@ function validateFiles(
     }
     process.exit(0);
   } catch (error) {
+    // Re-throw if this is a mock process.exit error (for testing)
+    if (error instanceof Error && /^process\.exit\(\d+\)$/.test(error.message)) {
+      throw error;
+    }
+    
     console.error('❌ Formatting check failed');
     if (verbose && error instanceof Error) {
       console.error(error.message);
