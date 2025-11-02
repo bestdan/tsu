@@ -119,7 +119,7 @@ gh pr create --title "Feature: $(git branch --show-current)" --body "$(tsutils g
 - **Claude CLI**: Required for `git commit-msg` and `git pr-description` commands. Install from https://github.com/anthropics/claude-cli
 - **DCM**: Optional for `dart hook dcm check` command. Install from https://dcm.dev
 - **Dart SDK**: Required for `dart hook format check` command. Install from https://dart.dev
-- **Melos**: Optional for `dart hook graphql check` command (default codegen command). Can be overridden with `--codegen-command`./get-dart
+- **Melos**: Optional for `dart hook graphql check` command (default codegen command). Can be overridden with `--codegen-command`.
 
 ## Project Structure
 
