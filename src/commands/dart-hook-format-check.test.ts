@@ -179,4 +179,29 @@ describe('dartHookFormatCheck', () => {
     expect(consoleErrorSpy).toHaveBeenCalledWith('lib/utils.dart');
     expect(processExitSpy).toHaveBeenCalledWith(1);
   });
+
+  it('should exit with error if dart format command fails', () => {
+    isGitRepoSpy.mockReturnValue(true);
+    isDartPackageSpy.mockReturnValue(true);
+    getAllChangedFilesSpy.mockReturnValue(['lib/user.dart']);
+
+    // Mock execSync to fail for dart format
+    const execSyncMock = vi.mocked(execSync);
+    execSyncMock.mockImplementation((cmd) => {
+      if (typeof cmd === 'string' && cmd.startsWith('dart format')) {
+        throw new Error('dart format failed');
+      }
+      return Buffer.from('');
+    });
+
+    expect(() => {
+      dartHookFormatCheck({ verbose: false });
+    }).toThrow('process.exit(1)');
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      'Error: Failed to run dart format'
+    );
+    expect(consoleErrorSpy).toHaveBeenCalledWith('dart format failed');
+    expect(processExitSpy).toHaveBeenCalledWith(1);
+  });
 });
