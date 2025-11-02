@@ -1,5 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { ensureCondition } from './command-helpers.js';
+import {
+  ensureCondition,
+  displayChangedFiles,
+  getChangedFilesWithOptions,
+} from './command-helpers.js';
+import * as git from './git.js';
 
 describe('ensureCondition', () => {
   let consoleErrorSpy: any;
@@ -132,6 +137,459 @@ describe('ensureCondition', () => {
 
       expect(consoleErrorSpy).toHaveBeenCalledWith('✓ Success');
       expect(processExitSpy).not.toHaveBeenCalled();
+    });
+  });
+});
+
+describe('displayChangedFiles', () => {
+  let consoleLogSpy: any;
+  let consoleErrorSpy: any;
+  let processExitSpy: any;
+  let getChangedFilesMock: any;
+
+  beforeEach(() => {
+    consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    processExitSpy = vi.spyOn(process, 'exit').mockImplementation((code) => {
+      throw new Error(`process.exit(${code})`);
+    });
+    getChangedFilesMock = vi.spyOn(git, 'getChangedFiles');
+  });
+
+  afterEach(() => {
+    consoleLogSpy.mockRestore();
+    consoleErrorSpy.mockRestore();
+    processExitSpy.mockRestore();
+    getChangedFilesMock.mockRestore();
+    vi.clearAllMocks();
+  });
+
+  describe('basic behavior', () => {
+    it('should display committed files by default', () => {
+      getChangedFilesMock.mockReturnValue(['file1.ts', 'file2.ts']);
+
+      displayChangedFiles({});
+
+      expect(getChangedFilesMock).toHaveBeenCalledWith({
+        type: 'committed',
+        baseBranch: 'main',
+      });
+      expect(consoleLogSpy).toHaveBeenCalledWith('file1.ts');
+      expect(consoleLogSpy).toHaveBeenCalledWith('file2.ts');
+    });
+
+    it('should display staged files when staged option is true', () => {
+      getChangedFilesMock.mockReturnValue(['staged1.ts', 'staged2.ts']);
+
+      displayChangedFiles({ staged: true });
+
+      expect(getChangedFilesMock).toHaveBeenCalledWith({
+        type: 'staged',
+        baseBranch: 'main',
+      });
+      expect(consoleLogSpy).toHaveBeenCalledWith('staged1.ts');
+      expect(consoleLogSpy).toHaveBeenCalledWith('staged2.ts');
+    });
+
+    it('should display unstaged files when unstaged option is true', () => {
+      getChangedFilesMock.mockReturnValue(['unstaged1.ts', 'unstaged2.ts']);
+
+      displayChangedFiles({ unstaged: true });
+
+      expect(getChangedFilesMock).toHaveBeenCalledWith({
+        type: 'unstaged',
+        baseBranch: 'main',
+      });
+      expect(consoleLogSpy).toHaveBeenCalledWith('unstaged1.ts');
+      expect(consoleLogSpy).toHaveBeenCalledWith('unstaged2.ts');
+    });
+
+    it('should exit silently when no files are found', () => {
+      getChangedFilesMock.mockReturnValue([]);
+
+      displayChangedFiles({});
+
+      expect(consoleLogSpy).not.toHaveBeenCalled();
+      expect(consoleErrorSpy).not.toHaveBeenCalled();
+    });
+
+    it('should exit with error when getChangedFiles returns null', () => {
+      getChangedFilesMock.mockReturnValue(null);
+
+      expect(() => {
+        displayChangedFiles({});
+      }).toThrow('process.exit(1)');
+
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        'Error: Failed to get changed files'
+      );
+    });
+  });
+
+  describe('with custom base branch', () => {
+    it('should use custom base branch', () => {
+      getChangedFilesMock.mockReturnValue(['file1.ts']);
+
+      displayChangedFiles({ baseBranch: 'develop' });
+
+      expect(getChangedFilesMock).toHaveBeenCalledWith({
+        type: 'committed',
+        baseBranch: 'develop',
+      });
+    });
+  });
+
+  describe('with filter function', () => {
+    it('should filter files based on provided filter function', () => {
+      getChangedFilesMock.mockReturnValue([
+        'file1.ts',
+        'file2.dart',
+        'file3.ts',
+      ]);
+
+      const filter = (file: string) => file.endsWith('.dart');
+      displayChangedFiles({ filter });
+
+      expect(consoleLogSpy).toHaveBeenCalledTimes(1);
+      expect(consoleLogSpy).toHaveBeenCalledWith('file2.dart');
+    });
+
+    it('should return no files when filter excludes all', () => {
+      getChangedFilesMock.mockReturnValue(['file1.ts', 'file2.ts']);
+
+      const filter = (file: string) => file.endsWith('.dart');
+      displayChangedFiles({ filter });
+
+      expect(consoleLogSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('verbose mode', () => {
+    it('should display header for committed files in verbose mode', () => {
+      getChangedFilesMock.mockReturnValue(['file1.ts', 'file2.ts']);
+
+      displayChangedFiles({ verbose: true });
+
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        'Changed files compared to main (2):'
+      );
+      expect(consoleLogSpy).toHaveBeenCalledWith('file1.ts');
+      expect(consoleLogSpy).toHaveBeenCalledWith('file2.ts');
+    });
+
+    it('should display header for staged files in verbose mode', () => {
+      getChangedFilesMock.mockReturnValue(['staged.ts']);
+
+      displayChangedFiles({ staged: true, verbose: true });
+
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Staged files (1):');
+    });
+
+    it('should display header for unstaged files in verbose mode', () => {
+      getChangedFilesMock.mockReturnValue(['unstaged.ts']);
+
+      displayChangedFiles({ unstaged: true, verbose: true });
+
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Unstaged files (1):');
+    });
+
+    it('should include typePrefix in verbose headers', () => {
+      getChangedFilesMock.mockReturnValue(['file.dart']);
+
+      displayChangedFiles({ verbose: true, typePrefix: 'Dart' });
+
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        'Changed Dart files compared to main (1):'
+      );
+    });
+  });
+
+  describe('--all option', () => {
+    it('should display all changed files with type prefixes', () => {
+      getChangedFilesMock
+        .mockReturnValueOnce(['committed.ts'])
+        .mockReturnValueOnce(['staged.ts'])
+        .mockReturnValueOnce(['unstaged.ts']);
+
+      displayChangedFiles({ all: true });
+
+      expect(getChangedFilesMock).toHaveBeenCalledTimes(3);
+      expect(consoleLogSpy).toHaveBeenCalledWith('committed:committed.ts');
+      expect(consoleLogSpy).toHaveBeenCalledWith('staged:staged.ts');
+      expect(consoleLogSpy).toHaveBeenCalledWith('unstaged:unstaged.ts');
+    });
+
+    it('should exit silently when no files in any category with --all', () => {
+      getChangedFilesMock
+        .mockReturnValueOnce([])
+        .mockReturnValueOnce([])
+        .mockReturnValueOnce([]);
+
+      displayChangedFiles({ all: true });
+
+      expect(consoleLogSpy).not.toHaveBeenCalled();
+      expect(consoleErrorSpy).not.toHaveBeenCalled();
+    });
+
+    it('should display verbose headers for each category with --all', () => {
+      getChangedFilesMock
+        .mockReturnValueOnce(['committed.ts'])
+        .mockReturnValueOnce(['staged.ts'])
+        .mockReturnValueOnce(['unstaged.ts']);
+
+      displayChangedFiles({ all: true, verbose: true });
+
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        'Committed changes (compared to main) (1):'
+      );
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Staged changes (1):');
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Unstaged changes (1):');
+    });
+
+    it('should include typePrefix in --all verbose headers', () => {
+      getChangedFilesMock
+        .mockReturnValueOnce(['file.dart'])
+        .mockReturnValueOnce([])
+        .mockReturnValueOnce([]);
+
+      displayChangedFiles({
+        all: true,
+        verbose: true,
+        typePrefix: 'Dart',
+      });
+
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        'Committed Dart changes (compared to main) (1):'
+      );
+    });
+
+    it('should not display headers for empty categories in verbose mode', () => {
+      getChangedFilesMock
+        .mockReturnValueOnce(['committed.ts'])
+        .mockReturnValueOnce([])
+        .mockReturnValueOnce([]);
+
+      displayChangedFiles({ all: true, verbose: true });
+
+      expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        'Committed changes (compared to main) (1):'
+      );
+    });
+
+    it('should exit with error when any category returns null with --all', () => {
+      getChangedFilesMock
+        .mockReturnValueOnce(['committed.ts'])
+        .mockReturnValueOnce(null)
+        .mockReturnValueOnce(['unstaged.ts']);
+
+      expect(() => {
+        displayChangedFiles({ all: true });
+      }).toThrow('process.exit(1)');
+
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        'Error: Failed to get changed files'
+      );
+    });
+
+    it('should apply filter to all categories with --all', () => {
+      getChangedFilesMock
+        .mockReturnValueOnce(['file.ts', 'file.dart'])
+        .mockReturnValueOnce(['staged.dart'])
+        .mockReturnValueOnce(['unstaged.ts']);
+
+      const filter = (file: string) => file.endsWith('.dart');
+      displayChangedFiles({ all: true, filter });
+
+      expect(consoleLogSpy).toHaveBeenCalledTimes(2);
+      expect(consoleLogSpy).toHaveBeenCalledWith('committed:file.dart');
+      expect(consoleLogSpy).toHaveBeenCalledWith('staged:staged.dart');
+    });
+  });
+});
+
+describe('getChangedFilesWithOptions', () => {
+  let consoleErrorSpy: any;
+  let processExitSpy: any;
+  let getChangedFilesMock: any;
+
+  beforeEach(() => {
+    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    processExitSpy = vi.spyOn(process, 'exit').mockImplementation((code) => {
+      throw new Error(`process.exit(${code})`);
+    });
+    getChangedFilesMock = vi.spyOn(git, 'getChangedFiles');
+  });
+
+  afterEach(() => {
+    consoleErrorSpy.mockRestore();
+    processExitSpy.mockRestore();
+    getChangedFilesMock.mockRestore();
+    vi.clearAllMocks();
+  });
+
+  describe('basic behavior', () => {
+    it('should return committed files by default', () => {
+      getChangedFilesMock.mockReturnValue(['file1.ts', 'file2.ts']);
+
+      const files = getChangedFilesWithOptions({});
+
+      expect(getChangedFilesMock).toHaveBeenCalledWith({
+        type: 'committed',
+        baseBranch: 'main',
+      });
+      expect(files).toEqual(['file1.ts', 'file2.ts']);
+    });
+
+    it('should return staged files when staged option is true', () => {
+      getChangedFilesMock.mockReturnValue(['staged.ts']);
+
+      const files = getChangedFilesWithOptions({ staged: true });
+
+      expect(getChangedFilesMock).toHaveBeenCalledWith({
+        type: 'staged',
+        baseBranch: 'main',
+      });
+      expect(files).toEqual(['staged.ts']);
+    });
+
+    it('should return unstaged files when unstaged option is true', () => {
+      getChangedFilesMock.mockReturnValue(['unstaged.ts']);
+
+      const files = getChangedFilesWithOptions({ unstaged: true });
+
+      expect(getChangedFilesMock).toHaveBeenCalledWith({
+        type: 'unstaged',
+        baseBranch: 'main',
+      });
+      expect(files).toEqual(['unstaged.ts']);
+    });
+
+    it('should return empty array when no files are found', () => {
+      getChangedFilesMock.mockReturnValue([]);
+
+      const files = getChangedFilesWithOptions({});
+
+      expect(files).toEqual([]);
+    });
+
+    it('should exit with error when getChangedFiles returns null', () => {
+      getChangedFilesMock.mockReturnValue(null);
+
+      expect(() => {
+        getChangedFilesWithOptions({});
+      }).toThrow('process.exit(1)');
+
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        'Error: Failed to get changed files'
+      );
+    });
+  });
+
+  describe('with custom base branch', () => {
+    it('should use custom base branch', () => {
+      getChangedFilesMock.mockReturnValue(['file.ts']);
+
+      const files = getChangedFilesWithOptions({ baseBranch: 'develop' });
+
+      expect(getChangedFilesMock).toHaveBeenCalledWith({
+        type: 'committed',
+        baseBranch: 'develop',
+      });
+      expect(files).toEqual(['file.ts']);
+    });
+  });
+
+  describe('with filter function', () => {
+    it('should filter files based on provided filter function', () => {
+      getChangedFilesMock.mockReturnValue([
+        'file1.ts',
+        'file2.dart',
+        'file3.ts',
+      ]);
+
+      const filter = (file: string) => file.endsWith('.dart');
+      const files = getChangedFilesWithOptions({ filter });
+
+      expect(files).toEqual(['file2.dart']);
+    });
+
+    it('should return empty array when filter excludes all files', () => {
+      getChangedFilesMock.mockReturnValue(['file1.ts', 'file2.ts']);
+
+      const filter = (file: string) => file.endsWith('.dart');
+      const files = getChangedFilesWithOptions({ filter });
+
+      expect(files).toEqual([]);
+    });
+  });
+
+  describe('--all option', () => {
+    it('should combine all changed files with --all', () => {
+      getChangedFilesMock
+        .mockReturnValueOnce(['committed.ts', 'shared.ts'])
+        .mockReturnValueOnce(['staged.ts', 'shared.ts'])
+        .mockReturnValueOnce(['unstaged.ts']);
+
+      const files = getChangedFilesWithOptions({ all: true });
+
+      expect(getChangedFilesMock).toHaveBeenCalledTimes(3);
+      expect(files).toContain('committed.ts');
+      expect(files).toContain('staged.ts');
+      expect(files).toContain('unstaged.ts');
+      expect(files).toContain('shared.ts');
+      expect(files.length).toBe(4); // Deduplicated
+    });
+
+    it('should deduplicate files with --all', () => {
+      getChangedFilesMock
+        .mockReturnValueOnce(['file.ts'])
+        .mockReturnValueOnce(['file.ts'])
+        .mockReturnValueOnce(['file.ts']);
+
+      const files = getChangedFilesWithOptions({ all: true });
+
+      expect(files).toEqual(['file.ts']);
+    });
+
+    it('should return empty array when no files in any category with --all', () => {
+      getChangedFilesMock
+        .mockReturnValueOnce([])
+        .mockReturnValueOnce([])
+        .mockReturnValueOnce([]);
+
+      const files = getChangedFilesWithOptions({ all: true });
+
+      expect(files).toEqual([]);
+    });
+
+    it('should exit with error when any category returns null with --all', () => {
+      getChangedFilesMock
+        .mockReturnValueOnce(['committed.ts'])
+        .mockReturnValueOnce(null)
+        .mockReturnValueOnce(['unstaged.ts']);
+
+      expect(() => {
+        getChangedFilesWithOptions({ all: true });
+      }).toThrow('process.exit(1)');
+
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        'Error: Failed to get changed files'
+      );
+    });
+
+    it('should apply filter to all categories with --all', () => {
+      getChangedFilesMock
+        .mockReturnValueOnce(['file1.ts', 'file1.dart'])
+        .mockReturnValueOnce(['file2.dart'])
+        .mockReturnValueOnce(['file3.ts']);
+
+      const filter = (file: string) => file.endsWith('.dart');
+      const files = getChangedFilesWithOptions({ all: true, filter });
+
+      expect(files).toContain('file1.dart');
+      expect(files).toContain('file2.dart');
+      expect(files.length).toBe(2);
     });
   });
 });
