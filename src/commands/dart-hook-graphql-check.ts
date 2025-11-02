@@ -10,17 +10,15 @@ import { isCommandInstalled } from '../utils/shell.js';
 
 export interface DartHookGraphqlCheckOptions {
   verbose?: boolean;
-  /** Command to run for GraphQL code generation. Defaults to 'melos run codegen:graphql:test' */
-  codegenCommand?: string;
 }
 
 /**
  * Checks if GraphQL files are modified and runs code generation to verify fakes are up to date.
  * This replicates the functionality of a pre-push hook that:
- * 1. Checks if melos is installed (optional, for default command)
+ * 1. Checks if melos is installed
  * 2. Gets modified .graphql files
  * 3. Saves git status before running codegen
- * 4. Runs GraphQL code generation
+ * 4. Runs GraphQL code generation (melos run codegen:graphql:test)
  * 5. Checks if codegen created any changes
  * 6. Exits with error if files were modified by codegen
  */
@@ -28,8 +26,7 @@ export function dartHookGraphqlCheck(
   options: DartHookGraphqlCheckOptions = {}
 ): void {
   const verbose = options.verbose || false;
-  const codegenCommand =
-    options.codegenCommand || 'melos run codegen:graphql:test';
+  const codegenCommand = 'melos run codegen:graphql:test';
 
   if (verbose) {
     console.error('🧪 Checking for modified GraphQL files...');
@@ -49,12 +46,11 @@ export function dartHookGraphqlCheck(
     file.endsWith('.graphql')
   );
 
-  if (graphqlFiles.length === 0) {
-    if (verbose) {
-      console.error('✓ No GraphQL files modified (skipping)');
-    }
-    process.exit(0);
-  }
+  ensureCondition(
+    graphqlFiles.length > 0,
+    verbose ? '✓ No GraphQL files modified (skipping)' : '',
+    { exitCode: 0 }
+  );
 
   if (verbose) {
     console.error(`📝 Found modified GraphQL files: ${graphqlFiles.length}`);
@@ -63,22 +59,20 @@ export function dartHookGraphqlCheck(
     });
   }
 
-  // Check if the codegen command is available (for melos specifically)
-  if (codegenCommand.startsWith('melos ')) {
-    ensureCondition(
-      isCommandInstalled('melos'),
-      verbose ? '⚠️  Warning: Melos not installed, skipping' : '',
-      { exitCode: 0 }
-    );
-  }
+  // Check if melos is installed
+  ensureCondition(
+    isCommandInstalled('melos'),
+    verbose ? '⚠️  Warning: Melos not installed, skipping' : '',
+    { exitCode: 0 }
+  );
 
   // Get git status before running codegen
   const gitStatusBefore = getGitStatus(cwd);
 
-  if (gitStatusBefore === null) {
-    console.error('Error: Failed to get git status');
-    process.exit(1);
-  }
+  ensureCondition(
+    gitStatusBefore !== null,
+    'Error: Failed to get git status'
+  );
 
   if (verbose) {
     console.error('🔧 Running GraphQL code generation...');
@@ -101,12 +95,13 @@ export function dartHookGraphqlCheck(
   // Get git status after running codegen
   const gitStatusAfter = getGitStatus(cwd);
 
-  if (gitStatusAfter === null) {
-    console.error('Error: Failed to get git status');
-    process.exit(1);
-  }
+  ensureCondition(
+    gitStatusAfter !== null,
+    'Error: Failed to get git status'
+  );
 
   // Compare git status before and after
+  // Type assertion safe here because ensureCondition ensures non-null
   if (gitStatusBefore !== gitStatusAfter) {
     console.error('');
     console.error('⚠️  WARNING: GraphQL fakes need regeneration!');
@@ -116,9 +111,9 @@ export function dartHookGraphqlCheck(
     try {
       // Parse the status outputs to show what changed
       const beforeLines = new Set(
-        gitStatusBefore.split('\n').filter((line) => line.length > 0)
+        gitStatusBefore!.split('\n').filter((line) => line.length > 0)
       );
-      const afterLines = gitStatusAfter.split('\n').filter((line) => line.length > 0);
+      const afterLines = gitStatusAfter!.split('\n').filter((line) => line.length > 0);
 
       // Find files that are new or have different status
       const changedFiles = afterLines.filter((line) => !beforeLines.has(line));

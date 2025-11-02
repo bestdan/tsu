@@ -286,12 +286,7 @@ dartHook
     '-v, --verbose',
     'show human-readable status messages (output to stderr)'
   )
-  .option(
-    '-c, --codegen-command <command>',
-    'command to run for GraphQL code generation',
-    'melos run codegen:graphql:test'
-  )
-  .action((options: { verbose?: boolean; codegenCommand?: string }) => {
+  .action((options: { verbose?: boolean }) => {
     dartHookGraphqlCheck(options);
   });
 

@@ -181,35 +181,6 @@ describe('dartHookGraphqlCheck', () => {
     expect(processExitSpy).toHaveBeenCalledWith(1);
   });
 
-  it('should support custom codegen command', () => {
-    const execSyncMock = vi.mocked(execSync);
-    const customCommand = 'dart run build_runner build';
-    execSyncMock.mockImplementation((cmd) => {
-      if (typeof cmd === 'string' && cmd === customCommand) {
-        return Buffer.from('');
-      }
-      return Buffer.from('');
-    });
-
-    isGitRepoSpy.mockReturnValue(true);
-    isDartPackageSpy.mockReturnValue(true);
-    getAllChangedFilesSpy.mockReturnValue(['lib/graphql/query.graphql']);
-    const gitStatus = 'M lib/graphql/query.graphql\n';
-    getGitStatusSpy.mockReturnValue(gitStatus);
-
-    expect(() => {
-      dartHookGraphqlCheck({ verbose: true, codegenCommand: customCommand });
-    }).toThrow('process.exit(0)');
-
-    expect(execSyncMock).toHaveBeenCalledWith(
-      customCommand,
-      expect.objectContaining({
-        cwd: expect.any(String),
-      })
-    );
-    expect(processExitSpy).toHaveBeenCalledWith(0);
-  });
-
   it('should exit with error if codegen command fails', () => {
     const execSyncMock = vi.mocked(execSync);
     execSyncMock.mockImplementation((cmd) => {
