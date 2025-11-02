@@ -93,7 +93,7 @@ function validatePackages(
       if (verbose) {
         console.error(`✓ ${packageName} DCM analysis passed`);
       }
-    } catch (error) {
+    } catch {
       console.error(`❌ ${packageName} DCM analysis failed`);
       hasErrors = true;
     }

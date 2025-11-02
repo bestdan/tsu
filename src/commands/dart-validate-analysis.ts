@@ -94,7 +94,7 @@ function validatePackages(
       if (verbose) {
         console.error(`✓ ${packageName} analysis passed`);
       }
-    } catch (error) {
+    } catch {
       console.error(`❌ ${packageName} analysis failed`);
       hasErrors = true;
     }

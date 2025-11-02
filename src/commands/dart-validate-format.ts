@@ -112,7 +112,7 @@ function validatePackages(
       if (verbose) {
         console.error(`✓ ${packageName} formatting OK`);
       }
-    } catch (error) {
+    } catch {
       console.error(`❌ ${packageName} formatting failed`);
       hasErrors = true;
     }

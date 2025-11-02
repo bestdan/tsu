@@ -41,7 +41,7 @@ export function dartValidateAll(options: DartValidateAllOptions = {}): void {
         files: options.files,
         excludeSuffixes: options.excludeSuffixes,
       });
-    } catch (error) {
+    } catch {
       hasErrors = true;
       if (verbose) {
         console.error('Format validation failed');
@@ -56,7 +56,7 @@ export function dartValidateAll(options: DartValidateAllOptions = {}): void {
         verbose,
         files: options.files,
       });
-    } catch (error) {
+    } catch {
       hasErrors = true;
       if (verbose) {
         console.error('Analysis validation failed');
@@ -71,7 +71,7 @@ export function dartValidateAll(options: DartValidateAllOptions = {}): void {
         verbose,
         files: options.files,
       });
-    } catch (error) {
+    } catch {
       hasErrors = true;
       if (verbose) {
         console.error('DCM validation failed');
@@ -86,7 +86,7 @@ export function dartValidateAll(options: DartValidateAllOptions = {}): void {
         verbose,
         files: options.files,
       });
-    } catch (error) {
+    } catch {
       hasErrors = true;
       if (verbose) {
         console.error('Freezed validation failed');

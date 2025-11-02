@@ -49,6 +49,13 @@ tsutils dart changed
 tsutils dart hook format check
 tsutils dart hook dcm check
 tsutils dart hook graphql check
+
+# Dart validation commands (for mono-repos with PACKAGE_INDEX)
+tsutils dart validate format [--files <files...>]
+tsutils dart validate analysis [--files <files...>]
+tsutils dart validate dcm [--files <files...>]
+tsutils dart validate freezed [--files <files...>]
+tsutils dart validate all [--files <files...>]
 ```
 
 ### Pipe-Friendly Output
@@ -113,6 +120,11 @@ gh pr create --title "Feature: $(git branch --show-current)" --body "$(tsutils g
 - **`dart hook format check`**: Formats modified Dart files (excluding generated files) and exits with error if changes were made. Perfect for pre-push hooks.
 - **`dart hook dcm check`**: Runs DCM fix on modified Dart files (excluding generated files) and exits with error if fixes were applied. Perfect for pre-push hooks. Skips gracefully if DCM is not installed.
 - **`dart hook graphql check`**: Checks if GraphQL files have been modified and runs code generation (`melos run codegen:graphql` and `melos run codegen:graphql:test`) to ensure fakes are up to date. Exits with error if code generation creates changes. Perfect for pre-push hooks. Skips gracefully if melos is not installed.
+- **`dart validate format`**: Validates Dart formatting using `dart format --set-exit-if-changed`. Works with PACKAGE_INDEX in mono-repos to find affected packages. Defaults to staged files, or accepts `--files` parameter. Exits with error if formatting is needed.
+- **`dart validate analysis`**: Runs `dart analyze --fatal-infos` on affected packages. Works with PACKAGE_INDEX in mono-repos. Defaults to staged files, or accepts `--files` parameter. Exits with error if analysis fails.
+- **`dart validate dcm`**: Runs DCM analysis on affected packages. Works with PACKAGE_INDEX in mono-repos. Defaults to staged files, or accepts `--files` parameter. Skips gracefully if DCM is not installed.
+- **`dart validate freezed`**: Validates freezed files in features/ directory to ensure generated files are up to date. Runs `dart run build_runner build` and checks for changes. Defaults to staged files, or accepts `--files` parameter.
+- **`dart validate all`**: Runs all validation checks (format, analysis, DCM, freezed) in sequence. Supports `--skip-*` flags to skip specific checks.
 - **`--verbose`**: All commands support this flag to show human-readable headers/messages to stderr (won't interfere with piping).
 
 ## Requirements
@@ -122,6 +134,58 @@ gh pr create --title "Feature: $(git branch --show-current)" --body "$(tsutils g
 - **DCM**: Optional for `dart hook dcm check` command. Install from https://dcm.dev
 - **Dart SDK**: Required for `dart hook format check` command. Install from https://dart.dev
 - **Melos**: Required for `dart hook graphql check` command. Install from https://melos.invertase.dev
+
+## Dart Mono-Repo Support (PACKAGE_INDEX)
+
+The `dart validate *` commands support Dart mono-repos using a `PACKAGE_INDEX` file in the workspace root. This file contains metadata about packages in the mono-repo, allowing tsu to efficiently find which packages are affected by file changes.
+
+### PACKAGE_INDEX Format
+
+Create a `PACKAGE_INDEX` file in your repository root with the following JSON structure:
+
+```json
+[
+  {
+    "name": "app",
+    "location": "packages/app"
+  },
+  {
+    "name": "core",
+    "location": "packages/core"  
+  },
+  {
+    "name": "features",
+    "location": "features"
+  }
+]
+```
+
+Each entry should have:
+- `name`: Package name
+- `location`: Relative path from repository root to the package directory
+
+### How It Works
+
+1. When you run a `dart validate *` command without `--files`, it gets staged files by default
+2. It reads `PACKAGE_INDEX` to find which package(s) contain those files
+3. It runs the validation command (format, analysis, etc.) on each affected package
+4. This is much faster than validating the entire mono-repo
+
+### Example Usage
+
+```bash
+# Validate formatting of affected packages (based on staged files)
+tsutils dart validate format --verbose
+
+# Validate specific files
+tsutils dart validate format --files packages/app/lib/main.dart packages/core/lib/utils.dart --verbose
+
+# Run all validations on affected packages
+tsutils dart validate all --verbose
+
+# Run analysis, skipping DCM
+tsutils dart validate all --skip-dcm --verbose
+```
 
 ## Project Structure
 
@@ -143,11 +207,16 @@ src/
 │   ├── dart-hook-format-check.ts # Format check for git hooks
 │   ├── dart-hook-dcm-check.ts   # DCM fix check for git hooks
 │   ├── dart-hook-graphql-check.ts # GraphQL codegen check for git hooks
+│   ├── dart-validate-format.ts  # Validate Dart formatting (mono-repo)
+│   ├── dart-validate-analysis.ts # Validate Dart analysis (mono-repo)
+│   ├── dart-validate-dcm.ts     # Validate DCM analysis (mono-repo)
+│   ├── dart-validate-freezed.ts # Validate freezed files (mono-repo)
+│   ├── dart-validate-all.ts     # Run all validation checks (mono-repo)
 │   └── files-filter.ts          # Filter files by suffix
 └── utils/                       # Utility functions
     ├── logger.ts
     ├── git.ts                   # Git utilities
-    ├── dart.ts                  # Dart utilities
+    ├── dart.ts                  # Dart utilities (includes PACKAGE_INDEX support)
     └── files.ts                 # File utilities
 ```
 
