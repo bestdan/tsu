@@ -4,6 +4,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { ensureCondition } from '../utils/command-helpers.js';
 import { isCommandInstalled, escapeShellArg } from '../utils/shell.js';
 import { getChangedFiles } from '../utils/git.js';
+import { findDartPackageRoot } from '../utils/dart.js';
 
 export interface DartValidateFreezedOptions {
   verbose?: boolean;
@@ -95,7 +96,7 @@ export function dartValidateFreezed(
     }
 
     // Find the package root for this file
-    const packageRoot = findPackageRootForFile(file);
+    const packageRoot = findDartPackageRoot(dirname(file));
     if (!packageRoot) {
       console.error(
         `❌ Could not find package root for ${basename(file)}`
@@ -158,22 +159,4 @@ export function dartValidateFreezed(
     console.error('✓ All freezed files are up to date');
   }
   process.exit(0);
-}
-
-/**
- * Finds the package root for a given file by walking up the directory tree
- */
-function findPackageRootForFile(filePath: string): string | null {
-  let currentPath = dirname(filePath);
-  const root = resolve('/');
-
-  while (currentPath !== root) {
-    const pubspecPath = resolve(currentPath, 'pubspec.yaml');
-    if (existsSync(pubspecPath)) {
-      return currentPath;
-    }
-    currentPath = dirname(currentPath);
-  }
-
-  return null;
 }
