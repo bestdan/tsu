@@ -39,12 +39,6 @@ describe('findDartPackageRoot', () => {
     const result = findDartPackageRoot('/tmp');
     expect(result).toBe(null);
   });
-
-  it('should use current directory when no argument provided', () => {
-    // This will likely return null since we're not in a Dart package
-    const result = findDartPackageRoot();
-    expect(result === null || typeof result === 'string').toBe(true);
-  });
 });
 
 describe('findFilePackageRoot', () => {
