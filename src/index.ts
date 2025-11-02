@@ -49,6 +49,7 @@ export {
   findFilePackageRoot,
   isDartPackage,
   findAllDartFiles,
+  readPackageName,
   COMMON_DART_CODEGEN_SUFFIXES,
 } from './utils/dart.js';
 

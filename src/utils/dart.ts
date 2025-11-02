@@ -338,7 +338,7 @@ export function readPackageIndex(
  * @param packageRoot - Path to the package root directory
  * @returns Package name or null if not found
  */
-function readPackageName(packageRoot: string): string | null {
+export function readPackageName(packageRoot: string): string | null {
   const pubspecPath = join(packageRoot, 'pubspec.yaml');
   if (!existsSync(pubspecPath)) {
     return null;
