@@ -40,6 +40,8 @@ export {
   displayChangedFiles,
   getChangedFilesWithOptions,
   ensureCondition,
+  ensureDartInstalled,
+  ensureDCMInstalled,
   type DisplayChangedFilesOptions,
 } from './utils/command-helpers.js';
 

@@ -9,8 +9,8 @@ import {
   COMMON_DART_CODEGEN_SUFFIXES,
 } from '../utils/dart.js';
 import { filterFilesBySuffix } from '../utils/files.js';
-import { escapeShellArg, isCommandInstalled } from '../utils/shell.js';
-import { ensureCondition } from '../utils/command-helpers.js';
+import { escapeShellArg } from '../utils/shell.js';
+import { ensureCondition, ensureDCMInstalled } from '../utils/command-helpers.js';
 
 export interface DartHookDcmCheckOptions {
   verbose?: boolean;
@@ -36,11 +36,7 @@ export function dartHookDcmCheck(
   ];
 
   // Check if DCM is installed
-  ensureCondition(
-    isCommandInstalled('dcm'),
-    verbose ? '⚠️  Warning: DCM not installed, skipping' : '',
-    { exitCode: 0 }
-  );
+  ensureDCMInstalled(verbose);
 
   if (verbose) {
     console.error('🔧 Running DCM fix on modified files...');
