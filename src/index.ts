@@ -27,6 +27,13 @@ export { escapeShellArg } from './utils/shell.js';
 // File utilities
 export { filterFilesBySuffix } from './utils/files.js';
 
+// Command helper utilities
+export {
+  displayChangedFiles,
+  getChangedFilesWithOptions,
+  type DisplayChangedFilesOptions,
+} from './utils/command-helpers.js';
+
 // Dart utilities
 export {
   findDartPackageRoot,

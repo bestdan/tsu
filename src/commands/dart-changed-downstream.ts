@@ -1,5 +1,5 @@
 import { resolve } from 'node:path';
-import { getChangedFiles, isGitRepo, type ChangeType } from '../utils/git.js';
+import { isGitRepo } from '../utils/git.js';
 import {
   findDartPackageRoot,
   findAllDartFiles,
@@ -8,6 +8,7 @@ import {
   findDownstreamDependencies,
   findFilePackageRoot,
 } from '../utils/dart.js';
+import { getChangedFilesWithOptions } from '../utils/command-helpers.js';
 
 export interface DartChangedDownstreamOptions {
   staged?: boolean;
@@ -36,53 +37,13 @@ export function dartChangedDownstream(
     process.exit(1);
   }
 
-  const baseBranch = options.baseBranch || 'main';
   const verbose = options.verbose || false;
 
-  // Helper function to filter only Dart files
-  const filterDartFiles = (files: string[]): string[] => {
-    return files.filter((file) => file.endsWith('.dart'));
-  };
-
-  // Get changed files
-  let changedFiles: string[] = [];
-
-  if (options.all) {
-    const committedFiles = getChangedFiles({ type: 'committed', baseBranch });
-    const stagedFiles = getChangedFiles({ type: 'staged' });
-    const unstagedFiles = getChangedFiles({ type: 'unstaged' });
-
-    if (
-      committedFiles === null ||
-      stagedFiles === null ||
-      unstagedFiles === null
-    ) {
-      console.error('Error: Failed to get changed files');
-      process.exit(1);
-    }
-
-    // Combine all changed files and deduplicate
-    const allFiles = [...committedFiles, ...stagedFiles, ...unstagedFiles];
-    changedFiles = Array.from(new Set(allFiles));
-  } else {
-    // Determine which type of changes to show
-    let type: ChangeType = 'committed';
-    if (options.staged) {
-      type = 'staged';
-    } else if (options.unstaged) {
-      type = 'unstaged';
-    }
-
-    const files = getChangedFiles({ type, baseBranch });
-    if (files === null) {
-      console.error('Error: Failed to get changed files');
-      process.exit(1);
-    }
-    changedFiles = files;
-  }
-
-  // Filter to only Dart files
-  const changedDartFiles = filterDartFiles(changedFiles);
+  // Get changed Dart files using the shared helper
+  const changedDartFiles = getChangedFilesWithOptions({
+    ...options,
+    filter: (file) => file.endsWith('.dart'),
+  });
 
   if (changedDartFiles.length === 0) {
     if (verbose) {
