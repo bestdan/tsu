@@ -137,11 +137,14 @@ gh pr create --title "Feature: $(git branch --show-current)" --body "$(tsutils g
 
 ## Dart Mono-Repo Support (PACKAGE_INDEX)
 
-The `dart validate *` commands support Dart mono-repos using a `PACKAGE_INDEX` file in the workspace root. This file contains metadata about packages in the mono-repo, allowing tsu to efficiently find which packages are affected by file changes.
+The `dart validate *` commands support both standalone Dart packages and mono-repos:
 
-### PACKAGE_INDEX Format
+1. **Standalone packages**: Automatically finds packages by looking for `pubspec.yaml` files
+2. **Mono-repos with PACKAGE_INDEX** (optional): Uses a PACKAGE_INDEX file for efficient lookup in large mono-repos
 
-Create a `PACKAGE_INDEX` file in your repository root with the following JSON structure:
+### PACKAGE_INDEX Format (Optional)
+
+For large mono-repos, you can create a `PACKAGE_INDEX` file in your repository root for faster package lookup:
 
 ```json
 [
@@ -161,13 +164,17 @@ Create a `PACKAGE_INDEX` file in your repository root with the following JSON st
 ```
 
 Each entry should have:
-- `name`: Package name
+- `name`: Package name (matches the name in pubspec.yaml)
 - `location`: Relative path from repository root to the package directory
+
+**Note**: If PACKAGE_INDEX is not present, the commands will automatically find packages by walking up the directory tree to find `pubspec.yaml` files. PACKAGE_INDEX is purely an optimization for large mono-repos.
 
 ### How It Works
 
 1. When you run a `dart validate *` command without `--files`, it gets staged files by default
-2. It reads `PACKAGE_INDEX` to find which package(s) contain those files
+2. For each file, it finds the containing package:
+   - If PACKAGE_INDEX exists: Uses it for fast lookup
+   - Otherwise: Walks up the directory tree to find `pubspec.yaml`
 3. It runs the validation command (format, analysis, etc.) on each affected package
 4. This is much faster than validating the entire mono-repo
 

@@ -356,11 +356,44 @@ describe('readPackageIndex and findAffectedPackages', () => {
     rmSync(tempDir, { recursive: true });
   });
 
-  it('should return empty map if PACKAGE_INDEX does not exist', async () => {
+  it('should fall back to pubspec.yaml when PACKAGE_INDEX does not exist', async () => {
     const { findAffectedPackages } = await import('./dart.js');
+    const { writeFileSync, mkdtempSync, rmSync, mkdirSync } = await import('node:fs');
+    const { join } = await import('node:path');
+    const { tmpdir } = await import('node:os');
+
+    const tempDir = mkdtempSync(join(tmpdir(), 'dart-test-'));
+    
+    // Create a package structure with pubspec.yaml
+    const packageDir = join(tempDir, 'packages', 'app');
+    mkdirSync(join(packageDir, 'lib'), { recursive: true });
+    writeFileSync(
+      join(packageDir, 'pubspec.yaml'),
+      'name: test_app\nversion: 1.0.0\n'
+    );
+    writeFileSync(join(packageDir, 'lib', 'main.dart'), '// test');
+
     const files = ['packages/app/lib/main.dart'];
-    const result = findAffectedPackages(files, '/tmp');
+    const result = findAffectedPackages(files, tempDir);
+
+    expect(result.size).toBe(1);
+    expect(result.get('packages/app')).toBe('test_app');
+
+    rmSync(tempDir, { recursive: true });
+  });
+
+  it('should return empty map if no pubspec.yaml found', async () => {
+    const { findAffectedPackages } = await import('./dart.js');
+    const { mkdtempSync, rmSync } = await import('node:fs');
+    const { join } = await import('node:path');
+    const { tmpdir } = await import('node:os');
+
+    const tempDir = mkdtempSync(join(tmpdir(), 'dart-test-'));
+    const files = ['packages/app/lib/main.dart'];
+    const result = findAffectedPackages(files, tempDir);
 
     expect(result.size).toBe(0);
+
+    rmSync(tempDir, { recursive: true });
   });
 });
