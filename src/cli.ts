@@ -16,6 +16,7 @@ import { dartChangedDownstream } from './commands/dart-changed-downstream.js';
 import { dartHookFormatCheck } from './commands/dart-hook-format-check.js';
 import { dartHookDcmCheck } from './commands/dart-hook-dcm-check.js';
 import { dartHookGraphqlCheck } from './commands/dart-hook-graphql-check.js';
+import { dartFix } from './commands/dart-fix.js';
 
 const program = new Command();
 
@@ -240,6 +241,24 @@ dartChangedCmd
       verbose?: boolean;
     }) => {
       dartChangedDownstream(options);
+    }
+  );
+
+dart
+  .command('fix')
+  .description('Run dart fix (dry-run by default)')
+  .option('-v, --verbose', 'show detailed progress information')
+  .option('-f, --files <files...>', 'specific files or directories to check')
+  .option('--apply', 'apply fixes automatically (default is dry-run)')
+  .option('--packages', 'run on affected packages instead of individual files')
+  .action(
+    (options: {
+      verbose?: boolean;
+      files?: string[];
+      apply?: boolean;
+      packages?: boolean;
+    }) => {
+      dartFix(options);
     }
   );
 

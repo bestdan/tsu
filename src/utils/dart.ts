@@ -15,6 +15,12 @@ export const COMMON_DART_CODEGEN_SUFFIXES = [
 ] as const;
 
 /**
+ * Name of the package index file used in mono-repos.
+ * This file provides efficient package lookup in large mono-repos.
+ */
+export const TSU_PACKAGE_INDEX = 'PACKAGE_INDEX';
+
+/**
  * Finds the nearest pubspec.yaml file by walking up the directory tree.
  * @param startPath - Path to start searching from (defaults to current directory)
  * @returns Path to the directory containing pubspec.yaml, or null if not found
@@ -294,4 +300,157 @@ export function findDownstreamDependencies(
   }
 
   return downstream;
+}
+
+/**
+ * Structure of a package entry in the TSU_PACKAGE_INDEX file.
+ *
+ * The TSU_PACKAGE_INDEX file is only relevant for mono-repos where you have multiple
+ * Dart packages. It provides an efficient way to map files to their containing packages
+ * without having to walk the directory tree. For single-package repos or when the file
+ * is missing, the utilities will automatically fall back to searching for pubspec.yaml
+ * files.
+ */
+export interface PackageIndexEntry {
+  name: string;
+  location: string;
+  [key: string]: unknown; // Allow additional properties
+}
+
+/**
+ * Reads and parses the TSU_PACKAGE_INDEX file from the workspace root.
+ *
+ * The TSU_PACKAGE_INDEX file is optional and only relevant for large mono-repos with
+ * multiple Dart packages. It provides efficient package lookup by maintaining a JSON
+ * index of all packages. If the file doesn't exist, the dart utilities will automatically
+ * fall back to walking the directory tree to find pubspec.yaml files.
+ *
+ * @param workspaceRoot - Root directory of the workspace (defaults to current directory)
+ * @returns Array of package entries, or null if file doesn't exist or is invalid
+ */
+export function readPackageIndex(
+  workspaceRoot: string = process.cwd()
+): PackageIndexEntry[] | null {
+  const packageIndexPath = resolve(workspaceRoot, TSU_PACKAGE_INDEX);
+
+  if (!existsSync(packageIndexPath)) {
+    return null;
+  }
+
+  try {
+    const content = readFileSync(packageIndexPath, 'utf-8');
+    const packages = JSON.parse(content);
+
+    if (!Array.isArray(packages)) {
+      return null;
+    }
+
+    return packages as PackageIndexEntry[];
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Reads package name from pubspec.yaml file.
+ * @param packageRoot - Path to the package root directory
+ * @returns Package name or null if not found
+ */
+export function readPackageName(packageRoot: string): string | null {
+  const pubspecPath = join(packageRoot, 'pubspec.yaml');
+  if (!existsSync(pubspecPath)) {
+    return null;
+  }
+
+  try {
+    const content = readFileSync(pubspecPath, 'utf-8');
+    // Simple regex to extract name field from pubspec.yaml
+    const nameMatch = content.match(/^name:\s*(.+)$/m);
+    if (nameMatch && nameMatch[1]) {
+      return nameMatch[1].trim();
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Finds which package(s) contain the given files.
+ *
+ * For mono-repos: If TSU_PACKAGE_INDEX exists, uses it for efficient lookup.
+ * For single-package repos or when TSU_PACKAGE_INDEX is missing: Falls back to
+ * walking up the directory tree to find pubspec.yaml files.
+ *
+ * @param files - Array of file paths (relative or absolute)
+ * @param workspaceRoot - Root directory of the workspace
+ * @returns Map of package location to package name
+ */
+export function findAffectedPackages(
+  files: string[],
+  workspaceRoot: string = process.cwd()
+): Map<string, string> {
+  const packages = readPackageIndex(workspaceRoot);
+
+  // If PACKAGE_INDEX exists, use it for efficient lookup
+  if (packages) {
+    // Sort packages by location length (longest first) to match most specific packages first
+    const sortedPackages = [...packages].sort(
+      (a, b) => b.location.length - a.location.length
+    );
+
+    const affectedPackages = new Map<string, string>();
+
+    for (const file of files) {
+      // Convert to relative path if absolute
+      const relativePath = file.startsWith(workspaceRoot)
+        ? file.substring(workspaceRoot.length + 1)
+        : file;
+
+      // Find the package that contains this file
+      for (const pkg of sortedPackages) {
+        const location = pkg.location;
+        if (
+          relativePath === location ||
+          relativePath.startsWith(location + '/')
+        ) {
+          affectedPackages.set(location, pkg.name);
+          break;
+        }
+      }
+    }
+
+    return affectedPackages;
+  }
+
+  // Fall back to finding packages by pubspec.yaml
+  const affectedPackages = new Map<string, string>();
+
+  for (const file of files) {
+    const absolutePath = resolve(workspaceRoot, file);
+    const packageRoot = findFilePackageRoot(absolutePath, workspaceRoot);
+
+    if (packageRoot) {
+      // Convert to relative path for consistency with PACKAGE_INDEX format
+      let location: string;
+      if (packageRoot === workspaceRoot) {
+        // Package is at workspace root, use "." as location
+        location = '.';
+      } else if (packageRoot.startsWith(workspaceRoot + '/')) {
+        // Package is a subdirectory, use relative path
+        location = packageRoot.substring(workspaceRoot.length + 1);
+      } else {
+        // Package is outside workspace, use absolute path
+        location = packageRoot;
+      }
+
+      // Get package name from pubspec.yaml
+      const packageName = readPackageName(packageRoot);
+      if (packageName) {
+        affectedPackages.set(location, packageName);
+      }
+    }
+  }
+
+  return affectedPackages;
 }
