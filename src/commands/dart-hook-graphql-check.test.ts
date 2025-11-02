@@ -114,7 +114,8 @@ describe('dartHookGraphqlCheck', () => {
       }
       if (
         typeof cmd === 'string' &&
-        cmd.includes('melos run codegen:graphql:test')
+        (cmd.includes('melos run codegen:graphql:test') ||
+          cmd === 'melos run codegen:graphql')
       ) {
         return Buffer.from('');
       }
@@ -137,6 +138,15 @@ describe('dartHookGraphqlCheck', () => {
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       '✓ GraphQL fakes are up to date'
     );
+    // Verify both commands were called
+    expect(execSyncMock).toHaveBeenCalledWith(
+      'melos run codegen:graphql',
+      expect.any(Object)
+    );
+    expect(execSyncMock).toHaveBeenCalledWith(
+      'melos run codegen:graphql:test',
+      expect.any(Object)
+    );
     expect(processExitSpy).toHaveBeenCalledWith(0);
   });
 
@@ -148,7 +158,8 @@ describe('dartHookGraphqlCheck', () => {
       }
       if (
         typeof cmd === 'string' &&
-        cmd.includes('melos run codegen:graphql:test')
+        (cmd.includes('melos run codegen:graphql:test') ||
+          cmd === 'melos run codegen:graphql')
       ) {
         return Buffer.from('');
       }
@@ -189,7 +200,8 @@ describe('dartHookGraphqlCheck', () => {
       }
       if (
         typeof cmd === 'string' &&
-        cmd.includes('melos run codegen:graphql:test')
+        (cmd.includes('melos run codegen:graphql:test') ||
+          cmd === 'melos run codegen:graphql')
       ) {
         throw new Error('codegen failed');
       }
@@ -220,7 +232,8 @@ describe('dartHookGraphqlCheck', () => {
       }
       if (
         typeof cmd === 'string' &&
-        cmd.includes('melos run codegen:graphql:test')
+        (cmd.includes('melos run codegen:graphql:test') ||
+          cmd === 'melos run codegen:graphql')
       ) {
         return Buffer.from('');
       }

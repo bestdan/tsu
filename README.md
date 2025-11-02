@@ -110,7 +110,7 @@ gh pr create --title "Feature: $(git branch --show-current)" --body "$(tsutils g
 - **`git pr-description`**: Generates a GitHub PR description from branch changes using Claude CLI. Outputs markdown description to stdout. Compares current branch to main (or `--base-branch`).
 - **`dart hook format check`**: Formats modified Dart files (excluding generated files) and exits with error if changes were made. Perfect for pre-push hooks.
 - **`dart hook dcm check`**: Runs DCM fix on modified Dart files (excluding generated files) and exits with error if fixes were applied. Perfect for pre-push hooks. Skips gracefully if DCM is not installed.
-- **`dart hook graphql check`**: Checks if GraphQL files have been modified and runs code generation (`melos run codegen:graphql:test`) to ensure fakes are up to date. Exits with error if code generation creates changes. Perfect for pre-push hooks. Skips gracefully if melos is not installed.
+- **`dart hook graphql check`**: Checks if GraphQL files have been modified and runs code generation (`melos run codegen:graphql` and `melos run codegen:graphql:test`) to ensure fakes are up to date. Exits with error if code generation creates changes. Perfect for pre-push hooks. Skips gracefully if melos is not installed.
 - **`--verbose`**: All commands support this flag to show human-readable headers/messages to stderr (won't interfere with piping).
 
 ## Requirements

@@ -18,7 +18,7 @@ export interface DartHookGraphqlCheckOptions {
  * 1. Checks if melos is installed
  * 2. Gets modified .graphql files
  * 3. Saves git status before running codegen
- * 4. Runs GraphQL code generation (melos run codegen:graphql:test)
+ * 4. Runs GraphQL code generation (melos run codegen:graphql and melos run codegen:graphql:test)
  * 5. Checks if codegen created any changes
  * 6. Exits with error if files were modified by codegen
  */
@@ -26,7 +26,10 @@ export function dartHookGraphqlCheck(
   options: DartHookGraphqlCheckOptions = {}
 ): void {
   const verbose = options.verbose || false;
-  const codegenCommand = 'melos run codegen:graphql:test';
+  const codegenCommands = [
+    'melos run codegen:graphql',
+    'melos run codegen:graphql:test',
+  ];
 
   if (verbose) {
     console.error('🧪 Checking for modified GraphQL files...');
@@ -78,12 +81,14 @@ export function dartHookGraphqlCheck(
     console.error('🔧 Running GraphQL code generation...');
   }
 
-  // Run the code generation command
+  // Run the code generation commands
   try {
-    execSync(codegenCommand, {
-      cwd,
-      stdio: verbose ? 'inherit' : 'pipe',
-    });
+    for (const command of codegenCommands) {
+      execSync(command, {
+        cwd,
+        stdio: verbose ? 'inherit' : 'pipe',
+      });
+    }
   } catch (error) {
     console.error('Error: Failed to run GraphQL code generation');
     if (error instanceof Error) {
@@ -101,8 +106,9 @@ export function dartHookGraphqlCheck(
   );
 
   // Compare git status before and after
-  // Type assertion safe here because ensureCondition ensures non-null
-  if (gitStatusBefore !== gitStatusAfter) {
+  // TypeScript knows these are non-null after ensureCondition checks
+  // Using type guards instead of assertions for better safety
+  if (gitStatusBefore && gitStatusAfter && gitStatusBefore !== gitStatusAfter) {
     console.error('');
     console.error('⚠️  WARNING: GraphQL fakes need regeneration!');
     console.error('   Modified files:');
@@ -111,9 +117,9 @@ export function dartHookGraphqlCheck(
     try {
       // Parse the status outputs to show what changed
       const beforeLines = new Set(
-        gitStatusBefore!.split('\n').filter((line) => line.length > 0)
+        gitStatusBefore.split('\n').filter((line) => line.length > 0)
       );
-      const afterLines = gitStatusAfter!.split('\n').filter((line) => line.length > 0);
+      const afterLines = gitStatusAfter.split('\n').filter((line) => line.length > 0);
 
       // Find files that are new or have different status
       const changedFiles = afterLines.filter((line) => !beforeLines.has(line));
@@ -135,7 +141,9 @@ export function dartHookGraphqlCheck(
     }
 
     console.error('');
-    console.error(`   Run '${codegenCommand}' and commit changes`);
+    console.error(
+      `   Run 'melos run codegen:graphql && melos run codegen:graphql:test' and commit changes`
+    );
     process.exit(1);
   }
 
