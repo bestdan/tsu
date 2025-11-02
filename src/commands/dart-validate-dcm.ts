@@ -14,7 +14,7 @@ export interface DartValidateDcmOptions {
 
 /**
  * Validates Dart code using DCM (Dart Code Metrics).
- * Can work with PACKAGE_INDEX to find affected packages or validate specific directories.
+ * Automatically finds Dart packages by locating pubspec.yaml files.
  */
 export function dartValidateDcm(options: DartValidateDcmOptions = {}): void {
   const verbose = options.verbose || false;

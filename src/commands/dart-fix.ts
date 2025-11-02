@@ -6,30 +6,25 @@ import { isCommandInstalled } from '../utils/shell.js';
 import { findAffectedPackages } from '../utils/dart.js';
 import { getChangedFiles } from '../utils/git.js';
 
-export interface DartValidateAnalysisOptions {
+export interface DartFixOptions {
   verbose?: boolean;
-  /** Files or directories to validate (defaults to staged files) */
+  /** Files or directories to fix (defaults to staged files) */
   files?: string[];
-  /** Automatically apply fixes after analysis if issues are found */
-  autofix?: boolean;
 }
 
 /**
- * Validates Dart code using dart analyze.
+ * Applies Dart fixes using dart fix --apply.
  * Automatically finds Dart packages by locating pubspec.yaml files.
  */
-export function dartValidateAnalysis(
-  options: DartValidateAnalysisOptions = {}
-): void {
+export function dartFix(options: DartFixOptions = {}): void {
   const verbose = options.verbose || false;
-  const autofix = options.autofix || false;
   let files = options.files || [];
 
   if (verbose) {
-    console.error('🔍 Running Dart analysis...');
+    console.error('🔧 Applying Dart fixes...');
   }
 
-  // Check if dart analyze is available
+  // Check if dart fix is available
   ensureCondition(
     isCommandInstalled('dart'),
     'Error: dart command not found. Please install Dart SDK.'
@@ -48,7 +43,7 @@ export function dartValidateAnalysis(
 
     if (files.length === 0) {
       if (verbose) {
-        console.error('✓ No staged Dart files to analyze');
+        console.error('✓ No staged Dart files to fix');
       }
       process.exit(0);
     }
@@ -59,28 +54,27 @@ export function dartValidateAnalysis(
 
   if (affectedPackages.size === 0) {
     if (verbose) {
-      console.error('✓ No Dart packages to analyze');
+      console.error('✓ No Dart packages to fix');
     }
     process.exit(0);
   }
 
-  validatePackages(affectedPackages, cwd, verbose, autofix);
+  fixPackages(affectedPackages, cwd, verbose);
 }
 
 /**
- * Validates packages using dart analyze
+ * Applies fixes to packages using dart fix --apply
  */
-function validatePackages(
+function fixPackages(
   packages: Map<string, string>,
   cwd: string,
-  verbose: boolean,
-  autofix: boolean
+  verbose: boolean
 ): void {
   let hasErrors = false;
 
   for (const [location, packageName] of packages) {
     if (verbose) {
-      console.error(`Analyzing ${packageName}...`);
+      console.error(`Applying fixes to ${packageName}...`);
     }
 
     const packagePath = resolve(cwd, location);
@@ -91,34 +85,16 @@ function validatePackages(
     }
 
     try {
-      execSync('dart analyze --fatal-infos', {
+      execSync('dart fix --apply', {
         cwd: packagePath,
         stdio: verbose ? 'inherit' : 'pipe',
       });
       if (verbose) {
-        console.error(`✓ ${packageName} analysis passed`);
+        console.error(`✓ ${packageName} fixes applied`);
       }
     } catch {
-      if (autofix) {
-        if (verbose) {
-          console.error(`⚠️  ${packageName} analysis failed, applying fixes...`);
-        }
-        try {
-          execSync('dart fix --apply', {
-            cwd: packagePath,
-            stdio: verbose ? 'inherit' : 'pipe',
-          });
-          if (verbose) {
-            console.error(`✓ ${packageName} fixes applied`);
-          }
-        } catch {
-          console.error(`❌ ${packageName} fix failed`);
-          hasErrors = true;
-        }
-      } else {
-        console.error(`❌ ${packageName} analysis failed`);
-        hasErrors = true;
-      }
+      console.error(`❌ ${packageName} fix failed`);
+      hasErrors = true;
     }
   }
 
@@ -127,7 +103,7 @@ function validatePackages(
   }
 
   if (verbose) {
-    console.error('✓ All analysis checks passed');
+    console.error('✓ All fixes applied successfully');
   }
   process.exit(0);
 }
