@@ -1,6 +1,7 @@
 import { filterFilesBySuffix } from '../utils/files.js';
 import type { BaseCommandOptions } from '../types/command-options.js';
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface FilesFilterOptions extends BaseCommandOptions {}
 
 /**

@@ -3,6 +3,7 @@ import { isDartPackage } from '../utils/dart.js';
 import { displayChangedFiles } from '../utils/command-helpers.js';
 import type { ChangedFilesOptions } from '../types/command-options.js';
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface DartChangedOptions extends ChangedFilesOptions {}
 
 /**

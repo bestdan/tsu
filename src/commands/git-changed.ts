@@ -2,6 +2,7 @@ import { isGitRepo } from '../utils/git.js';
 import { displayChangedFiles } from '../utils/command-helpers.js';
 import type { ChangedFilesOptions } from '../types/command-options.js';
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface GitChangedOptions extends ChangedFilesOptions {}
 
 export function gitChanged(options: GitChangedOptions = {}): void {
