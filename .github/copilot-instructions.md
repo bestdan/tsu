@@ -31,7 +31,19 @@ src/
 
 ## Coding Standards
 
+### Internal Utilities
+
+- **Use existing utilities**: Prefer internal utilities like `ensureCondition` from `src/utils/command-helpers.ts` for concise and consistent code
+- **Create reusable utilities**: When implementing functionality that could be useful elsewhere, create shared utilities in `src/utils/`
+- **Consolidate similar code**: Look for one-off code patterns that can be consolidated into reusable utilities
+- **Export useful utilities**: If a utility would be helpful for library consumers, export it from `src/index.ts`
+- Available utilities include:
+  - `ensureCondition()`: Validate preconditions and exit with appropriate error messages
+  - `displayChangedFiles()`: Generic function for displaying changed files with consistent formatting
+  - `getChangedFilesWithOptions()`: Get changed files without displaying them
+
 ### TypeScript
+
 - Use strict TypeScript settings (see `tsconfig.json`)
 - Prefer explicit types over `any` (lint warnings for `any`)
 - Use ESM imports/exports (`import`/`export`, not `require`)
@@ -39,6 +51,7 @@ src/
 - Enable all strict type-checking options
 
 ### Code Style
+
 - Use Prettier for formatting (configuration in `.prettierrc`)
 - Follow ESLint rules (configuration in `eslint.config.js`)
 - Use 2-space indentation
@@ -46,12 +59,14 @@ src/
 - Add trailing commas in multi-line objects/arrays
 
 ### Naming Conventions
+
 - Use camelCase for variables and functions
 - Use PascalCase for types and interfaces
 - Use kebab-case for file names
 - Suffix test files with `.test.ts`
 
 ### Testing
+
 - Write tests using Vitest
 - Place test files next to the code they test (e.g., `git.ts` → `git.test.ts`)
 - Use descriptive test names with `describe` and `it/test` blocks
@@ -59,17 +74,21 @@ src/
 - Mock external dependencies (like file system, git commands)
 
 ### CLI Commands Design Principles
+
 - **Pipe-friendly output**: Commands should output clean, parseable data to stdout
 - **Error handling**: Use stderr for errors and human-readable messages
 - **Exit codes**: Use appropriate exit codes (0 for success, non-zero for errors)
 - **Verbose mode**: Support `--verbose` flag for human-readable output to stderr
+- **Pass verbose flag through**: When calling other functions or utilities that support verbose mode, pass the `--verbose` flag down the full stack for consistent debugging output
 - Commands should:
   - Output parseable data to stdout (for piping)
   - Output errors/warnings to stderr
   - Return appropriate exit codes
   - Support `--verbose` for debugging
+  - Pass `verbose` option to utility functions that support it
 
 ### Git Utilities
+
 - Use the utilities in `src/utils/git.ts` for git operations
 - Available functions:
   - `isGitRepo(path?)`: Check if directory is in a git repository
@@ -79,10 +98,12 @@ src/
 - These utilities handle errors gracefully and return appropriate types
 
 ### Error Handling
+
 - Use try-catch blocks for async operations
 - Provide helpful error messages
 - Log errors to stderr using the logger utility
 - Exit with appropriate exit codes in CLI commands
+- **Avoid non-null assertions (`!`)**: Use proper error handling and type guards instead of TypeScript's non-null assertion operator. Prefer `ensureCondition` for validating preconditions.
 
 ## Development Commands
 
@@ -124,6 +145,7 @@ When creating a new CLI command:
 6. Export any public APIs from `src/index.ts`
 
 Example command structure:
+
 ```typescript
 import { Command } from 'commander';
 import { logger } from '../utils/logger.js';
@@ -151,6 +173,25 @@ export function setupMyCommand(program: Command): void {
 - All git commands should work from any subdirectory within a git repository
 - Keep commands focused and composable (Unix philosophy)
 - Consider backwards compatibility when modifying existing commands
+
+## Documentation Organization
+
+- **Avoid bloating README.md**: Keep the main README focused on essential information (installation, basic usage, key features)
+- **Create topic-specific docs**: For detailed documentation on specific topics, create separate markdown files in a `docs/` directory (e.g., `docs/contributing.md`, `docs/architecture.md`)
+- **Link from README**: Reference detailed documentation files from the main README when appropriate
+- Keep documentation close to code when it's implementation-specific
+
+## Git Commit Messages
+
+- **Use Conventional Commits format**: Follow the [Conventional Commits](https://www.conventionalcommits.org/) specification for all commit messages
+- Format: `<type>(<optional scope>): <description>`
+- Common types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
+- Examples:
+  - `feat(git): add support for getting merge base`
+  - `fix(cli): handle edge case in git root detection`
+  - `docs: update README with new command examples`
+  - `refactor(utils): extract common validation logic to ensureCondition`
+  - `test(git): add tests for uncommitted changes`
 
 ## Dependencies
 
