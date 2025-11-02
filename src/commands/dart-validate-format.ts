@@ -20,7 +20,7 @@ export interface DartValidateFormatOptions {
 
 /**
  * Validates formatting of Dart files using dart format.
- * Automatically finds Dart packages by locating pubspec.yaml files.
+ * Can work with PACKAGE_INDEX to find affected packages or validate specific files.
  */
 export function dartValidateFormat(
   options: DartValidateFormatOptions = {}

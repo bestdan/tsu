@@ -358,9 +358,9 @@ function readPackageName(packageRoot: string): string | null {
 }
 
 /**
- * Finds which package(s) contain the given files by locating pubspec.yaml files.
- * For efficiency in large mono-repos, can optionally use PACKAGE_INDEX if present.
- * Otherwise, finds packages by walking up the directory tree to find pubspec.yaml files.
+ * Finds which package(s) contain the given files using PACKAGE_INDEX or pubspec.yaml.
+ * If PACKAGE_INDEX exists, uses it for efficient lookup in mono-repos.
+ * Otherwise, finds packages by walking up to find pubspec.yaml files.
  * @param files - Array of file paths (relative or absolute)
  * @param workspaceRoot - Root directory of the workspace
  * @returns Map of package location to package name

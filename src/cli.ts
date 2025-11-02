@@ -21,7 +21,6 @@ import { dartValidateAnalysis } from './commands/dart-validate-analysis.js';
 import { dartValidateDcm } from './commands/dart-validate-dcm.js';
 import { dartValidateFreezed } from './commands/dart-validate-freezed.js';
 import { dartValidateAll } from './commands/dart-validate-all.js';
-import { dartFix } from './commands/dart-fix.js';
 
 const program = new Command();
 
@@ -249,19 +248,6 @@ dartChangedCmd
     }
   );
 
-// Dart fix command
-dart
-  .command('fix')
-  .description('Apply Dart fixes to packages using dart fix --apply')
-  .option('-v, --verbose', 'show detailed progress information')
-  .option(
-    '-f, --files <files...>',
-    'specific files or directories to fix'
-  )
-  .action((options: { verbose?: boolean; files?: string[] }) => {
-    dartFix(options);
-  });
-
 // Dart hook subcommand namespace
 const dartHook = dart
   .command('hook')
@@ -334,12 +320,9 @@ dartValidate
     '-f, --files <files...>',
     'specific files or directories to validate'
   )
-  .option('--autofix', 'automatically apply fixes if analysis fails')
-  .action(
-    (options: { verbose?: boolean; files?: string[]; autofix?: boolean }) => {
-      dartValidateAnalysis(options);
-    }
-  );
+  .action((options: { verbose?: boolean; files?: string[] }) => {
+    dartValidateAnalysis(options);
+  });
 
 dartValidate
   .command('dcm')

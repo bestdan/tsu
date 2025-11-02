@@ -10,19 +10,16 @@ export interface DartValidateAnalysisOptions {
   verbose?: boolean;
   /** Files or directories to validate (defaults to staged files) */
   files?: string[];
-  /** Automatically apply fixes after analysis if issues are found */
-  autofix?: boolean;
 }
 
 /**
  * Validates Dart code using dart analyze.
- * Automatically finds Dart packages by locating pubspec.yaml files.
+ * Can work with PACKAGE_INDEX to find affected packages or validate specific directories.
  */
 export function dartValidateAnalysis(
   options: DartValidateAnalysisOptions = {}
 ): void {
   const verbose = options.verbose || false;
-  const autofix = options.autofix || false;
   let files = options.files || [];
 
   if (verbose) {
@@ -64,7 +61,7 @@ export function dartValidateAnalysis(
     process.exit(0);
   }
 
-  validatePackages(affectedPackages, cwd, verbose, autofix);
+  validatePackages(affectedPackages, cwd, verbose);
 }
 
 /**
@@ -73,8 +70,7 @@ export function dartValidateAnalysis(
 function validatePackages(
   packages: Map<string, string>,
   cwd: string,
-  verbose: boolean,
-  autofix: boolean
+  verbose: boolean
 ): void {
   let hasErrors = false;
 
@@ -99,26 +95,8 @@ function validatePackages(
         console.error(`✓ ${packageName} analysis passed`);
       }
     } catch {
-      if (autofix) {
-        if (verbose) {
-          console.error(`⚠️  ${packageName} analysis failed, applying fixes...`);
-        }
-        try {
-          execSync('dart fix --apply', {
-            cwd: packagePath,
-            stdio: verbose ? 'inherit' : 'pipe',
-          });
-          if (verbose) {
-            console.error(`✓ ${packageName} fixes applied`);
-          }
-        } catch {
-          console.error(`❌ ${packageName} fix failed`);
-          hasErrors = true;
-        }
-      } else {
-        console.error(`❌ ${packageName} analysis failed`);
-        hasErrors = true;
-      }
+      console.error(`❌ ${packageName} analysis failed`);
+      hasErrors = true;
     }
   }
 

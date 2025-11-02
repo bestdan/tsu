@@ -50,13 +50,12 @@ tsutils dart hook format check
 tsutils dart hook dcm check
 tsutils dart hook graphql check
 
-# Dart validation and fix commands
+# Dart validation commands (for mono-repos with PACKAGE_INDEX)
 tsutils dart validate format [--files <files...>]
-tsutils dart validate analysis [--files <files...>] [--autofix]
+tsutils dart validate analysis [--files <files...>]
 tsutils dart validate dcm [--files <files...>]
 tsutils dart validate freezed [--files <files...>]
 tsutils dart validate all [--files <files...>]
-tsutils dart fix [--files <files...>]
 ```
 
 ### Pipe-Friendly Output
@@ -121,12 +120,11 @@ gh pr create --title "Feature: $(git branch --show-current)" --body "$(tsutils g
 - **`dart hook format check`**: Formats modified Dart files (excluding generated files) and exits with error if changes were made. Perfect for pre-push hooks.
 - **`dart hook dcm check`**: Runs DCM fix on modified Dart files (excluding generated files) and exits with error if fixes were applied. Perfect for pre-push hooks. Skips gracefully if DCM is not installed.
 - **`dart hook graphql check`**: Checks if GraphQL files have been modified and runs code generation (`melos run codegen:graphql` and `melos run codegen:graphql:test`) to ensure fakes are up to date. Exits with error if code generation creates changes. Perfect for pre-push hooks. Skips gracefully if melos is not installed.
-- **`dart validate format`**: Validates Dart formatting using `dart format --set-exit-if-changed`. Automatically finds Dart packages by locating pubspec.yaml files. Defaults to staged files, or accepts `--files` parameter. Exits with error if formatting is needed.
-- **`dart validate analysis`**: Runs `dart analyze --fatal-infos` on affected packages. Automatically finds Dart packages by locating pubspec.yaml files. Defaults to staged files, or accepts `--files` parameter. Supports `--autofix` to automatically apply fixes if analysis fails. Exits with error if analysis fails (and autofix is not enabled or fails).
-- **`dart validate dcm`**: Runs DCM analysis on affected packages. Automatically finds Dart packages by locating pubspec.yaml files. Defaults to staged files, or accepts `--files` parameter. Skips gracefully if DCM is not installed.
+- **`dart validate format`**: Validates Dart formatting using `dart format --set-exit-if-changed`. Works with PACKAGE_INDEX in mono-repos to find affected packages. Defaults to staged files, or accepts `--files` parameter. Exits with error if formatting is needed.
+- **`dart validate analysis`**: Runs `dart analyze --fatal-infos` on affected packages. Works with PACKAGE_INDEX in mono-repos. Defaults to staged files, or accepts `--files` parameter. Exits with error if analysis fails.
+- **`dart validate dcm`**: Runs DCM analysis on affected packages. Works with PACKAGE_INDEX in mono-repos. Defaults to staged files, or accepts `--files` parameter. Skips gracefully if DCM is not installed.
 - **`dart validate freezed`**: Validates freezed files in features/ directory to ensure generated files are up to date. Runs `dart run build_runner build` and checks for changes. Defaults to staged files, or accepts `--files` parameter.
 - **`dart validate all`**: Runs all validation checks (format, analysis, DCM, freezed) in sequence. Supports `--skip-*` flags to skip specific checks.
-- **`dart fix`**: Applies Dart fixes using `dart fix --apply` to affected packages. Automatically finds Dart packages by locating pubspec.yaml files. Defaults to staged files, or accepts `--files` parameter.
 - **`--verbose`**: All commands support this flag to show human-readable headers/messages to stderr (won't interfere with piping).
 
 ## Requirements
@@ -189,12 +187,6 @@ tsutils dart validate format --verbose
 # Validate specific files
 tsutils dart validate format --files packages/app/lib/main.dart packages/core/lib/utils.dart --verbose
 
-# Run analysis with auto-fix enabled
-tsutils dart validate analysis --autofix --verbose
-
-# Apply fixes to affected packages
-tsutils dart fix --verbose
-
 # Run all validations on affected packages
 tsutils dart validate all --verbose
 
@@ -222,12 +214,11 @@ src/
 │   ├── dart-hook-format-check.ts # Format check for git hooks
 │   ├── dart-hook-dcm-check.ts   # DCM fix check for git hooks
 │   ├── dart-hook-graphql-check.ts # GraphQL codegen check for git hooks
-│   ├── dart-validate-format.ts  # Validate Dart formatting
-│   ├── dart-validate-analysis.ts # Validate Dart analysis (with --autofix)
-│   ├── dart-validate-dcm.ts     # Validate DCM analysis
-│   ├── dart-validate-freezed.ts # Validate freezed files
-│   ├── dart-validate-all.ts     # Run all validation checks
-│   ├── dart-fix.ts              # Apply Dart fixes
+│   ├── dart-validate-format.ts  # Validate Dart formatting (mono-repo)
+│   ├── dart-validate-analysis.ts # Validate Dart analysis (mono-repo)
+│   ├── dart-validate-dcm.ts     # Validate DCM analysis (mono-repo)
+│   ├── dart-validate-freezed.ts # Validate freezed files (mono-repo)
+│   ├── dart-validate-all.ts     # Run all validation checks (mono-repo)
 │   └── files-filter.ts          # Filter files by suffix
 └── utils/                       # Utility functions
     ├── logger.ts
