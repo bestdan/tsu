@@ -15,6 +15,12 @@ export const COMMON_DART_CODEGEN_SUFFIXES = [
 ] as const;
 
 /**
+ * Name of the package index file used in mono-repos.
+ * This file provides efficient package lookup in large mono-repos.
+ */
+export const TSU_PACKAGE_INDEX = 'PACKAGE_INDEX';
+
+/**
  * Finds the nearest pubspec.yaml file by walking up the directory tree.
  * @param startPath - Path to start searching from (defaults to current directory)
  * @returns Path to the directory containing pubspec.yaml, or null if not found
@@ -297,7 +303,13 @@ export function findDownstreamDependencies(
 }
 
 /**
- * Structure of a package entry in PACKAGE_INDEX
+ * Structure of a package entry in the TSU_PACKAGE_INDEX file.
+ * 
+ * The TSU_PACKAGE_INDEX file is only relevant for mono-repos where you have multiple
+ * Dart packages. It provides an efficient way to map files to their containing packages
+ * without having to walk the directory tree. For single-package repos or when the file
+ * is missing, the utilities will automatically fall back to searching for pubspec.yaml
+ * files.
  */
 export interface PackageIndexEntry {
   name: string;
@@ -306,14 +318,20 @@ export interface PackageIndexEntry {
 }
 
 /**
- * Reads and parses PACKAGE_INDEX file from the workspace root.
+ * Reads and parses the TSU_PACKAGE_INDEX file from the workspace root.
+ * 
+ * The TSU_PACKAGE_INDEX file is optional and only relevant for large mono-repos with
+ * multiple Dart packages. It provides efficient package lookup by maintaining a JSON
+ * index of all packages. If the file doesn't exist, the dart utilities will automatically
+ * fall back to walking the directory tree to find pubspec.yaml files.
+ * 
  * @param workspaceRoot - Root directory of the workspace (defaults to current directory)
  * @returns Array of package entries, or null if file doesn't exist or is invalid
  */
 export function readPackageIndex(
   workspaceRoot: string = process.cwd()
 ): PackageIndexEntry[] | null {
-  const packageIndexPath = resolve(workspaceRoot, 'PACKAGE_INDEX');
+  const packageIndexPath = resolve(workspaceRoot, TSU_PACKAGE_INDEX);
 
   if (!existsSync(packageIndexPath)) {
     return null;
@@ -358,9 +376,12 @@ export function readPackageName(packageRoot: string): string | null {
 }
 
 /**
- * Finds which package(s) contain the given files using PACKAGE_INDEX or pubspec.yaml.
- * If PACKAGE_INDEX exists, uses it for efficient lookup in mono-repos.
- * Otherwise, finds packages by walking up to find pubspec.yaml files.
+ * Finds which package(s) contain the given files.
+ * 
+ * For mono-repos: If TSU_PACKAGE_INDEX exists, uses it for efficient lookup.
+ * For single-package repos or when TSU_PACKAGE_INDEX is missing: Falls back to 
+ * walking up the directory tree to find pubspec.yaml files.
+ * 
  * @param files - Array of file paths (relative or absolute)
  * @param workspaceRoot - Root directory of the workspace
  * @returns Map of package location to package name

@@ -51,6 +51,7 @@ export {
   findAllDartFiles,
   readPackageName,
   COMMON_DART_CODEGEN_SUFFIXES,
+  TSU_PACKAGE_INDEX,
 } from './utils/dart.js';
 
 // Dart hook utilities
