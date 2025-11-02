@@ -244,7 +244,6 @@ dartChangedCmd
     }
   );
 
-// Dart hook subcommand namespace
 dart
   .command('fix')
   .description('Run dart fix (dry-run by default)')
