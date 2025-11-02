@@ -56,3 +56,8 @@ export {
   COMMON_DART_CODEGEN_SUFFIXES,
   type DartHookFormatCheckOptions,
 } from './commands/dart-hook-format-check.js';
+
+export {
+  dartHookDcmCheck,
+  type DartHookDcmCheckOptions,
+} from './commands/dart-hook-dcm-check.js';

@@ -46,6 +46,7 @@ tsutils dart check
 tsutils dart root
 tsutils dart changed
 tsutils dart hook format check
+tsutils dart hook dcm check
 ```
 
 ### Pipe-Friendly Output
@@ -107,12 +108,14 @@ gh pr create --title "Feature: $(git branch --show-current)" --body "$(tsutils g
 - **`git commit-msg`**: Generates a commit message from staged changes using Claude CLI. Outputs message to stdout for piping, or use `--commit` to auto-commit.
 - **`git pr-description`**: Generates a GitHub PR description from branch changes using Claude CLI. Outputs markdown description to stdout. Compares current branch to main (or `--base-branch`).
 - **`dart hook format check`**: Formats modified Dart files (excluding generated files) and exits with error if changes were made. Perfect for pre-push hooks.
+- **`dart hook dcm check`**: Runs DCM fix on modified Dart files (excluding generated files) and exits with error if fixes were applied. Perfect for pre-push hooks. Skips gracefully if DCM is not installed.
 - **`--verbose`**: All commands support this flag to show human-readable headers/messages to stderr (won't interfere with piping).
 
 ## Requirements
 
 - **Node.js**: >=22.0.0
 - **Claude CLI**: Required for `git commit-msg` and `git pr-description` commands. Install from https://github.com/anthropics/claude-cli
+- **DCM**: Optional for `dart hook dcm check` command. Install from https://dcm.dev
 - **Dart SDK**: Required for `dart hook format check` command. Install from https://dart.dev/get-dart
 
 ## Project Structure
@@ -133,6 +136,7 @@ src/
 │   ├── dart-root.ts             # Get Dart package root
 │   ├── dart-changed.ts          # Show changed Dart files
 │   ├── dart-hook-format-check.ts # Format check for git hooks
+│   ├── dart-hook-dcm-check.ts   # DCM fix check for git hooks
 │   └── files-filter.ts          # Filter files by suffix
 └── utils/                       # Utility functions
     ├── logger.ts
