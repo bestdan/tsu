@@ -21,6 +21,7 @@ import { dartValidateAnalysis } from './commands/dart-validate-analysis.js';
 import { dartValidateDcm } from './commands/dart-validate-dcm.js';
 import { dartValidateFreezed } from './commands/dart-validate-freezed.js';
 import { dartValidateAll } from './commands/dart-validate-all.js';
+import { dartFix } from './commands/dart-fix.js';
 
 const program = new Command();
 
@@ -247,6 +248,21 @@ dartChangedCmd
       dartChangedDownstream(options);
     }
   );
+
+// Dart fix command
+dart
+  .command('fix')
+  .description('Run dart fix (dry-run by default)')
+  .option('-v, --verbose', 'show detailed progress information')
+  .option(
+    '-f, --files <files...>',
+    'specific files or directories to check'
+  )
+  .option('--apply', 'apply fixes automatically (default is dry-run)')
+  .option('--packages', 'run on affected packages instead of individual files')
+  .action((options: { verbose?: boolean; files?: string[]; apply?: boolean; packages?: boolean }) => {
+    dartFix(options);
+  });
 
 // Dart hook subcommand namespace
 const dartHook = dart

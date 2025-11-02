@@ -62,3 +62,8 @@ export {
   dartHookDcmCheck,
   type DartHookDcmCheckOptions,
 } from './commands/dart-hook-dcm-check.js';
+
+export {
+  dartFix,
+  type DartFixOptions,
+} from './commands/dart-fix.js';
