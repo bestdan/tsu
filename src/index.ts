@@ -49,8 +49,10 @@ export {
 export {
   findDartPackageRoot,
   findFilePackageRoot,
+  readPackageName,
   isDartPackage,
   findAllDartFiles,
+  TSU_PACKAGE_INDEX,
   COMMON_DART_CODEGEN_SUFFIXES,
 } from './utils/dart.js';
 
@@ -64,3 +66,5 @@ export {
   dartHookDcmCheck,
   type DartHookDcmCheckOptions,
 } from './commands/dart-hook-dcm-check.js';
+
+export { dartFix, type DartFixOptions } from './commands/dart-fix.js';
