@@ -4,21 +4,12 @@ import {
   getAllChangedFiles,
   hasUnstagedChanges,
 } from '../utils/git.js';
-import { isDartPackage } from '../utils/dart.js';
+import {
+  isDartPackage,
+  COMMON_DART_CODEGEN_SUFFIXES,
+} from '../utils/dart.js';
 import { filterFilesBySuffix } from '../utils/files.js';
 import { escapeShellArg } from '../utils/shell.js';
-
-/**
- * Common Dart code generation file suffixes.
- * These files are typically auto-generated and should be excluded from formatting checks.
- */
-export const COMMON_DART_CODEGEN_SUFFIXES = [
-  '.g.dart',
-  '.freezed.dart',
-  '.gql.dart',
-  '.fakes.dart',
-  '.golden.dart',
-] as const;
 
 export interface DartHookFormatCheckOptions {
   verbose?: boolean;

@@ -48,12 +48,12 @@ export {
   findFilePackageRoot,
   isDartPackage,
   findAllDartFiles,
+  COMMON_DART_CODEGEN_SUFFIXES,
 } from './utils/dart.js';
 
 // Dart hook utilities
 export {
   dartHookFormatCheck,
-  COMMON_DART_CODEGEN_SUFFIXES,
   type DartHookFormatCheckOptions,
 } from './commands/dart-hook-format-check.js';
 
