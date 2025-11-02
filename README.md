@@ -5,6 +5,7 @@ TypeScript command line utilities package.
 ## Setup
 
 This project uses:
+
 - **pnpm** for package management
 - **TypeScript** with ESM modules
 - **Commander.js** for CLI functionality
@@ -14,9 +15,9 @@ This project uses:
 
 ## Installation
 
-For straight usage: 
+For straight usage:
 
-```bash 
+```bash
 # Using npm:
 npm install -g github:bestdan/tsu
 
@@ -103,6 +104,7 @@ gh pr create --title "Feature: $(git branch --show-current)" --body "$(tsutils g
 ```
 
 **Command Design for Piping:**
+
 - **`git check`**: Returns exit code only (0=is git repo, 1=not). No stdout output. Perfect for conditionals.
 - **`git root`**: Outputs the git root path to stdout. Perfect for `cd "$(tsutils git root)"`.
 - **`git changed`**: Outputs filenames (one per line) to stdout. With `--all`, prefixes with type (`committed:`, `staged:`, `unstaged:`).

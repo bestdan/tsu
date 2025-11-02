@@ -16,10 +16,12 @@ The following code sections are intentionally not covered by automated tests due
 ### 1. Claude CLI Integration Functions (`src/utils/git.ts`)
 
 **Functions:**
+
 - `generateCommitMessage()` (lines 257-312)
 - `generatePRDescription()` (lines 327-387)
 
 **Reason:** These functions require the external Claude CLI tool to be installed and configured. They:
+
 - Make external API calls that would require mocking complex external services
 - Are integration points for AI-powered features
 - Are marked with `/* c8 ignore start/stop */` comments for the v8 coverage provider
@@ -32,6 +34,7 @@ The following code sections are intentionally not covered by automated tests due
 **Lines:** 141, 164, 188, 227
 
 **Reason:** These are defensive error handling blocks in functions like:
+
 - `getChangedFiles()` (line 141)
 - `getCurrentBranch()` (line 164)
 - `getStagedDiff()` (line 188)
@@ -57,6 +60,7 @@ The project maintains the following coverage thresholds in `vitest.config.ts`:
 - Lines: 85%
 
 These thresholds are set to:
+
 1. Ensure all meaningful code paths are tested
 2. Allow for reasonable exceptions for external integrations and defensive error handling
 3. Prevent coverage regressions
