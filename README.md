@@ -33,95 +33,55 @@ yarn global add github:bestdan/tsu
 After building, link the package globally (`pnpm link --global`):
 
 ```bash
-# Git commands
-tsutils git check
-tsutils git root
-tsutils git changed
-tsutils git changed --staged
-tsutils git changed --all
-tsutils git commit-msg
-tsutils git pr-description
-
-# Dart commands
-tsutils dart check
-tsutils dart root
-tsutils dart changed
-tsutils dart hook format check
-tsutils dart hook dcm check
-tsutils dart hook graphql check
+tsutils <namespace> <command> [options]
 ```
 
-### Pipe-Friendly Output
+### Available Namespaces
 
-All git commands output clean, parseable data to **stdout** by default, making them perfect for piping and chaining with other commands:
+- **git** - Git-related utilities ([documentation](docs/git.md))
+- **dart** - Dart/Flutter project utilities ([documentation](docs/dart.md))
+- **files** - File filtering utilities ([documentation](docs/files.md))
+
+### Quick Examples
 
 ```bash
-# Boolean checks with git check (exit code only, no output)
-if tsutils git check; then
-  echo "This is a git repository"
-fi
+# Check if in a git repository
+tsutils git check && echo "In a git repo"
 
-tsutils git check && echo "In a git repo" || echo "Not a git repo"
-
-# Get git root and cd into it
+# Get git root path
 cd "$(tsutils git root)"
 
-# Count changed files
-tsutils git changed | wc -l
+# Show changed files
+tsutils git changed
 
-# Filter only staged files from all changes
-tsutils git changed --all | grep "^staged:" | cut -d: -f2
+# Format check for Dart files (git hook)
+tsutils dart hook format check
 
-# Process each changed file
-tsutils git changed | xargs -I {} echo "Processing: {}"
-
-# Get just the file extensions of changed files
-tsutils git changed | xargs -n1 basename | grep -o '\.[^.]*$' | sort | uniq
-
-# Use with other git commands
-tsutils git changed --staged | xargs git reset
-
-# Pipe to other tools
-tsutils git changed | fzf | xargs code
-
-# Combine git check and git root
-tsutils git check && cd "$(tsutils git root)" && echo "Moved to $(pwd)"
-
-# Generate commit message and pipe to git commit
-tsutils git commit-msg | git commit -F -
-
-# Generate commit message and review in editor before committing
-tsutils git commit-msg > /tmp/commit-msg.txt && vim /tmp/commit-msg.txt && git commit -F /tmp/commit-msg.txt
-
-# Generate PR description and copy to clipboard (macOS)
-tsutils git pr-description | pbcopy
-
-# Generate PR description and save to file
-tsutils git pr-description > pr-description.md
-
-# Use PR description with gh CLI to create PR
-gh pr create --title "Feature: $(git branch --show-current)" --body "$(tsutils git pr-description)"
+# Filter files by extension
+tsutils git changed | tsutils files filter --suffix .ts
 ```
 
-**Command Design for Piping:**
+### Command Design Philosophy
 
-- **`git check`**: Returns exit code only (0=is git repo, 1=not). No stdout output. Perfect for conditionals.
-- **`git root`**: Outputs the git root path to stdout. Perfect for `cd "$(tsutils git root)"`.
-- **`git changed`**: Outputs filenames (one per line) to stdout. With `--all`, prefixes with type (`committed:`, `staged:`, `unstaged:`).
-- **`git commit-msg`**: Generates a commit message from staged changes using Claude CLI. Outputs message to stdout for piping, or use `--commit` to auto-commit.
-- **`git pr-description`**: Generates a GitHub PR description from branch changes using Claude CLI. Outputs markdown description to stdout. Compares current branch to main (or `--base-branch`).
-- **`dart hook format check`**: Formats modified Dart files (excluding generated files) and exits with error if changes were made. Perfect for pre-push hooks.
-- **`dart hook dcm check`**: Runs DCM fix on modified Dart files (excluding generated files) and exits with error if fixes were applied. Perfect for pre-push hooks. Skips gracefully if DCM is not installed.
-- **`dart hook graphql check`**: Checks if GraphQL files have been modified and runs code generation (`melos run codegen:graphql` and `melos run codegen:graphql:test`) to ensure fakes are up to date. Exits with error if code generation creates changes. Perfect for pre-push hooks. Skips gracefully if melos is not installed.
-- **`--verbose`**: All commands support this flag to show human-readable headers/messages to stderr (won't interfere with piping).
+All commands follow a **pipe-friendly** design:
+- Clean, parseable output to **stdout**
+- Error messages to **stderr**
+- Appropriate exit codes
+- `--verbose` flag for debugging (outputs to stderr)
 
 ## Requirements
 
 - **Node.js**: >=22.0.0
-- **Claude CLI**: Required for `git commit-msg` and `git pr-description` commands. Install from https://github.com/anthropics/claude-cli
-- **DCM**: Optional for `dart hook dcm check` command. Install from https://dcm.dev
-- **Dart SDK**: Required for `dart hook format check` command. Install from https://dart.dev
-- **Melos**: Required for `dart hook graphql check` command. Install from https://melos.invertase.dev
+
+### Optional Dependencies
+
+Some commands require additional tools:
+- **Claude CLI**: For `git commit-msg` and `git pr-description` - [Install](https://github.com/anthropics/claude-cli)
+- **Dart SDK**: For `dart` commands - [Install](https://dart.dev)
+- **DCM**: For `dart hook dcm check` - [Install](https://dcm.dev)
+- **Melos**: For `dart hook graphql check` - [Install](https://melos.invertase.dev)
+
+See the [git docs](docs/git.md) and [dart docs](docs/dart.md) for details on which commands need what.
 
 ## Project Structure
 
@@ -130,26 +90,20 @@ src/
 ├── cli.ts                       # CLI entry point
 ├── index.ts                     # Library exports
 ├── commands/                    # CLI commands
-│   ├── git-check.ts             # Check if in git repo (exit code only)
-│   ├── git-root.ts              # Get git root path (outputs path)
-│   ├── git-changed.ts           # Show changed files
-│   ├── git-branch.ts            # Get current branch name
-│   ├── git-is-main.ts           # Check if on main branch
-│   ├── git-commit-msg.ts        # Generate commit message using Claude
-│   ├── git-pr-description.ts    # Generate PR description using Claude
-│   ├── dart-check.ts            # Check if in Dart package
-│   ├── dart-root.ts             # Get Dart package root
-│   ├── dart-changed.ts          # Show changed Dart files
-│   ├── dart-hook-format-check.ts # Format check for git hooks
-│   ├── dart-hook-dcm-check.ts   # DCM fix check for git hooks
-│   ├── dart-hook-graphql-check.ts # GraphQL codegen check for git hooks
-│   └── files-filter.ts          # Filter files by suffix
+│   ├── git/                     # Git namespace commands
+│   ├── dart/                    # Dart namespace commands
+│   └── files/                   # Files namespace commands
 └── utils/                       # Utility functions
     ├── logger.ts
     ├── git.ts                   # Git utilities
     ├── dart.ts                  # Dart utilities
     └── files.ts                 # File utilities
 ```
+
+For detailed command documentation, see:
+- [Git Commands](docs/git.md)
+- [Dart Commands](docs/dart.md)
+- [Files Commands](docs/files.md)
 
 [Contributing](CONTRIBUTING.md)
 
