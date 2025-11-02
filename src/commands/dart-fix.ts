@@ -1,8 +1,8 @@
 import { execSync } from 'node:child_process';
 import { resolve, join } from 'node:path';
 import { existsSync, statSync } from 'node:fs';
-import { ensureCondition } from '../utils/command-helpers.js';
-import { isCommandInstalled, escapeShellArg } from '../utils/shell.js';
+import { ensureCondition, ensureDartInstalled } from '../utils/command-helpers.js';
+import { escapeShellArg } from '../utils/shell.js';
 import { findAffectedPackages, readPackageName } from '../utils/dart.js';
 
 export interface DartFixOptions {
@@ -32,11 +32,7 @@ export function dartFix(options: DartFixOptions = {}): void {
   const files = options.files || [];
 
   // Check if dart is installed
-  ensureCondition(
-    isCommandInstalled('dart'),
-    verbose ? '⚠️  Warning: dart not installed, skipping' : '',
-    { exitCode: 0 }
-  );
+  ensureDartInstalled(verbose);
 
   // Check that files were provided
   ensureCondition(

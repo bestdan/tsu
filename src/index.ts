@@ -50,10 +50,13 @@ export {
   findDartPackageRoot,
   findFilePackageRoot,
   readPackageName,
+  readPackageIndex,
+  findAffectedPackages,
   isDartPackage,
   findAllDartFiles,
   TSU_PACKAGE_INDEX,
   COMMON_DART_CODEGEN_SUFFIXES,
+  type PackageIndexEntry,
 } from './utils/dart.js';
 
 // Dart hook utilities
