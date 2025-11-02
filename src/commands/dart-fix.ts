@@ -132,7 +132,7 @@ function runFixOnPackages(
   for (const [location, packageName] of packages) {
     if (verbose) {
       console.error(
-        `Running dart fix ${apply ? '' : '(dry-run) '}on ${packageName}...`
+        `Running dart fix ${apply ? '(applying) ' : '(dry-run) '}on ${packageName}...`
       );
     }
 
