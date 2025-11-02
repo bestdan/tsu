@@ -15,6 +15,7 @@ import { dartChanged } from './commands/dart-changed.js';
 import { dartChangedDownstream } from './commands/dart-changed-downstream.js';
 import { dartHookFormatCheck } from './commands/dart-hook-format-check.js';
 import { dartHookDcmCheck } from './commands/dart-hook-dcm-check.js';
+import { dartHookGraphqlCheck } from './commands/dart-hook-graphql-check.js';
 
 const program = new Command();
 
@@ -273,6 +274,20 @@ dartHook
   )
   .action((options: { verbose?: boolean }) => {
     dartHookDcmCheck(options);
+  });
+
+dartHook
+  .command('graphql')
+  .command('check')
+  .description(
+    'Check if GraphQL fakes are up to date (suitable for pre-push hooks)'
+  )
+  .option(
+    '-v, --verbose',
+    'show human-readable status messages (output to stderr)'
+  )
+  .action((options: { verbose?: boolean }) => {
+    dartHookGraphqlCheck(options);
   });
 
 program.parse();
