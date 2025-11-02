@@ -16,6 +16,11 @@ import { dartChangedDownstream } from './commands/dart-changed-downstream.js';
 import { dartHookFormatCheck } from './commands/dart-hook-format-check.js';
 import { dartHookDcmCheck } from './commands/dart-hook-dcm-check.js';
 import { dartHookGraphqlCheck } from './commands/dart-hook-graphql-check.js';
+import { dartValidateFormat } from './commands/dart-validate-format.js';
+import { dartValidateAnalysis } from './commands/dart-validate-analysis.js';
+import { dartValidateDcm } from './commands/dart-validate-dcm.js';
+import { dartValidateFreezed } from './commands/dart-validate-freezed.js';
+import { dartValidateAll } from './commands/dart-validate-all.js';
 
 const program = new Command();
 
@@ -289,5 +294,80 @@ dartHook
   .action((options: { verbose?: boolean }) => {
     dartHookGraphqlCheck(options);
   });
+
+// Dart validate subcommand namespace
+const dartValidate = dart
+  .command('validate')
+  .description('Validation utilities for Dart packages');
+
+dartValidate
+  .command('format')
+  .description('Validate Dart formatting')
+  .option('-v, --verbose', 'show detailed progress information')
+  .option(
+    '-f, --files <files...>',
+    'specific files or directories to validate'
+  )
+  .action((options: { verbose?: boolean; files?: string[] }) => {
+    dartValidateFormat(options);
+  });
+
+dartValidate
+  .command('analysis')
+  .description('Run Dart analysis on packages')
+  .option('-v, --verbose', 'show detailed progress information')
+  .option(
+    '-f, --files <files...>',
+    'specific files or directories to validate'
+  )
+  .action((options: { verbose?: boolean; files?: string[] }) => {
+    dartValidateAnalysis(options);
+  });
+
+dartValidate
+  .command('dcm')
+  .description('Run DCM analysis on packages')
+  .option('-v, --verbose', 'show detailed progress information')
+  .option(
+    '-f, --files <files...>',
+    'specific files or directories to validate'
+  )
+  .action((options: { verbose?: boolean; files?: string[] }) => {
+    dartValidateDcm(options);
+  });
+
+dartValidate
+  .command('freezed')
+  .description('Validate freezed files are up to date')
+  .option('-v, --verbose', 'show detailed progress information')
+  .option('-f, --files <files...>', 'specific files to validate')
+  .action((options: { verbose?: boolean; files?: string[] }) => {
+    dartValidateFreezed(options);
+  });
+
+dartValidate
+  .command('all')
+  .description('Run all validation checks (format, analysis, dcm, freezed)')
+  .option('-v, --verbose', 'show detailed progress information')
+  .option(
+    '-f, --files <files...>',
+    'specific files or directories to validate'
+  )
+  .option('--skip-format', 'skip format validation')
+  .option('--skip-analysis', 'skip analysis validation')
+  .option('--skip-dcm', 'skip DCM validation')
+  .option('--skip-freezed', 'skip freezed validation')
+  .action(
+    (options: {
+      verbose?: boolean;
+      files?: string[];
+      skipFormat?: boolean;
+      skipAnalysis?: boolean;
+      skipDcm?: boolean;
+      skipFreezed?: boolean;
+    }) => {
+      dartValidateAll(options);
+    }
+  );
 
 program.parse();

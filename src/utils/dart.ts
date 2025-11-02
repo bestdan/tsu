@@ -295,3 +295,98 @@ export function findDownstreamDependencies(
 
   return downstream;
 }
+
+/**
+ * Structure of a package entry in PACKAGE_INDEX
+ */
+export interface PackageIndexEntry {
+  name: string;
+  location: string;
+  [key: string]: unknown; // Allow additional properties
+}
+
+/**
+ * Reads and parses PACKAGE_INDEX file from the workspace root.
+ * @param workspaceRoot - Root directory of the workspace (defaults to current directory)
+ * @returns Array of package entries, or null if file doesn't exist or is invalid
+ */
+export function readPackageIndex(
+  workspaceRoot: string = process.cwd()
+): PackageIndexEntry[] | null {
+  const packageIndexPath = resolve(workspaceRoot, 'PACKAGE_INDEX');
+
+  if (!existsSync(packageIndexPath)) {
+    return null;
+  }
+
+  try {
+    const content = readFileSync(packageIndexPath, 'utf-8');
+    const packages = JSON.parse(content);
+
+    if (!Array.isArray(packages)) {
+      return null;
+    }
+
+    return packages as PackageIndexEntry[];
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Finds which package(s) contain the given files using PACKAGE_INDEX.
+ * @param files - Array of file paths (relative or absolute)
+ * @param workspaceRoot - Root directory of the workspace
+ * @returns Map of package location to package name
+ */
+export function findAffectedPackages(
+  files: string[],
+  workspaceRoot: string = process.cwd()
+): Map<string, string> {
+  const packages = readPackageIndex(workspaceRoot);
+  if (!packages) {
+    return new Map();
+  }
+
+  // Sort packages by location length (longest first) to match most specific packages first
+  const sortedPackages = [...packages].sort(
+    (a, b) => b.location.length - a.location.length
+  );
+
+  const affectedPackages = new Map<string, string>();
+
+  for (const file of files) {
+    // Convert to relative path if absolute
+    const relativePath = file.startsWith(workspaceRoot)
+      ? file.substring(workspaceRoot.length + 1)
+      : file;
+
+    // Find the package that contains this file
+    for (const pkg of sortedPackages) {
+      const location = pkg.location;
+      if (
+        relativePath === location ||
+        relativePath.startsWith(location + '/')
+      ) {
+        affectedPackages.set(location, pkg.name);
+        break;
+      }
+    }
+  }
+
+  return affectedPackages;
+}
+
+/**
+ * Checks if a command exists and is available.
+ * @param command - Command name to check
+ * @returns true if command is available, false otherwise
+ */
+export function isCommandAvailable(command: string): boolean {
+  try {
+    execSync(`command -v ${command}`, { stdio: 'pipe' });
+    return true;
+  } catch {
+    return false;
+  }
+}
