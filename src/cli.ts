@@ -14,6 +14,7 @@ import { dartPackage } from './commands/dart-package.js';
 import { dartChanged } from './commands/dart-changed.js';
 import { dartChangedDownstream } from './commands/dart-changed-downstream.js';
 import { dartHookFormatCheck } from './commands/dart-hook-format-check.js';
+import { dartHookDcmCheck } from './commands/dart-hook-dcm-check.js';
 
 const program = new Command();
 
@@ -258,6 +259,20 @@ dartHook
   )
   .action((options: { verbose?: boolean }) => {
     dartHookFormatCheck(options);
+  });
+
+dartHook
+  .command('dcm')
+  .command('check')
+  .description(
+    'Check if Dart files pass DCM analysis and apply fixes (suitable for pre-push hooks)'
+  )
+  .option(
+    '-v, --verbose',
+    'show human-readable status messages (output to stderr)'
+  )
+  .action((options: { verbose?: boolean }) => {
+    dartHookDcmCheck(options);
   });
 
 program.parse();

@@ -9,44 +9,46 @@ import {
   COMMON_DART_CODEGEN_SUFFIXES,
 } from '../utils/dart.js';
 import { filterFilesBySuffix } from '../utils/files.js';
-import { escapeShellArg } from '../utils/shell.js';
+import { escapeShellArg, isCommandInstalled } from '../utils/shell.js';
+import { ensureCondition } from '../utils/command-helpers.js';
 
-export interface DartHookFormatCheckOptions {
+export interface DartHookDcmCheckOptions {
   verbose?: boolean;
-  /** Suffixes to exclude from formatting. Defaults to COMMON_DART_CODEGEN_SUFFIXES */
+  /** Suffixes to exclude from DCM checks. Defaults to COMMON_DART_CODEGEN_SUFFIXES */
   excludeSuffixes?: string[];
 }
 
 /**
- * Formats Dart files and checks if formatting created changes.
+ * Runs DCM fix on Dart files and checks if fixes created changes.
  * This replicates the functionality of a pre-push hook that:
- * 1. Gets modified Dart files (excluding generated files)
- * 2. Formats them with dart format
- * 3. Checks if formatting created any changes
- * 4. Exits with error if files were formatted
+ * 1. Checks if DCM is installed
+ * 2. Gets modified Dart files (excluding generated files)
+ * 3. Runs dcm fix on them
+ * 4. Checks if fixes created any changes
+ * 5. Exits with error if files were modified by DCM
  */
-export function dartHookFormatCheck(
-  options: DartHookFormatCheckOptions = {}
+export function dartHookDcmCheck(
+  options: DartHookDcmCheckOptions = {}
 ): void {
   const verbose = options.verbose || false;
   const excludeSuffixes = options.excludeSuffixes || [
     ...COMMON_DART_CODEGEN_SUFFIXES,
   ];
 
+  // Check if DCM is installed
+  ensureCondition(
+    isCommandInstalled('dcm'),
+    verbose ? '⚠️  Warning: DCM not installed, skipping' : '',
+    { exitCode: 0 }
+  );
+
   if (verbose) {
-    console.error('🎨 Running dart format on modified files...');
+    console.error('🔧 Running DCM fix on modified files...');
   }
 
   // Check we're in both a git repo and a Dart package
-  if (!isGitRepo()) {
-    console.error('Error: Not in a git repository');
-    process.exit(1);
-  }
-
-  if (!isDartPackage()) {
-    console.error('Error: Not in a Dart package');
-    process.exit(1);
-  }
+  ensureCondition(isGitRepo(), 'Error: Not in a git repository');
+  ensureCondition(isDartPackage(), 'Error: Not in a Dart package');
 
   const cwd = process.cwd();
 
@@ -66,22 +68,30 @@ export function dartHookFormatCheck(
     process.exit(0);
   }
 
-  // Format the files
+  // Log the files being checked in verbose mode
+  if (verbose) {
+    console.error(`Running DCM fix on ${modifiedFiles.length} file(s):`);
+    modifiedFiles.forEach((file) => {
+      console.error(`  ${file}`);
+    });
+  }
+
+  // Run dcm fix on the files
   try {
     const fileArgs = modifiedFiles.map(escapeShellArg).join(' ');
-    execSync(`dart format ${fileArgs}`, {
+    execSync(`dcm fix ${fileArgs}`, {
       cwd,
       stdio: 'pipe',
     });
   } catch (error) {
-    console.error('Error: Failed to run dart format');
+    console.error('Error: Failed to run dcm fix');
     if (error instanceof Error) {
       console.error(error.message);
     }
     process.exit(1);
   }
 
-  // Check if formatting created changes in the files we formatted
+  // Check if DCM fixes created changes in the files we fixed
   const filesWithChanges = modifiedFiles.filter((file) =>
     hasUnstagedChanges(file, cwd)
   );
@@ -89,7 +99,7 @@ export function dartHookFormatCheck(
   if (filesWithChanges.length > 0) {
     console.error('');
     console.error(
-      '❌ Push blocked: Files were formatted. Please stage and commit these changes:'
+      '❌ Push blocked: DCM fixes were applied. Please stage and commit these changes:'
     );
     filesWithChanges.forEach((file) => {
       console.error(file);
@@ -98,7 +108,7 @@ export function dartHookFormatCheck(
   }
 
   if (verbose) {
-    console.error('✓ All files properly formatted');
+    console.error('✓ All files pass DCM checks');
   }
   process.exit(0);
 }

@@ -2,6 +2,36 @@ import { getChangedFiles, type ChangeType } from './git.js';
 import type { ChangedFilesOptions } from '../types/command-options.js';
 
 /**
+ * Checks a condition and exits with an error if the condition is false.
+ * Useful for validating prerequisites like being in a git repo or Dart package.
+ * @param condition - The condition to check
+ * @param errorMessage - The error message to display if condition is false
+ * @param options - Optional configuration
+ * @param options.verbose - If true, logs a success message when condition is true
+ * @param options.successMessage - Message to log when condition is true and verbose is enabled
+ * @param options.exitCode - Exit code to use when condition is false (defaults to 1)
+ * @example
+ * ensureCondition(isGitRepo(), 'Error: Not in a git repository');
+ * ensureCondition(isGitRepo(), 'Error: Not in a git repository', { verbose: true, successMessage: '✓ In git repository' });
+ * ensureCondition(isDcmInstalled(), '⚠️  Warning: DCM not installed, skipping', { exitCode: 0 });
+ */
+export function ensureCondition(
+  condition: boolean,
+  errorMessage: string,
+  options?: { verbose?: boolean; successMessage?: string; exitCode?: number }
+): void {
+  if (!condition) {
+    if (errorMessage) {
+      console.error(errorMessage);
+    }
+    process.exit(options?.exitCode ?? 1);
+  }
+  if (options?.verbose && options?.successMessage) {
+    console.error(options.successMessage);
+  }
+}
+
+/**
  * Options for displaying changed files
  */
 export interface DisplayChangedFilesOptions extends ChangedFilesOptions {

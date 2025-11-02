@@ -30,7 +30,7 @@ export {
 } from './utils/git.js';
 
 // Shell utilities
-export { escapeShellArg } from './utils/shell.js';
+export { escapeShellArg, isCommandInstalled } from './utils/shell.js';
 
 // File utilities
 export { filterFilesBySuffix } from './utils/files.js';
@@ -39,6 +39,7 @@ export { filterFilesBySuffix } from './utils/files.js';
 export {
   displayChangedFiles,
   getChangedFilesWithOptions,
+  ensureCondition,
   type DisplayChangedFilesOptions,
 } from './utils/command-helpers.js';
 
@@ -48,11 +49,16 @@ export {
   findFilePackageRoot,
   isDartPackage,
   findAllDartFiles,
+  COMMON_DART_CODEGEN_SUFFIXES,
 } from './utils/dart.js';
 
 // Dart hook utilities
 export {
   dartHookFormatCheck,
-  COMMON_DART_CODEGEN_SUFFIXES,
   type DartHookFormatCheckOptions,
 } from './commands/dart-hook-format-check.js';
+
+export {
+  dartHookDcmCheck,
+  type DartHookDcmCheckOptions,
+} from './commands/dart-hook-dcm-check.js';

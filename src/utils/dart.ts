@@ -3,6 +3,18 @@ import { dirname, resolve, join } from 'node:path';
 import { execSync } from 'node:child_process';
 
 /**
+ * Common Dart code generation file suffixes.
+ * These files are typically auto-generated and should be excluded from formatting/linting checks.
+ */
+export const COMMON_DART_CODEGEN_SUFFIXES = [
+  '.g.dart',
+  '.freezed.dart',
+  '.gql.dart',
+  '.fakes.dart',
+  '.golden.dart',
+] as const;
+
+/**
  * Finds the nearest pubspec.yaml file by walking up the directory tree.
  * @param startPath - Path to start searching from (defaults to current directory)
  * @returns Path to the directory containing pubspec.yaml, or null if not found
