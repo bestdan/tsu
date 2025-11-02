@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { dartCheck } from './dart-check.js';
+import { dartCheck } from './check.js';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -7,7 +7,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // Path to our test fixture
-const fixtureDir = resolve(__dirname, '../__fixtures__/dart-package');
+const fixtureDir = resolve(__dirname, '../../__fixtures__/dart-package');
 
 describe('dartCheck', () => {
   let consoleErrorSpy: any;

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { dartFix } from './dart-fix.js';
-import * as dartUtils from '../utils/dart.js';
-import * as shellUtils from '../utils/shell.js';
+import { dartFix } from './fix.js';
+import * as dartUtils from '../../utils/dart.js';
+import * as shellUtils from '../../utils/shell.js';
 import { execSync } from 'node:child_process';
 import { existsSync, statSync } from 'node:fs';
 

@@ -3,10 +3,10 @@ import {
   isGitRepo,
   getAllChangedFiles,
   getGitStatus,
-} from '../utils/git.js';
-import { isDartPackage } from '../utils/dart.js';
-import { ensureCondition } from '../utils/command-helpers.js';
-import { isCommandInstalled } from '../utils/shell.js';
+} from '../../../../utils/git.js';
+import { isDartPackage } from '../../../../utils/dart.js';
+import { ensureCondition } from '../../../../utils/command-helpers.js';
+import { isCommandInstalled } from '../../../../utils/shell.js';
 
 export interface DartHookGraphqlCheckOptions {
   verbose?: boolean;

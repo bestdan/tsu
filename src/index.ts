@@ -63,11 +63,11 @@ export {
 export {
   dartHookFormatCheck,
   type DartHookFormatCheckOptions,
-} from './commands/dart-hook-format-check.js';
+} from './commands/dart/hook/format/check.js';
 
 export {
   dartHookDcmCheck,
   type DartHookDcmCheckOptions,
-} from './commands/dart-hook-dcm-check.js';
+} from './commands/dart/hook/dcm/check.js';
 
-export { dartFix, type DartFixOptions } from './commands/dart-fix.js';
+export { dartFix, type DartFixOptions } from './commands/dart/fix.js';

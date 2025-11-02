@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { dartHookDcmCheck } from './dart-hook-dcm-check.js';
-import * as gitUtils from '../utils/git.js';
-import * as dartUtils from '../utils/dart.js';
+import { dartHookDcmCheck } from './check.js';
+import * as gitUtils from '../../../../utils/git.js';
+import * as dartUtils from '../../../../utils/dart.js';
 import { execSync } from 'node:child_process';
 
 // Mock the execSync function

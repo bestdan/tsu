@@ -3,14 +3,14 @@ import {
   isGitRepo,
   getAllChangedFiles,
   hasUnstagedChanges,
-} from '../utils/git.js';
+} from '../../../../utils/git.js';
 import {
   isDartPackage,
   COMMON_DART_CODEGEN_SUFFIXES,
-} from '../utils/dart.js';
-import { filterFilesBySuffix } from '../utils/files.js';
-import { escapeShellArg } from '../utils/shell.js';
-import { ensureCondition, ensureDCMInstalled } from '../utils/command-helpers.js';
+} from '../../../../utils/dart.js';
+import { filterFilesBySuffix } from '../../../../utils/files.js';
+import { escapeShellArg } from '../../../../utils/shell.js';
+import { ensureCondition, ensureDCMInstalled } from '../../../../utils/command-helpers.js';
 
 export interface DartHookDcmCheckOptions {
   verbose?: boolean;

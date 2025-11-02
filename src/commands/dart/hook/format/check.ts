@@ -3,13 +3,13 @@ import {
   isGitRepo,
   getAllChangedFiles,
   hasUnstagedChanges,
-} from '../utils/git.js';
+} from '../../../../utils/git.js';
 import {
   isDartPackage,
   COMMON_DART_CODEGEN_SUFFIXES,
-} from '../utils/dart.js';
-import { filterFilesBySuffix } from '../utils/files.js';
-import { escapeShellArg } from '../utils/shell.js';
+} from '../../../../utils/dart.js';
+import { filterFilesBySuffix } from '../../../../utils/files.js';
+import { escapeShellArg } from '../../../../utils/shell.js';
 
 export interface DartHookFormatCheckOptions {
   verbose?: boolean;
