@@ -1,8 +1,8 @@
 import { isGitRepo, getGitRoot } from '../utils/git.js';
+import type { GetValueCommandOptions } from '../types/command-options.js';
 
-export interface GitRootOptions {
-  verbose?: boolean;
-}
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface GitRootOptions extends GetValueCommandOptions {}
 
 export function gitRoot(path?: string, options: GitRootOptions = {}): void {
   const targetPath = path || process.cwd();

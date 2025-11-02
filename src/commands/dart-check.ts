@@ -1,8 +1,8 @@
 import { isDartPackage } from '../utils/dart.js';
+import type { CheckCommandOptions } from '../types/command-options.js';
 
-export interface DartCheckOptions {
-  verbose?: boolean;
-}
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface DartCheckOptions extends CheckCommandOptions {}
 
 /**
  * Check if current directory is in a Dart package (exit code only)

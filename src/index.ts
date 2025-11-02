@@ -1,5 +1,13 @@
 // Export utilities that can be imported by other packages
 
+// Types
+export type {
+  BaseCommandOptions,
+  CheckCommandOptions,
+  GetValueCommandOptions,
+  ChangedFilesOptions,
+} from './types/command-options.js';
+
 // Git utilities
 export {
   isGitRepo,
@@ -26,6 +34,13 @@ export { escapeShellArg } from './utils/shell.js';
 
 // File utilities
 export { filterFilesBySuffix } from './utils/files.js';
+
+// Command helper utilities
+export {
+  displayChangedFiles,
+  getChangedFilesWithOptions,
+  type DisplayChangedFilesOptions,
+} from './utils/command-helpers.js';
 
 // Dart utilities
 export {

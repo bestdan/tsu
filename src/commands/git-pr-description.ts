@@ -1,8 +1,9 @@
 import { isGitRepo, generatePRDescription } from '../utils/git.js';
+import type { BaseCommandOptions } from '../types/command-options.js';
 
-export interface GitPRDescriptionOptions {
+export interface GitPRDescriptionOptions extends BaseCommandOptions {
+  /** Base branch to compare against (default: 'main') */
   baseBranch?: string;
-  verbose?: boolean;
 }
 
 export function gitPRDescription(options: GitPRDescriptionOptions = {}): void {

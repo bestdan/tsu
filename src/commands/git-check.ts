@@ -1,8 +1,8 @@
 import { isGitRepo, getGitRoot } from '../utils/git.js';
+import type { CheckCommandOptions } from '../types/command-options.js';
 
-export interface GitCheckOptions {
-  verbose?: boolean;
-}
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface GitCheckOptions extends CheckCommandOptions {}
 
 export function gitCheck(path?: string, options: GitCheckOptions = {}): void {
   const targetPath = path || process.cwd();

@@ -4,10 +4,11 @@ import {
   generateCommitMessage,
   createCommit,
 } from '../utils/git.js';
+import type { BaseCommandOptions } from '../types/command-options.js';
 
-export interface GitCommitMsgOptions {
+export interface GitCommitMsgOptions extends BaseCommandOptions {
+  /** Automatically create the commit with generated message */
   commit?: boolean;
-  verbose?: boolean;
 }
 
 export function gitCommitMsg(options: GitCommitMsgOptions = {}): void {

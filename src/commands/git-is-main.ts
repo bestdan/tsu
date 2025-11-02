@@ -1,7 +1,8 @@
 import { getCurrentBranch, isGitRepo } from '../utils/git.js';
+import type { CheckCommandOptions } from '../types/command-options.js';
 
-export interface GitIsMainOptions {
-  verbose?: boolean;
+export interface GitIsMainOptions extends CheckCommandOptions {
+  /** Main branch name to check against (default: 'main') */
   branch?: string;
 }
 

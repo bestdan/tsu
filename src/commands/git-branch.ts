@@ -1,8 +1,8 @@
 import { getCurrentBranch, isGitRepo } from '../utils/git.js';
+import type { GetValueCommandOptions } from '../types/command-options.js';
 
-export interface GitBranchOptions {
-  verbose?: boolean;
-}
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface GitBranchOptions extends GetValueCommandOptions {}
 
 export function gitBranch(
   path: string | undefined,

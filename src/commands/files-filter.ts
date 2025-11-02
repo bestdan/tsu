@@ -1,8 +1,8 @@
 import { filterFilesBySuffix } from '../utils/files.js';
+import type { BaseCommandOptions } from '../types/command-options.js';
 
-export interface FilesFilterOptions {
-  verbose?: boolean;
-}
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface FilesFilterOptions extends BaseCommandOptions {}
 
 /**
  * Filters stdin file list by removing files that match the specified suffix patterns.

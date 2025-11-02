@@ -1,10 +1,10 @@
 import { resolve } from 'node:path';
 import { existsSync } from 'node:fs';
 import { findDartPackageRoot, findFilePackageRoot } from '../utils/dart.js';
+import type { GetValueCommandOptions } from '../types/command-options.js';
 
-export interface DartPackageOptions {
-  verbose?: boolean;
-}
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface DartPackageOptions extends GetValueCommandOptions {}
 
 /**
  * Get the package root that contains a specific file (useful in mono-repos)
