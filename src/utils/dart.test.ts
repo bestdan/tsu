@@ -298,10 +298,7 @@ describe('readPackageIndex and findAffectedPackages', () => {
       { name: 'app', location: 'packages/app' },
       { name: 'core', location: 'packages/core' },
     ];
-    writeFileSync(
-      join(tempDir, 'PACKAGE_INDEX'),
-      JSON.stringify(packageIndex)
-    );
+    writeFileSync(join(tempDir, 'PACKAGE_INDEX'), JSON.stringify(packageIndex));
 
     const result = readPackageIndex(tempDir);
     expect(result).toEqual(packageIndex);
@@ -320,10 +317,7 @@ describe('readPackageIndex and findAffectedPackages', () => {
       { name: 'app', location: 'packages/app' },
       { name: 'core', location: 'packages/core' },
     ];
-    writeFileSync(
-      join(tempDir, 'PACKAGE_INDEX'),
-      JSON.stringify(packageIndex)
-    );
+    writeFileSync(join(tempDir, 'PACKAGE_INDEX'), JSON.stringify(packageIndex));
 
     const files = ['packages/app/lib/main.dart', 'packages/core/lib/util.dart'];
     const result = findAffectedPackages(files, tempDir);
@@ -343,10 +337,7 @@ describe('readPackageIndex and findAffectedPackages', () => {
 
     const tempDir = mkdtempSync(join(tmpdir(), 'dart-test-'));
     const packageIndex = [{ name: 'app', location: 'packages/app' }];
-    writeFileSync(
-      join(tempDir, 'PACKAGE_INDEX'),
-      JSON.stringify(packageIndex)
-    );
+    writeFileSync(join(tempDir, 'PACKAGE_INDEX'), JSON.stringify(packageIndex));
 
     const files = ['lib/main.dart', 'other/file.dart'];
     const result = findAffectedPackages(files, tempDir);
@@ -358,12 +349,14 @@ describe('readPackageIndex and findAffectedPackages', () => {
 
   it('should fall back to pubspec.yaml when PACKAGE_INDEX does not exist', async () => {
     const { findAffectedPackages } = await import('./dart.js');
-    const { writeFileSync, mkdtempSync, rmSync, mkdirSync } = await import('node:fs');
+    const { writeFileSync, mkdtempSync, rmSync, mkdirSync } = await import(
+      'node:fs'
+    );
     const { join } = await import('node:path');
     const { tmpdir } = await import('node:os');
 
     const tempDir = mkdtempSync(join(tmpdir(), 'dart-test-'));
-    
+
     // Create a package structure with pubspec.yaml
     const packageDir = join(tempDir, 'packages', 'app');
     mkdirSync(join(packageDir, 'lib'), { recursive: true });

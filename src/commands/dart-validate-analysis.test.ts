@@ -103,9 +103,7 @@ describe('dartValidateAnalysis', () => {
   it('should exit with error if analysis fails', () => {
     isCommandInstalledSpy.mockReturnValue(true);
     getChangedFilesSpy.mockReturnValue(['packages/app/lib/main.dart']);
-    findAffectedPackagesSpy.mockReturnValue(
-      new Map([['packages/app', 'app']])
-    );
+    findAffectedPackagesSpy.mockReturnValue(new Map([['packages/app', 'app']]));
     existsSyncSpy.mockReturnValue(true);
     vi.mocked(execSync).mockImplementation(() => {
       throw new Error('Analysis failed');
@@ -121,9 +119,7 @@ describe('dartValidateAnalysis', () => {
 
   it('should handle specific files', () => {
     isCommandInstalledSpy.mockReturnValue(true);
-    findAffectedPackagesSpy.mockReturnValue(
-      new Map([['packages/app', 'app']])
-    );
+    findAffectedPackagesSpy.mockReturnValue(new Map([['packages/app', 'app']]));
     existsSyncSpy.mockReturnValue(true);
     vi.mocked(execSync).mockReturnValue(Buffer.from(''));
 

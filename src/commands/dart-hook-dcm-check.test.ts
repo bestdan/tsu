@@ -177,9 +177,7 @@ describe('dartHookDcmCheck', () => {
       dartHookDcmCheck({ verbose: true });
     }).toThrow('process.exit(0)');
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      '✓ All files pass DCM checks'
-    );
+    expect(consoleErrorSpy).toHaveBeenCalledWith('✓ All files pass DCM checks');
     expect(processExitSpy).toHaveBeenCalledWith(0);
   });
 

@@ -4,10 +4,7 @@ import {
   getAllChangedFiles,
   hasUnstagedChanges,
 } from '../utils/git.js';
-import {
-  isDartPackage,
-  COMMON_DART_CODEGEN_SUFFIXES,
-} from '../utils/dart.js';
+import { isDartPackage, COMMON_DART_CODEGEN_SUFFIXES } from '../utils/dart.js';
 import { filterFilesBySuffix } from '../utils/files.js';
 import { escapeShellArg, isCommandInstalled } from '../utils/shell.js';
 import { ensureCondition } from '../utils/command-helpers.js';
@@ -27,9 +24,7 @@ export interface DartHookDcmCheckOptions {
  * 4. Checks if fixes created any changes
  * 5. Exits with error if files were modified by DCM
  */
-export function dartHookDcmCheck(
-  options: DartHookDcmCheckOptions = {}
-): void {
+export function dartHookDcmCheck(options: DartHookDcmCheckOptions = {}): void {
   const verbose = options.verbose || false;
   const excludeSuffixes = options.excludeSuffixes || [
     ...COMMON_DART_CODEGEN_SUFFIXES,

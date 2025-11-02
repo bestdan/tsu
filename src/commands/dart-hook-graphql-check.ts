@@ -1,9 +1,5 @@
 import { execSync } from 'node:child_process';
-import {
-  isGitRepo,
-  getAllChangedFiles,
-  getGitStatus,
-} from '../utils/git.js';
+import { isGitRepo, getAllChangedFiles, getGitStatus } from '../utils/git.js';
 import { isDartPackage } from '../utils/dart.js';
 import { ensureCondition } from '../utils/command-helpers.js';
 import { isCommandInstalled } from '../utils/shell.js';
@@ -72,10 +68,7 @@ export function dartHookGraphqlCheck(
   // Get git status before running codegen
   const gitStatusBefore = getGitStatus(cwd);
 
-  ensureCondition(
-    gitStatusBefore !== null,
-    'Error: Failed to get git status'
-  );
+  ensureCondition(gitStatusBefore !== null, 'Error: Failed to get git status');
 
   if (verbose) {
     console.error('🔧 Running GraphQL code generation...');
@@ -100,10 +93,7 @@ export function dartHookGraphqlCheck(
   // Get git status after running codegen
   const gitStatusAfter = getGitStatus(cwd);
 
-  ensureCondition(
-    gitStatusAfter !== null,
-    'Error: Failed to get git status'
-  );
+  ensureCondition(gitStatusAfter !== null, 'Error: Failed to get git status');
 
   // Compare git status before and after
   // TypeScript knows these are non-null after ensureCondition checks
@@ -119,7 +109,9 @@ export function dartHookGraphqlCheck(
       const beforeLines = new Set(
         gitStatusBefore.split('\n').filter((line) => line.length > 0)
       );
-      const afterLines = gitStatusAfter.split('\n').filter((line) => line.length > 0);
+      const afterLines = gitStatusAfter
+        .split('\n')
+        .filter((line) => line.length > 0);
 
       // Find files that are new or have different status
       const changedFiles = afterLines.filter((line) => !beforeLines.has(line));

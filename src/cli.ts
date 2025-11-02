@@ -254,15 +254,19 @@ dart
   .command('fix')
   .description('Run dart fix (dry-run by default)')
   .option('-v, --verbose', 'show detailed progress information')
-  .option(
-    '-f, --files <files...>',
-    'specific files or directories to check'
-  )
+  .option('-f, --files <files...>', 'specific files or directories to check')
   .option('--apply', 'apply fixes automatically (default is dry-run)')
   .option('--packages', 'run on affected packages instead of individual files')
-  .action((options: { verbose?: boolean; files?: string[]; apply?: boolean; packages?: boolean }) => {
-    dartFix(options);
-  });
+  .action(
+    (options: {
+      verbose?: boolean;
+      files?: string[];
+      apply?: boolean;
+      packages?: boolean;
+    }) => {
+      dartFix(options);
+    }
+  );
 
 // Dart hook subcommand namespace
 const dartHook = dart
@@ -320,10 +324,7 @@ dartValidate
   .command('format')
   .description('Validate Dart formatting')
   .option('-v, --verbose', 'show detailed progress information')
-  .option(
-    '-f, --files <files...>',
-    'specific files or directories to validate'
-  )
+  .option('-f, --files <files...>', 'specific files or directories to validate')
   .action((options: { verbose?: boolean; files?: string[] }) => {
     dartValidateFormat(options);
   });
@@ -332,10 +333,7 @@ dartValidate
   .command('analysis')
   .description('Run Dart analysis on packages')
   .option('-v, --verbose', 'show detailed progress information')
-  .option(
-    '-f, --files <files...>',
-    'specific files or directories to validate'
-  )
+  .option('-f, --files <files...>', 'specific files or directories to validate')
   .action((options: { verbose?: boolean; files?: string[] }) => {
     dartValidateAnalysis(options);
   });
@@ -344,10 +342,7 @@ dartValidate
   .command('dcm')
   .description('Run DCM analysis on packages')
   .option('-v, --verbose', 'show detailed progress information')
-  .option(
-    '-f, --files <files...>',
-    'specific files or directories to validate'
-  )
+  .option('-f, --files <files...>', 'specific files or directories to validate')
   .action((options: { verbose?: boolean; files?: string[] }) => {
     dartValidateDcm(options);
   });
@@ -365,10 +360,7 @@ dartValidate
   .command('all')
   .description('Run all validation checks (format, analysis, dcm, freezed)')
   .option('-v, --verbose', 'show detailed progress information')
-  .option(
-    '-f, --files <files...>',
-    'specific files or directories to validate'
-  )
+  .option('-f, --files <files...>', 'specific files or directories to validate')
   .option('--skip-format', 'skip format validation')
   .option('--skip-analysis', 'skip analysis validation')
   .option('--skip-dcm', 'skip DCM validation')

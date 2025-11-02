@@ -106,9 +106,7 @@ export function displayChangedFiles(options: DisplayChangedFilesOptions): void {
         );
       }
       if (stagedFiles.length > 0) {
-        console.error(
-          `Staged ${typePrefix}changes (${stagedFiles.length}):`
-        );
+        console.error(`Staged ${typePrefix}changes (${stagedFiles.length}):`);
       }
       if (unstagedFiles.length > 0) {
         console.error(

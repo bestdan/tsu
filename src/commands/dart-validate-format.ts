@@ -178,4 +178,3 @@ function validateFiles(
     process.exit(1);
   }
 }
-
