@@ -63,7 +63,7 @@ describe('dartFix', () => {
     }).toThrow('process.exit(1)');
 
     expect(consoleErrorSpy).toHaveBeenCalledWith(
-      'Error: No files provided. Use --files to specify files to check.'
+      'Error: No files provided. Use --files to specify files or package directories to check.'
     );
     expect(processExitSpy).toHaveBeenCalledWith(1);
   });

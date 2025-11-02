@@ -1,9 +1,9 @@
 import { execSync } from 'node:child_process';
-import { resolve } from 'node:path';
-import { existsSync } from 'node:fs';
+import { resolve, join } from 'node:path';
+import { existsSync, statSync } from 'node:fs';
 import { ensureCondition } from '../utils/command-helpers.js';
 import { isCommandInstalled, escapeShellArg } from '../utils/shell.js';
-import { findAffectedPackages } from '../utils/dart.js';
+import { findAffectedPackages, readPackageName } from '../utils/dart.js';
 
 export interface DartFixOptions {
   verbose?: boolean;
@@ -17,7 +17,12 @@ export interface DartFixOptions {
 
 /**
  * Runs `dart fix` on Dart code.
- * By default runs on individual files. Use --packages to run on affected packages.
+ * 
+ * Supports three modes:
+ * 1. User provides package directories: Runs on those packages directly
+ * 2. User provides files with --packages flag: Infers packages from files and runs on packages
+ * 3. User provides files without --packages: Runs on individual files
+ * 
  * By default runs in dry-run mode (--dry-run), use --apply to actually apply fixes.
  */
 export function dartFix(options: DartFixOptions = {}): void {
@@ -36,21 +41,80 @@ export function dartFix(options: DartFixOptions = {}): void {
   // Check that files were provided
   ensureCondition(
     files.length > 0,
-    'Error: No files provided. Use --files to specify files to check.',
+    'Error: No files provided. Use --files to specify files or package directories to check.',
     { exitCode: 1 }
   );
 
+  const cwd = process.cwd();
+  
+  // Separate package directories from regular files
+  const packageDirs: string[] = [];
+  const regularFiles: string[] = [];
+  
+  for (const file of files) {
+    const absolutePath = resolve(cwd, file);
+    if (isPackageDirectory(absolutePath)) {
+      packageDirs.push(absolutePath);
+    } else {
+      regularFiles.push(file);
+    }
+  }
+
+  // Determine which mode to run in
+  const hasPackageDirs = packageDirs.length > 0;
+  const hasRegularFiles = regularFiles.length > 0;
+
   if (verbose) {
     console.error(
-      `🔧 Running dart fix ${apply ? '(applying fixes)' : '(dry-run)'} on ${usePackages ? 'packages' : 'files'}...`
+      `🔧 Running dart fix ${apply ? '(applying fixes)' : '(dry-run)'}...`
     );
   }
 
-  const cwd = process.cwd();
+  // Mode 1: User provided package directories
+  if (hasPackageDirs) {
+    // Build package map from directories
+    const packages = new Map<string, string>();
+    for (const pkgDir of packageDirs) {
+      const packageName = readPackageName(pkgDir);
+      if (packageName) {
+        // Convert to relative path for consistency
+        const relativePath = pkgDir.startsWith(cwd) 
+          ? pkgDir.substring(cwd.length + 1)
+          : pkgDir;
+        packages.set(relativePath, packageName);
+      } else {
+        console.error(`⚠️  Warning: Could not read package name from ${pkgDir}`);
+      }
+    }
+    
+    if (packages.size > 0) {
+      runFixOnPackages(packages, cwd, verbose, apply);
+    }
+    
+    // If there are also regular files, handle them
+    if (hasRegularFiles) {
+      if (usePackages) {
+        // Infer packages from files and run on packages
+        const affectedPackages = findAffectedPackages(regularFiles, cwd);
+        if (affectedPackages.size > 0) {
+          runFixOnPackages(affectedPackages, cwd, verbose, apply);
+        }
+      } else {
+        // Run on individual files
+        runFixOnFiles(regularFiles, cwd, verbose, apply);
+      }
+    }
+    
+    if (verbose) {
+      console.error('✓ All dart fix checks passed');
+    }
+    process.exit(0);
+  }
 
+  // Mode 2 & 3: User provided only files (no package directories)
   if (usePackages) {
-    // Find affected packages from files
-    const affectedPackages = findAffectedPackages(files, cwd);
+    // Mode 2: Infer packages from files
+    const affectedPackages = findAffectedPackages(regularFiles, cwd);
 
     if (affectedPackages.size === 0) {
       if (verbose) {
@@ -61,8 +125,8 @@ export function dartFix(options: DartFixOptions = {}): void {
 
     runFixOnPackages(affectedPackages, cwd, verbose, apply);
   } else {
-    // Run on individual files
-    runFixOnFiles(files, cwd, verbose, apply);
+    // Mode 3: Run on individual files
+    runFixOnFiles(regularFiles, cwd, verbose, apply);
   }
 }
 
@@ -88,17 +152,8 @@ function runFixOnFiles(
       encoding: 'utf-8',
     });
 
-    // In dry-run mode, dart fix exits with 0 but outputs suggestions
-    // Check if there are fixes available
-    if (!apply && result.includes('suggested fixes')) {
-      console.error('⚠️  Suggested fixes available');
-      if (verbose) {
-        console.error(result);
-      }
-      console.error('');
-      console.error('💡 Run with --apply to automatically apply fixes');
-      process.exit(1);
-    }
+    // Check if there are fixes available in dry-run mode
+    handleSuggestedFixes(apply, result, verbose);
 
     if (verbose) {
       console.error('✓ All dart fix checks passed');
@@ -108,6 +163,12 @@ function runFixOnFiles(
     }
     process.exit(0);
   } catch (error) {
+    if (error instanceof Error && error.message === 'FIXES_AVAILABLE') {
+      console.error('');
+      console.error('💡 Run with --apply to automatically apply fixes');
+      process.exit(1);
+    }
+    
     console.error('❌ dart fix failed');
     if (verbose && error instanceof Error) {
       const execError = error as { stdout?: string; stderr?: string };
@@ -151,28 +212,35 @@ function runFixOnPackages(
         encoding: 'utf-8',
       });
 
-      // In dry-run mode, dart fix exits with 0 but outputs suggestions
-      // Check if there are fixes available
-      if (!apply && result.includes('suggested fixes')) {
-        console.error(`⚠️  ${packageName} has suggested fixes available`);
-        if (verbose) {
-          console.error(result);
+      // Check if there are fixes available in dry-run mode
+      try {
+        handleSuggestedFixes(apply, result, verbose, packageName);
+      } catch (error) {
+        if (error instanceof Error && error.message === 'FIXES_AVAILABLE') {
+          hasErrors = true;
+        } else {
+          throw error;
         }
-        hasErrors = true;
-      } else if (verbose) {
+      }
+
+      if (!hasErrors && verbose) {
         console.error(`✓ ${packageName} dart fix passed`);
         if (result.trim()) {
           console.error(result);
         }
       }
     } catch (error) {
-      console.error(`❌ ${packageName} dart fix failed`);
-      if (verbose && error instanceof Error) {
-        const execError = error as { stdout?: string; stderr?: string };
-        if (execError.stdout) console.error(execError.stdout);
-        if (execError.stderr) console.error(execError.stderr);
+      if (error instanceof Error && error.message === 'FIXES_AVAILABLE') {
+        hasErrors = true;
+      } else {
+        console.error(`❌ ${packageName} dart fix failed`);
+        if (verbose && error instanceof Error) {
+          const execError = error as { stdout?: string; stderr?: string };
+          if (execError.stdout) console.error(execError.stdout);
+          if (execError.stderr) console.error(execError.stderr);
+        }
+        hasErrors = true;
       }
-      hasErrors = true;
     }
   }
 
@@ -188,4 +256,44 @@ function runFixOnPackages(
     console.error('✓ All dart fix checks passed');
   }
   process.exit(0);
+}
+
+/**
+ * Checks if a path is a Dart package directory (contains pubspec.yaml)
+ */
+function isPackageDirectory(path: string): boolean {
+  try {
+    const stat = statSync(path);
+    if (!stat.isDirectory()) {
+      return false;
+    }
+    const pubspecPath = join(path, 'pubspec.yaml');
+    return existsSync(pubspecPath);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Handles the output when dart fix finds suggested fixes in dry-run mode.
+ * Displays warnings and exits with error code.
+ */
+function handleSuggestedFixes(
+  apply: boolean,
+  result: string,
+  verbose: boolean,
+  packageName?: string
+): void {
+  if (!apply && result.includes('suggested fixes')) {
+    if (packageName) {
+      console.error(`⚠️  ${packageName} has suggested fixes available`);
+    } else {
+      console.error('⚠️  Suggested fixes available');
+    }
+    if (verbose) {
+      console.error(result);
+    }
+    // Return true to indicate fixes were found
+    throw new Error('FIXES_AVAILABLE');
+  }
 }
