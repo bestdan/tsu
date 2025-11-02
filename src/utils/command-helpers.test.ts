@@ -1,10 +1,13 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   ensureCondition,
+  ensureDartInstalled,
+  ensureDCMInstalled,
   displayChangedFiles,
   getChangedFilesWithOptions,
 } from './command-helpers.js';
 import * as git from './git.js';
+import * as shell from './shell.js';
 
 describe('ensureCondition', () => {
   let consoleErrorSpy: any;
@@ -138,6 +141,124 @@ describe('ensureCondition', () => {
       expect(consoleErrorSpy).toHaveBeenCalledWith('✓ Success');
       expect(processExitSpy).not.toHaveBeenCalled();
     });
+  });
+});
+
+describe('ensureDartInstalled', () => {
+  let consoleErrorSpy: any;
+  let processExitSpy: any;
+  let isCommandInstalledSpy: any;
+
+  beforeEach(() => {
+    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    processExitSpy = vi.spyOn(process, 'exit').mockImplementation((code) => {
+      throw new Error(`process.exit(${code})`);
+    });
+    isCommandInstalledSpy = vi.spyOn(shell, 'isCommandInstalled');
+  });
+
+  afterEach(() => {
+    consoleErrorSpy.mockRestore();
+    processExitSpy.mockRestore();
+    isCommandInstalledSpy.mockRestore();
+    vi.clearAllMocks();
+  });
+
+  it('should do nothing when dart is installed', () => {
+    isCommandInstalledSpy.mockReturnValue(true);
+
+    expect(() => {
+      ensureDartInstalled();
+    }).not.toThrow();
+
+    expect(isCommandInstalledSpy).toHaveBeenCalledWith('dart');
+    expect(consoleErrorSpy).not.toHaveBeenCalled();
+    expect(processExitSpy).not.toHaveBeenCalled();
+  });
+
+  it('should exit with code 0 when dart is not installed and verbose is false', () => {
+    isCommandInstalledSpy.mockReturnValue(false);
+
+    expect(() => {
+      ensureDartInstalled(false);
+    }).toThrow('process.exit(0)');
+
+    expect(isCommandInstalledSpy).toHaveBeenCalledWith('dart');
+    expect(consoleErrorSpy).not.toHaveBeenCalled();
+    expect(processExitSpy).toHaveBeenCalledWith(0);
+  });
+
+  it('should exit with code 0 and show warning when dart is not installed and verbose is true', () => {
+    isCommandInstalledSpy.mockReturnValue(false);
+
+    expect(() => {
+      ensureDartInstalled(true);
+    }).toThrow('process.exit(0)');
+
+    expect(isCommandInstalledSpy).toHaveBeenCalledWith('dart');
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      '⚠️  Warning: dart not installed, skipping'
+    );
+    expect(processExitSpy).toHaveBeenCalledWith(0);
+  });
+});
+
+describe('ensureDCMInstalled', () => {
+  let consoleErrorSpy: any;
+  let processExitSpy: any;
+  let isCommandInstalledSpy: any;
+
+  beforeEach(() => {
+    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    processExitSpy = vi.spyOn(process, 'exit').mockImplementation((code) => {
+      throw new Error(`process.exit(${code})`);
+    });
+    isCommandInstalledSpy = vi.spyOn(shell, 'isCommandInstalled');
+  });
+
+  afterEach(() => {
+    consoleErrorSpy.mockRestore();
+    processExitSpy.mockRestore();
+    isCommandInstalledSpy.mockRestore();
+    vi.clearAllMocks();
+  });
+
+  it('should do nothing when DCM is installed', () => {
+    isCommandInstalledSpy.mockReturnValue(true);
+
+    expect(() => {
+      ensureDCMInstalled();
+    }).not.toThrow();
+
+    expect(isCommandInstalledSpy).toHaveBeenCalledWith('dcm');
+    expect(consoleErrorSpy).not.toHaveBeenCalled();
+    expect(processExitSpy).not.toHaveBeenCalled();
+  });
+
+  it('should exit with code 0 when DCM is not installed and verbose is false', () => {
+    isCommandInstalledSpy.mockReturnValue(false);
+
+    expect(() => {
+      ensureDCMInstalled(false);
+    }).toThrow('process.exit(0)');
+
+    expect(isCommandInstalledSpy).toHaveBeenCalledWith('dcm');
+    expect(consoleErrorSpy).not.toHaveBeenCalled();
+    expect(processExitSpy).toHaveBeenCalledWith(0);
+  });
+
+  it('should exit with code 0 and show warning when DCM is not installed and verbose is true', () => {
+    isCommandInstalledSpy.mockReturnValue(false);
+
+    expect(() => {
+      ensureDCMInstalled(true);
+    }).toThrow('process.exit(0)');
+
+    expect(isCommandInstalledSpy).toHaveBeenCalledWith('dcm');
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      '⚠️  Warning: DCM not installed, skipping'
+    );
+    expect(processExitSpy).toHaveBeenCalledWith(0);
   });
 });
 

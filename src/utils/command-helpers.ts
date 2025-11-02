@@ -1,5 +1,6 @@
 import { getChangedFiles, type ChangeType } from './git.js';
 import type { ChangedFilesOptions } from '../types/command-options.js';
+import { isCommandInstalled } from './shell.js';
 
 /**
  * Checks a condition and exits with an error if the condition is false.
@@ -29,6 +30,36 @@ export function ensureCondition(
   if (options?.verbose && options?.successMessage) {
     console.error(options.successMessage);
   }
+}
+
+/**
+ * Ensures that Dart is installed. Exits with code 0 if not installed in non-verbose mode,
+ * or shows a warning message in verbose mode.
+ * @param verbose - Whether to show warning message when Dart is not installed
+ * @example
+ * ensureDartInstalled(verbose);
+ */
+export function ensureDartInstalled(verbose?: boolean): void {
+  ensureCondition(
+    isCommandInstalled('dart'),
+    verbose ? '⚠️  Warning: dart not installed, skipping' : '',
+    { exitCode: 0 }
+  );
+}
+
+/**
+ * Ensures that DCM is installed. Exits with code 0 if not installed in non-verbose mode,
+ * or shows a warning message in verbose mode.
+ * @param verbose - Whether to show warning message when DCM is not installed
+ * @example
+ * ensureDCMInstalled(verbose);
+ */
+export function ensureDCMInstalled(verbose?: boolean): void {
+  ensureCondition(
+    isCommandInstalled('dcm'),
+    verbose ? '⚠️  Warning: DCM not installed, skipping' : '',
+    { exitCode: 0 }
+  );
 }
 
 /**
