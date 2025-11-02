@@ -3,8 +3,8 @@ import {
   getStagedDiff,
   generateCommitMessage,
   createCommit,
-} from '../utils/git.js';
-import type { BaseCommandOptions } from '../types/command-options.js';
+} from '../../utils/git.js';
+import type { BaseCommandOptions } from '../../types/command-options.js';
 
 export interface GitCommitMsgOptions extends BaseCommandOptions {
   /** Automatically create the commit with generated message */

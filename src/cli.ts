@@ -1,22 +1,22 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
-import { gitCheck } from './commands/git-check.js';
-import { gitRoot } from './commands/git-root.js';
-import { gitChanged } from './commands/git-changed.js';
-import { gitBranch } from './commands/git-branch.js';
-import { gitIsMain } from './commands/git-is-main.js';
-import { gitCommitMsg } from './commands/git-commit-msg.js';
-import { gitPRDescription } from './commands/git-pr-description.js';
-import { filesFilter } from './commands/files-filter.js';
-import { dartCheck } from './commands/dart-check.js';
-import { dartRoot } from './commands/dart-root.js';
-import { dartPackage } from './commands/dart-package.js';
-import { dartChanged } from './commands/dart-changed.js';
-import { dartChangedDownstream } from './commands/dart-changed-downstream.js';
-import { dartHookFormatCheck } from './commands/dart-hook-format-check.js';
-import { dartHookDcmCheck } from './commands/dart-hook-dcm-check.js';
-import { dartHookGraphqlCheck } from './commands/dart-hook-graphql-check.js';
-import { dartFix } from './commands/dart-fix.js';
+import { gitCheck } from './commands/git/check.js';
+import { gitRoot } from './commands/git/root.js';
+import { gitChanged } from './commands/git/changed.js';
+import { gitBranch } from './commands/git/branch.js';
+import { gitIsMain } from './commands/git/is-main.js';
+import { gitCommitMsg } from './commands/git/commit-msg.js';
+import { gitPRDescription } from './commands/git/pr-description.js';
+import { filesFilter } from './commands/files/filter/suffix.js';
+import { dartCheck } from './commands/dart/check.js';
+import { dartRoot } from './commands/dart/root.js';
+import { dartPackage } from './commands/dart/package.js';
+import { dartChanged } from './commands/dart/changed/index.js';
+import { dartChangedDownstream } from './commands/dart/changed/downstream.js';
+import { dartHookFormatCheck } from './commands/dart/hook/format/check.js';
+import { dartHookDcmCheck } from './commands/dart/hook/dcm/check.js';
+import { dartHookGraphqlCheck } from './commands/dart/hook/graphql/check.js';
+import { dartFix } from './commands/dart/fix.js';
 
 const program = new Command();
 

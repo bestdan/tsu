@@ -1,5 +1,5 @@
-import { getCurrentBranch, isGitRepo } from '../utils/git.js';
-import type { GetValueCommandOptions } from '../types/command-options.js';
+import { getCurrentBranch, isGitRepo } from '../../utils/git.js';
+import type { GetValueCommandOptions } from '../../types/command-options.js';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface GitBranchOptions extends GetValueCommandOptions {}
