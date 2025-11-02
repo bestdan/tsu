@@ -100,7 +100,7 @@ export function getChangedFiles(
         // Get committed changes compared to base branch
         // First check if base branch exists
         try {
-          execSync(`git rev-parse --verify ${baseBranch}`, {
+          execSync(`git rev-parse --verify ${escapeShellArg(baseBranch)}`, {
             cwd: resolvedCwd,
             stdio: 'pipe',
           });
@@ -122,7 +122,7 @@ export function getChangedFiles(
         }
 
         // Compare current branch to base branch
-        command = `git diff --name-only ${baseBranch}...HEAD`;
+        command = `git diff --name-only ${escapeShellArg(baseBranch)}...HEAD`;
         break;
       }
     }
@@ -224,7 +224,7 @@ export function getBranchDiff(
 
     // Check if base branch exists
     try {
-      execSync(`git rev-parse --verify ${baseBranch}`, {
+      execSync(`git rev-parse --verify ${escapeShellArg(baseBranch)}`, {
         cwd: resolvedCwd,
         stdio: 'pipe',
       });
@@ -232,7 +232,7 @@ export function getBranchDiff(
       return null;
     }
 
-    const result = execSync(`git diff ${baseBranch}...HEAD`, {
+    const result = execSync(`git diff ${escapeShellArg(baseBranch)}...HEAD`, {
       cwd: resolvedCwd,
       stdio: 'pipe',
       encoding: 'utf-8',
