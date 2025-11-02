@@ -152,9 +152,6 @@ describe('dartHookGraphqlCheck', () => {
       ) {
         return Buffer.from('');
       }
-      if (typeof cmd === 'string' && cmd.includes('git diff --name-only')) {
-        return 'lib/graphql/query.fakes.dart\n';
-      }
       return Buffer.from('');
     });
 
@@ -164,9 +161,9 @@ describe('dartHookGraphqlCheck', () => {
 
     // Different status before and after
     getGitStatusSpy
-      .mockReturnValueOnce('M lib/graphql/query.graphql\n')
+      .mockReturnValueOnce('M  lib/graphql/query.graphql\n')
       .mockReturnValueOnce(
-        'M lib/graphql/query.graphql\nM lib/graphql/query.fakes.dart\n'
+        'M  lib/graphql/query.graphql\n M lib/graphql/query.fakes.dart\n'
       );
 
     expect(() => {

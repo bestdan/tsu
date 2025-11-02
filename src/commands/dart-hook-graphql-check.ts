@@ -112,21 +112,30 @@ export function dartHookGraphqlCheck(
     console.error('⚠️  WARNING: GraphQL fakes need regeneration!');
     console.error('   Modified files:');
 
-    // Show what changed
+    // Show what changed by comparing git status outputs
     try {
-      const diffOutput = execSync('git diff --name-only', {
-        cwd,
-        stdio: 'pipe',
-        encoding: 'utf-8',
-      }).trim();
+      // Parse the status outputs to show what changed
+      const beforeLines = new Set(
+        gitStatusBefore.split('\n').filter((line) => line.length > 0)
+      );
+      const afterLines = gitStatusAfter.split('\n').filter((line) => line.length > 0);
 
-      if (diffOutput) {
-        diffOutput.split('\n').forEach((file) => {
-          console.error(`   ${file}`);
+      // Find files that are new or have different status
+      const changedFiles = afterLines.filter((line) => !beforeLines.has(line));
+
+      if (changedFiles.length > 0) {
+        changedFiles.forEach((line) => {
+          // Extract just the filename from the porcelain format (e.g., "?? file.dart" or "M  file.dart")
+          const match = line.match(/^..\s+(.+)$/);
+          if (match && match[1]) {
+            console.error(`   ${match[1]}`);
+          }
         });
+      } else {
+        console.error('   (Unable to determine changed files)');
       }
     } catch {
-      // If diff fails, just show a generic message
+      // If parsing fails, just show a generic message
       console.error('   (Unable to determine changed files)');
     }
 
