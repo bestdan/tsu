@@ -42,7 +42,7 @@ describe('dartHookDcmCheck', () => {
     // Mock execSync to fail for command -v dcm (DCM not installed)
     const execSyncMock = vi.mocked(execSync);
     execSyncMock.mockImplementation((cmd) => {
-      if (typeof cmd === 'string' && cmd.includes('command -v dcm')) {
+      if (typeof cmd === 'string' && cmd.includes('command -v')) {
         throw new Error('dcm not found');
       }
       return Buffer.from('');
@@ -62,7 +62,7 @@ describe('dartHookDcmCheck', () => {
     // Mock DCM as installed
     const execSyncMock = vi.mocked(execSync);
     execSyncMock.mockImplementation((cmd) => {
-      if (typeof cmd === 'string' && cmd.includes('command -v dcm')) {
+      if (typeof cmd === 'string' && cmd.includes('command -v')) {
         return Buffer.from('');
       }
       return Buffer.from('');
@@ -84,7 +84,7 @@ describe('dartHookDcmCheck', () => {
     // Mock DCM as installed
     const execSyncMock = vi.mocked(execSync);
     execSyncMock.mockImplementation((cmd) => {
-      if (typeof cmd === 'string' && cmd.includes('command -v dcm')) {
+      if (typeof cmd === 'string' && cmd.includes('command -v')) {
         return Buffer.from('');
       }
       return Buffer.from('');
@@ -107,7 +107,7 @@ describe('dartHookDcmCheck', () => {
     // Mock DCM as installed
     const execSyncMock = vi.mocked(execSync);
     execSyncMock.mockImplementation((cmd) => {
-      if (typeof cmd === 'string' && cmd.includes('command -v dcm')) {
+      if (typeof cmd === 'string' && cmd.includes('command -v')) {
         return Buffer.from('');
       }
       return Buffer.from('');
@@ -131,7 +131,7 @@ describe('dartHookDcmCheck', () => {
     // Mock DCM as installed
     const execSyncMock = vi.mocked(execSync);
     execSyncMock.mockImplementation((cmd) => {
-      if (typeof cmd === 'string' && cmd.includes('command -v dcm')) {
+      if (typeof cmd === 'string' && cmd.includes('command -v')) {
         return Buffer.from('');
       }
       return Buffer.from('');
@@ -159,7 +159,7 @@ describe('dartHookDcmCheck', () => {
     // Mock DCM as installed and working
     const execSyncMock = vi.mocked(execSync);
     execSyncMock.mockImplementation((cmd) => {
-      if (typeof cmd === 'string' && cmd.includes('command -v dcm')) {
+      if (typeof cmd === 'string' && cmd.includes('command -v')) {
         return Buffer.from('');
       }
       if (typeof cmd === 'string' && cmd.startsWith('dcm fix')) {
@@ -187,7 +187,7 @@ describe('dartHookDcmCheck', () => {
     // Mock DCM as installed and creating changes
     const execSyncMock = vi.mocked(execSync);
     execSyncMock.mockImplementation((cmd) => {
-      if (typeof cmd === 'string' && cmd.includes('command -v dcm')) {
+      if (typeof cmd === 'string' && cmd.includes('command -v')) {
         return Buffer.from('');
       }
       if (typeof cmd === 'string' && cmd.startsWith('dcm fix')) {
@@ -217,7 +217,7 @@ describe('dartHookDcmCheck', () => {
     // Mock DCM as installed and creating changes
     const execSyncMock = vi.mocked(execSync);
     execSyncMock.mockImplementation((cmd) => {
-      if (typeof cmd === 'string' && cmd.includes('command -v dcm')) {
+      if (typeof cmd === 'string' && cmd.includes('command -v')) {
         return Buffer.from('');
       }
       if (typeof cmd === 'string' && cmd.startsWith('dcm fix')) {
@@ -249,7 +249,7 @@ describe('dartHookDcmCheck', () => {
     // Mock DCM as installed but failing
     const execSyncMock = vi.mocked(execSync);
     execSyncMock.mockImplementation((cmd) => {
-      if (typeof cmd === 'string' && cmd.includes('command -v dcm')) {
+      if (typeof cmd === 'string' && cmd.includes('command -v')) {
         return Buffer.from('');
       }
       if (typeof cmd === 'string' && cmd.startsWith('dcm fix')) {

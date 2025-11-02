@@ -9,27 +9,13 @@ import {
   COMMON_DART_CODEGEN_SUFFIXES,
 } from '../utils/dart.js';
 import { filterFilesBySuffix } from '../utils/files.js';
-import { escapeShellArg } from '../utils/shell.js';
+import { escapeShellArg, isCommandInstalled } from '../utils/shell.js';
+import { ensureCondition } from '../utils/command-helpers.js';
 
 export interface DartHookDcmCheckOptions {
   verbose?: boolean;
   /** Suffixes to exclude from DCM checks. Defaults to COMMON_DART_CODEGEN_SUFFIXES */
   excludeSuffixes?: string[];
-}
-
-/**
- * Checks if the DCM command is available.
- * @returns true if DCM is installed, false otherwise
- */
-function isDcmInstalled(): boolean {
-  try {
-    execSync('command -v dcm', {
-      stdio: 'pipe',
-    });
-    return true;
-  } catch {
-    return false;
-  }
 }
 
 /**
@@ -50,7 +36,7 @@ export function dartHookDcmCheck(
   ];
 
   // Check if DCM is installed
-  if (!isDcmInstalled()) {
+  if (!isCommandInstalled('dcm')) {
     if (verbose) {
       console.error('⚠️  Warning: DCM not installed, skipping');
     }
@@ -62,15 +48,8 @@ export function dartHookDcmCheck(
   }
 
   // Check we're in both a git repo and a Dart package
-  if (!isGitRepo()) {
-    console.error('Error: Not in a git repository');
-    process.exit(1);
-  }
-
-  if (!isDartPackage()) {
-    console.error('Error: Not in a Dart package');
-    process.exit(1);
-  }
+  ensureCondition(isGitRepo(), 'Error: Not in a git repository');
+  ensureCondition(isDartPackage(), 'Error: Not in a Dart package');
 
   const cwd = process.cwd();
 
@@ -88,6 +67,14 @@ export function dartHookDcmCheck(
       console.error('✓ No Dart source files modified');
     }
     process.exit(0);
+  }
+
+  // Log the files being checked in verbose mode
+  if (verbose) {
+    console.error(`Running DCM fix on ${modifiedFiles.length} file(s):`);
+    modifiedFiles.forEach((file) => {
+      console.error(`  ${file}`);
+    });
   }
 
   // Run dcm fix on the files

@@ -2,6 +2,24 @@ import { getChangedFiles, type ChangeType } from './git.js';
 import type { ChangedFilesOptions } from '../types/command-options.js';
 
 /**
+ * Checks a condition and exits with an error if the condition is false.
+ * Useful for validating prerequisites like being in a git repo or Dart package.
+ * @param condition - The condition to check
+ * @param errorMessage - The error message to display if condition is false
+ * @example
+ * ensureCondition(isGitRepo(), 'Error: Not in a git repository');
+ */
+export function ensureCondition(
+  condition: boolean,
+  errorMessage: string
+): void {
+  if (!condition) {
+    console.error(errorMessage);
+    process.exit(1);
+  }
+}
+
+/**
  * Options for displaying changed files
  */
 export interface DisplayChangedFilesOptions extends ChangedFilesOptions {

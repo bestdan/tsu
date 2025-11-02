@@ -30,7 +30,7 @@ export {
 } from './utils/git.js';
 
 // Shell utilities
-export { escapeShellArg } from './utils/shell.js';
+export { escapeShellArg, isCommandInstalled } from './utils/shell.js';
 
 // File utilities
 export { filterFilesBySuffix } from './utils/files.js';
@@ -39,6 +39,7 @@ export { filterFilesBySuffix } from './utils/files.js';
 export {
   displayChangedFiles,
   getChangedFilesWithOptions,
+  ensureCondition,
   type DisplayChangedFilesOptions,
 } from './utils/command-helpers.js';
 
