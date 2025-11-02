@@ -36,12 +36,11 @@ export function dartHookDcmCheck(
   ];
 
   // Check if DCM is installed
-  if (!isCommandInstalled('dcm')) {
-    if (verbose) {
-      console.error('⚠️  Warning: DCM not installed, skipping');
-    }
-    process.exit(0);
-  }
+  ensureCondition(
+    isCommandInstalled('dcm'),
+    verbose ? '⚠️  Warning: DCM not installed, skipping' : '',
+    { exitCode: 0 }
+  );
 
   if (verbose) {
     console.error('🔧 Running DCM fix on modified files...');
