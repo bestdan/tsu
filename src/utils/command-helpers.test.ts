@@ -575,6 +575,62 @@ describe('displayChangedFiles', () => {
       expect(consoleLogSpy).toHaveBeenCalledWith('staged:staged.dart');
     });
   });
+
+  describe('with --push option', () => {
+    let getFilesToPushMock: any;
+
+    beforeEach(() => {
+      getFilesToPushMock = vi.spyOn(git, 'getFilesToPush');
+    });
+
+    afterEach(() => {
+      getFilesToPushMock.mockRestore();
+    });
+
+    it('should display files to push', () => {
+      getFilesToPushMock.mockReturnValue(['file1.ts', 'file2.ts']);
+
+      displayChangedFiles({ push: true, verbose: true });
+
+      expect(getFilesToPushMock).toHaveBeenCalled();
+      expect(consoleLogSpy).toHaveBeenCalledWith('file1.ts');
+      expect(consoleLogSpy).toHaveBeenCalledWith('file2.ts');
+      // Verbose output includes branch name, but we can't easily mock execSync in ESM
+      // Just verify that some error output was logged
+      expect(consoleErrorSpy).toHaveBeenCalled();
+    });
+
+    it('should exit with error when getFilesToPush returns null', () => {
+      getFilesToPushMock.mockReturnValue(null);
+
+      expect(() => {
+        displayChangedFiles({ push: true });
+      }).toThrow('process.exit(1)');
+
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        'Error: Remote branch not found or not in a git repository'
+      );
+    });
+
+    it('should exit silently when no files to push', () => {
+      getFilesToPushMock.mockReturnValue([]);
+
+      displayChangedFiles({ push: true });
+
+      expect(consoleLogSpy).not.toHaveBeenCalled();
+      expect(consoleErrorSpy).not.toHaveBeenCalled();
+    });
+
+    it('should apply filter to push files', () => {
+      getFilesToPushMock.mockReturnValue(['file1.ts', 'file2.dart']);
+      const filter = (file: string) => file.endsWith('.dart');
+
+      displayChangedFiles({ push: true, filter });
+
+      expect(consoleLogSpy).toHaveBeenCalledTimes(1);
+      expect(consoleLogSpy).toHaveBeenCalledWith('file2.dart');
+    });
+  });
 });
 
 describe('getChangedFilesWithOptions', () => {
