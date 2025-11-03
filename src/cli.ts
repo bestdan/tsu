@@ -72,6 +72,7 @@ git
   .option('-s, --staged', 'show staged changes only')
   .option('-u, --unstaged', 'show unstaged changes only')
   .option('-a, --all', 'show all changes (committed, staged, and unstaged)')
+  .option('-p, --push', 'show files in commits that would be pushed to upstream')
   .option(
     '-b, --base-branch <branch>',
     'base branch to compare against',
@@ -83,6 +84,7 @@ git
       staged?: boolean;
       unstaged?: boolean;
       all?: boolean;
+      push?: boolean;
       baseBranch?: string;
       verbose?: boolean;
     }) => {
@@ -330,12 +332,13 @@ dartHook
   .description(
     'Check if GraphQL fakes are up to date (suitable for pre-push hooks)'
   )
+  .argument('[files...]', 'specific files to check (defaults to all changed files)')
   .option(
     '-v, --verbose',
     'show human-readable status messages (output to stderr)'
   )
-  .action((options: { verbose?: boolean }) => {
-    dartHookGraphqlCheck(options);
+  .action(async (files: string[], options: { verbose?: boolean; }) => {
+    await dartHookGraphqlCheck({ ...options, files });
   });
 
 program.parse();

@@ -11,21 +11,26 @@ import { logIfVerbose } from '../../../../utils/logger.js';
 
 export interface DartHookGraphqlCheckOptions {
   verbose?: boolean;
+  files?: string[];
 }
 
 /**
  * Checks if GraphQL files are modified and runs code generation to verify fakes are up to date.
- * This replicates the functionality of a pre-push hook that:
+ * Supports two modes:
+ * 1. Explicit file list (--files)
+ * 2. Default mode - checks all changed files
+ *
+ * Steps:
  * 1. Checks if melos is installed
- * 2. Gets modified .graphql files
+ * 2. Gets modified .graphql files, exits if none
  * 3. Saves git status before running codegen
  * 4. Runs GraphQL code generation (melos run codegen:graphql and melos run codegen:graphql:test)
  * 5. Checks if codegen created any changes
  * 6. Exits with error if files were modified by codegen
  */
-export function dartHookGraphqlCheck(
+export async function dartHookGraphqlCheck(
   options: DartHookGraphqlCheckOptions = {}
-): void {
+): Promise<void> {
   const verbose = options.verbose || false;
   const codegenCommands = [
     'melos run codegen:graphql',
@@ -40,13 +45,21 @@ export function dartHookGraphqlCheck(
 
   const cwd = process.cwd();
 
-  // Get all changed files (committed, staged, and unstaged)
-  const allChangedFiles = getAllChangedFiles(cwd);
+  let allFiles: string[];
+
+  // Determine which files to check
+  if (options.files && options.files.length > 0) {
+    // Mode 1: Explicit file list provided
+    logIfVerbose(verbose, 'Using provided files');
+    allFiles = options.files;
+  } else {
+    // Mode 2: Default - check all changed files
+    logIfVerbose(verbose, 'Checking all changed files');
+    allFiles = getAllChangedFiles(cwd);
+  }
 
   // Filter to only GraphQL files
-  const graphqlFiles = allChangedFiles.filter((file) =>
-    file.endsWith('.graphql')
-  );
+  const graphqlFiles = allFiles.filter((file) => file.endsWith('.graphql'));
 
   ensureCondition(
     graphqlFiles.length > 0,

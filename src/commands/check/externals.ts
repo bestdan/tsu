@@ -52,12 +52,10 @@ export function checkExternals(options: CheckExternalsOptions = {}): void {
 
   logIfVerbose(verbose, '🔍 Checking external dependencies...');
 
-  const results: Array<{ command: string; installed: boolean }> = [];
   let allInstalled = true;
 
   for (const dep of EXTERNAL_DEPENDENCIES) {
     const installed = isCommandInstalled(dep.command);
-    results.push({ command: dep.command, installed });
 
     if (!installed) {
       allInstalled = false;
@@ -71,11 +69,9 @@ export function checkExternals(options: CheckExternalsOptions = {}): void {
         console.error(`  Install: ${dep.installUrl}`);
       }
     }
-  }
 
-  // Output parseable results to stdout
-  for (const result of results) {
-    console.log(`${result.command}: ${result.installed ? 'installed' : 'not_installed'}`);
+    // Output parseable result to stdout
+    console.log(`${dep.command}: ${installed ? 'installed' : 'not_installed'}`);
   }
 
   if (verbose) {
