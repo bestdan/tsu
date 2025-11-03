@@ -55,7 +55,7 @@ export function dartHookGraphqlCheck(
     { exitCode: 0 }
   );
 
-  /* v8 ignore start - External tool integration not testable without melos */
+  /* v8 ignore next -- @preserve */
   if (verbose) {
     console.error(`📝 Found modified GraphQL files: ${graphqlFiles.length}`);
     graphqlFiles.forEach((file) => {
@@ -79,9 +79,11 @@ export function dartHookGraphqlCheck(
   );
 
   if (verbose) {
+    /* v8 ignore next -- @preserve */
     console.error('🔧 Running GraphQL code generation...');
   }
 
+  /* v8 ignore next -- @preserve */
   // Run the code generation commands
   try {
     for (const command of codegenCommands) {
@@ -99,8 +101,10 @@ export function dartHookGraphqlCheck(
   }
 
   // Get git status after running codegen
+  /* v8 ignore next -- @preserve */
   const gitStatusAfter = getGitStatus(cwd);
 
+  /* v8 ignore next -- @preserve */
   ensureCondition(
     gitStatusAfter !== null,
     'Error: Failed to get git status'
@@ -109,12 +113,14 @@ export function dartHookGraphqlCheck(
   // Compare git status before and after
   // TypeScript knows these are non-null after ensureCondition checks
   // Using type guards instead of assertions for better safety
+  /* v8 ignore next -- @preserve */
   if (gitStatusBefore && gitStatusAfter && gitStatusBefore !== gitStatusAfter) {
     console.error('');
     console.error('⚠️  WARNING: GraphQL fakes need regeneration!');
     console.error('   Modified files:');
 
     // Show what changed by comparing git status outputs
+    /* v8 ignore next -- @preserve */
     try {
       // Parse the status outputs to show what changed
       const beforeLines = new Set(
@@ -148,9 +154,9 @@ export function dartHookGraphqlCheck(
     process.exit(1);
   }
 
+  /* v8 ignore next -- @preserve */
   if (verbose) {
     console.error('✓ GraphQL fakes are up to date');
   }
   process.exit(0);
-  /* v8 ignore stop */
 }

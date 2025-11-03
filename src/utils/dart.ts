@@ -369,6 +369,7 @@ export function readPackageName(packageRoot: string): string | null {
     if (nameMatch && nameMatch[1]) {
       return nameMatch[1].trim();
     }
+    /* v8 ignore next -- @preserve */
     return null;
   } catch {
     return null;

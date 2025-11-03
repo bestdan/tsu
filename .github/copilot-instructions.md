@@ -9,7 +9,7 @@ This is a TypeScript command-line utilities package that provides git-related ut
 - **Language**: TypeScript 5.9+ with ESM modules
 - **Package Manager**: pnpm 9.0.0 (required)
 - **CLI Framework**: Commander.js 14.x
-- **Testing**: Vitest 4.x
+- **Testing**: Vitest 4.0.6 and higher due to `/ignores` issues. 
 - **Linting**: ESLint 9.x with TypeScript ESLint plugin
 - **Code Formatting**: Prettier 3.x
 - **Node Version**: >= 18.0.0

@@ -67,7 +67,7 @@ export function dartHookFormatCheck(
   }
 
   // Format the files
-  /* v8 ignore start - External tool integration not testable without dart format */
+  /* v8 ignore next -- @preserve */
   try {
     const fileArgs = modifiedFiles.map(escapeShellArg).join(' ');
     execSync(`dart format ${fileArgs}`, {
@@ -83,10 +83,12 @@ export function dartHookFormatCheck(
   }
 
   // Check if formatting created changes in the files we formatted
+  /* v8 ignore next -- @preserve */
   const filesWithChanges = modifiedFiles.filter((file) =>
     hasUnstagedChanges(file, cwd)
   );
 
+  /* v8 ignore next -- @preserve */
   if (filesWithChanges.length > 0) {
     console.error('');
     console.error(
@@ -98,9 +100,9 @@ export function dartHookFormatCheck(
     process.exit(1);
   }
 
+  /* v8 ignore next -- @preserve */
   if (verbose) {
     console.error('✓ All files properly formatted');
   }
   process.exit(0);
-  /* v8 ignore stop */
 }

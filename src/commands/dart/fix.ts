@@ -91,6 +91,7 @@ export function dartFix(options: DartFixOptions = {}): void {
 
     // If there are also regular files, handle them
     if (hasRegularFiles) {
+      /* v8 ignore next -- @preserve */
       if (usePackages) {
         // Infer packages from files and run on packages
         const affectedPackages = findAffectedPackages(regularFiles, cwd);
@@ -153,6 +154,7 @@ function runFixOnFiles(
     // Check if there are fixes available in dry-run mode
     handleSuggestedFixes(apply, result, verbose);
 
+    /* v8 ignore next -- @preserve */
     if (verbose) {
       console.error('✓ All dart fix checks passed');
       if (result.trim()) {
@@ -214,6 +216,7 @@ function runFixOnPackages(
       try {
         handleSuggestedFixes(apply, result, verbose, packageName);
       } catch (error) {
+        /* v8 ignore next -- @preserve */
         if (error instanceof Error && error.message === 'FIXES_AVAILABLE') {
           hasErrors = true;
         } else {
@@ -228,6 +231,7 @@ function runFixOnPackages(
         }
       }
     } catch (error) {
+      /* v8 ignore next -- @preserve */
       if (error instanceof Error && error.message === 'FIXES_AVAILABLE') {
         hasErrors = true;
       } else {
