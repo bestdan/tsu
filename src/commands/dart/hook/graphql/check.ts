@@ -1,10 +1,8 @@
 import { execSync } from 'node:child_process';
-import * as readline from 'node:readline';
 import {
   isGitRepo,
   getAllChangedFiles,
   getGitStatus,
-  getFilesInRange,
 } from '../../../git/utils/git.js';
 import { isDartPackage } from '../../utils/dart.js';
 import { ensureCondition } from '../../../../utils/command-helpers.js';
@@ -14,80 +12,17 @@ import { logIfVerbose } from '../../../../utils/logger.js';
 export interface DartHookGraphqlCheckOptions {
   verbose?: boolean;
   files?: string[];
-  /** Read refs from stdin (for pre-push hook mode) */
-  hookMode?: boolean;
-}
-
-/**
- * Reads refs from stdin (pre-push hook format) and returns files that changed.
- * Pre-push hook stdin format: <local ref> <local sha> <remote ref> <remote sha>
- */
-async function getFilesFromStdin(cwd: string, verbose: boolean): Promise<string[]> {
-  return new Promise((resolve, reject) => {
-    const rl = readline.createInterface({
-      input: process.stdin,
-      output: process.stdout,
-      terminal: false,
-    });
-
-    const allFiles = new Set<string>();
-
-    rl.on('line', (line: string) => {
-      const parts = line.trim().split(/\s+/);
-      if (parts.length !== 4) {
-        return; // Invalid format, skip
-      }
-
-      const [, localSha, , remoteSha] = parts;
-
-      // Skip if deleting a branch
-      if (localSha === '0000000000000000000000000000000000000000') {
-        return;
-      }
-
-      // Calculate the range based on whether the remote ref exists
-      let range: string;
-      if (remoteSha === '0000000000000000000000000000000000000000') {
-        // Remote ref doesn't exist yet (new branch), compare against empty tree
-        const emptyTree = execSync('git hash-object -t tree /dev/null', {
-          cwd,
-          encoding: 'utf-8',
-        }).trim();
-        range = `${emptyTree}..${localSha}`;
-      } else {
-        // Remote ref exists, compare what we're about to push
-        range = `${remoteSha}..${localSha}`;
-      }
-
-      logIfVerbose(verbose, `Checking range: ${range}`);
-
-      // Get files in this range
-      const filesInRange = getFilesInRange({ range, cwd });
-      if (filesInRange) {
-        filesInRange.forEach((file) => allFiles.add(file));
-      }
-    });
-
-    rl.on('close', () => {
-      resolve(Array.from(allFiles));
-    });
-
-    rl.on('error', (err) => {
-      reject(err);
-    });
-  });
 }
 
 /**
  * Checks if GraphQL files are modified and runs code generation to verify fakes are up to date.
  * Supports three modes:
  * 1. Explicit file list (--files)
- * 2. Hook mode (--hook) - reads refs from stdin for pre-push hooks
- * 3. Default mode - checks all changed files
+ * 2. Default mode - checks all changed files
  *
  * Steps:
  * 1. Checks if melos is installed
- * 2. Gets modified .graphql files
+ * 2. Gets modified .graphql files, exits if none
  * 3. Saves git status before running codegen
  * 4. Runs GraphQL code generation (melos run codegen:graphql and melos run codegen:graphql:test)
  * 5. Checks if codegen created any changes
@@ -117,10 +52,6 @@ export async function dartHookGraphqlCheck(
     // Mode 1: Explicit file list provided
     logIfVerbose(verbose, 'Using provided files');
     allFiles = options.files;
-  } else if (options.hookMode) {
-    // Mode 2: Hook mode - read refs from stdin
-    logIfVerbose(verbose, 'Reading refs from stdin (hook mode)');
-    allFiles = await getFilesFromStdin(cwd, verbose);
   } else {
     // Mode 3: Default - check all changed files
     logIfVerbose(verbose, 'Checking all changed files');

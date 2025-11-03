@@ -498,29 +498,6 @@ export function getGitStatus(cwd: string = process.cwd()): string | null {
   }
 }
 
-/**
- * Gets the upstream tracking branch for the current branch.
- * @param cwd - The directory to check. Defaults to process.cwd()
- * @returns The upstream branch name (e.g., 'origin/main'), or null if not set or on error
- */
-export function getUpstreamBranch(cwd: string = process.cwd()): string | null {
-  try {
-    if (!isGitRepo(cwd)) {
-      return null;
-    }
-
-    const result = execSync('git rev-parse --abbrev-ref --symbolic-full-name @{u}', {
-      cwd: resolve(cwd),
-      stdio: 'pipe',
-      encoding: 'utf-8',
-    });
-
-    return result.trim();
-  } catch {
-    return null;
-  }
-}
-
 export interface GetFilesInRangeOptions {
   /** The commit range to check (e.g., 'origin/main..HEAD', 'abc123..def456') */
   range: string;

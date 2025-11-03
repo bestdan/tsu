@@ -16,7 +16,6 @@ export {
   getAllChangedFiles,
   getFilesInRange,
   getFilesToPush,
-  getUpstreamBranch,
   getCurrentBranch,
   getStagedDiff,
   getBranchDiff,

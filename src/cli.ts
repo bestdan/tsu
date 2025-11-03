@@ -323,12 +323,8 @@ dartHook
     '-v, --verbose',
     'show human-readable status messages (output to stderr)'
   )
-  .option(
-    '--hook',
-    'hook mode: read refs from stdin (for use as pre-push hook)'
-  )
-  .action(async (files: string[], options: { verbose?: boolean; hook?: boolean }) => {
-    await dartHookGraphqlCheck({ ...options, files, hookMode: options.hook });
+  .action(async (files: string[], options: { verbose?: boolean;}) => {
+    await dartHookGraphqlCheck({ ...options, files,});
   });
 
 program.parse();
