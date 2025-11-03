@@ -497,3 +497,95 @@ export function getGitStatus(cwd: string = process.cwd()): string | null {
     return null;
   }
 }
+
+export interface GetFilesInRangeOptions {
+  /** The commit range to check (e.g., 'origin/main..HEAD', 'abc123..def456') */
+  range: string;
+  /** The directory to run git commands in. Defaults to process.cwd() */
+  cwd?: string;
+  /** Filter files by extension or pattern. Defaults to all files. */
+  filter?: (file: string) => boolean;
+}
+
+/**
+ * Gets the list of files that changed in a specific commit range.
+ * This is useful for pre-push hooks to check only files being pushed.
+ * @param options - Configuration options
+ * @returns Array of file paths, or null if not in a git repo or on error
+ */
+export function getFilesInRange(
+  options: GetFilesInRangeOptions
+): string[] | null {
+  const { range, cwd = process.cwd(), filter } = options;
+
+  try {
+    if (!isGitRepo(cwd)) {
+      return null;
+    }
+
+    const resolvedCwd = resolve(cwd);
+
+    // Use git diff with --name-only and --diff-filter=ACMR to get only added/modified/renamed files
+    const command = `git diff --name-only --diff-filter=ACMR ${escapeShellArg(range)}`;
+
+    const result = execSync(command, {
+      cwd: resolvedCwd,
+      stdio: 'pipe',
+      encoding: 'utf-8',
+    });
+
+    // Split by newlines and filter out empty strings
+    const files = result
+      .split('\n')
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0);
+
+    // Apply optional filter
+    return filter ? files.filter(filter) : files;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Gets the list of files in commits that would be pushed to upstream.
+ * Compares HEAD against the remote tracking branch (e.g., origin/feature-branch).
+ * Equivalent to: git diff --name-only origin/$(git branch --show-current)..HEAD
+ * @param cwd - The directory to check. Defaults to process.cwd()
+ * @returns Array of file paths, or null if not in a git repo or no upstream
+ */
+export function getFilesToPush(cwd: string = process.cwd()): string[] | null {
+  try {
+    if (!isGitRepo(cwd)) {
+      return null;
+    }
+
+    const resolvedCwd = resolve(cwd);
+
+    // Get current branch name 
+    const currentBranch = getCurrentBranch(resolvedCwd);
+
+    if (!currentBranch) {
+      return null;
+    }
+
+    // Construct the remote tracking branch (e.g., origin/feature-branch)
+    const remoteBranch = `origin/${currentBranch}`;
+
+    // Check if the remote branch exists
+    try {
+      execSync(`git rev-parse --verify ${escapeShellArg(remoteBranch)}`, {
+        cwd: resolvedCwd,
+        stdio: 'pipe',
+      });
+    } catch {
+      // Remote branch doesn't exist
+      return null;
+    }
+
+    // Get files in the range: origin/current-branch..HEAD
+    return getFilesInRange({ range: `${remoteBranch}..HEAD`, cwd: resolvedCwd });
+  } catch {
+    return null;
+  }
+}

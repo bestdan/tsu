@@ -10,6 +10,8 @@ import {
   isMainBranch,
   hasUnstagedChanges,
   createCommit,
+  getFilesInRange,
+  getFilesToPush,
 } from './git.js';
 import { mkdtempSync, rmSync, realpathSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -724,6 +726,179 @@ describe('hasUnstagedChanges', () => {
     try {
       const result = hasUnstagedChanges('test.txt', tempDir);
       expect(result).toBe(false);
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('getFilesInRange', () => {
+  it('should return null for non-git directory', () => {
+    const tempDir = mkdtempSync(join(tmpdir(), 'not-git-'));
+    try {
+      const result = getFilesInRange({ range: 'HEAD~1..HEAD', cwd: tempDir });
+      expect(result).toBeNull();
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it('should return files changed in a commit range', () => {
+    const tempDir = realpathSync(mkdtempSync(join(tmpdir(), 'git-test-')));
+    try {
+      execSync('git init', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git config user.email "test@test.com"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git config user.name "Test User"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+
+      // Create initial commit
+      writeFileSync(join(tempDir, 'file1.txt'), 'content1');
+      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "initial"', { cwd: tempDir, stdio: 'pipe' });
+
+      // Create second commit with new files
+      writeFileSync(join(tempDir, 'file2.txt'), 'content2');
+      writeFileSync(join(tempDir, 'file3.txt'), 'content3');
+      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "add files"', { cwd: tempDir, stdio: 'pipe' });
+
+      const files = getFilesInRange({ range: 'HEAD~1..HEAD', cwd: tempDir });
+      expect(files).toEqual(['file2.txt', 'file3.txt']);
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it('should apply filter to files', () => {
+    const tempDir = realpathSync(mkdtempSync(join(tmpdir(), 'git-test-')));
+    try {
+      execSync('git init', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git config user.email "test@test.com"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git config user.name "Test User"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+
+      // Create initial commit
+      writeFileSync(join(tempDir, 'file1.txt'), 'content1');
+      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "initial"', { cwd: tempDir, stdio: 'pipe' });
+
+      // Create second commit with mixed files
+      writeFileSync(join(tempDir, 'file2.dart'), 'content2');
+      writeFileSync(join(tempDir, 'file3.txt'), 'content3');
+      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "add files"', { cwd: tempDir, stdio: 'pipe' });
+
+      const files = getFilesInRange({
+        range: 'HEAD~1..HEAD',
+        cwd: tempDir,
+        filter: (file: string) => file.endsWith('.dart'),
+      });
+      expect(files).toEqual(['file2.dart']);
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it('should return null on error (invalid range)', () => {
+    const tempDir = realpathSync(mkdtempSync(join(tmpdir(), 'git-test-')));
+    try {
+      execSync('git init', { cwd: tempDir, stdio: 'pipe' });
+
+      const files = getFilesInRange({
+        range: 'invalid..range',
+        cwd: tempDir,
+      });
+      expect(files).toBeNull();
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('getFilesToPush', () => {
+  it('should return null for non-git directory', () => {
+    const tempDir = mkdtempSync(join(tmpdir(), 'not-git-'));
+    try {
+      const result = getFilesToPush(tempDir);
+      expect(result).toBeNull();
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it('should return null when no remote branch exists', () => {
+    const tempDir = realpathSync(mkdtempSync(join(tmpdir(), 'git-test-')));
+    try {
+      execSync('git init', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git config user.email "test@test.com"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git config user.name "Test User"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+
+      writeFileSync(join(tempDir, 'file1.txt'), 'content1');
+      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "initial"', { cwd: tempDir, stdio: 'pipe' });
+
+      const files = getFilesToPush(tempDir);
+      expect(files).toBeNull();
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it('should return files to push when remote branch exists', () => {
+    const tempDir = realpathSync(mkdtempSync(join(tmpdir(), 'git-test-')));
+    try {
+      execSync('git init', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git config user.email "test@test.com"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git config user.name "Test User"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git checkout -b main', { cwd: tempDir, stdio: 'pipe' });
+
+      // Create initial commit
+      writeFileSync(join(tempDir, 'file1.txt'), 'content1');
+      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "initial"', { cwd: tempDir, stdio: 'pipe' });
+
+      // Create a bare remote and push
+      const remoteDir = realpathSync(
+        mkdtempSync(join(tmpdir(), 'git-remote-'))
+      );
+      execSync('git init --bare', { cwd: remoteDir, stdio: 'pipe' });
+      execSync(`git remote add origin "${remoteDir}"`, {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git push -u origin main', { cwd: tempDir, stdio: 'pipe' });
+
+      // Create new commit that hasn't been pushed
+      writeFileSync(join(tempDir, 'file2.txt'), 'content2');
+      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "add file2"', { cwd: tempDir, stdio: 'pipe' });
+
+      const files = getFilesToPush(tempDir);
+      expect(files).toEqual(['file2.txt']);
+
+      rmSync(remoteDir, { recursive: true, force: true });
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
     }
