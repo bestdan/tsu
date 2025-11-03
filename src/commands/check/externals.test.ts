@@ -30,10 +30,10 @@ describe('checkExternals', () => {
     expect(() => checkExternals()).toThrow('process.exit(0)');
 
     expect(exitSpy).toHaveBeenCalledWith(0);
-    expect(consoleLogSpy).toHaveBeenCalledWith('dart:installed');
-    expect(consoleLogSpy).toHaveBeenCalledWith('dcm:installed');
-    expect(consoleLogSpy).toHaveBeenCalledWith('melos:installed');
-    expect(consoleLogSpy).toHaveBeenCalledWith('claude:installed');
+    expect(consoleLogSpy).toHaveBeenCalledWith('dart: installed');
+    expect(consoleLogSpy).toHaveBeenCalledWith('dcm: installed');
+    expect(consoleLogSpy).toHaveBeenCalledWith('melos: installed');
+    expect(consoleLogSpy).toHaveBeenCalledWith('claude: installed');
   });
 
   it('should exit with code 1 when some dependencies are not installed', () => {
@@ -44,10 +44,10 @@ describe('checkExternals', () => {
     expect(() => checkExternals()).toThrow('process.exit(1)');
 
     expect(exitSpy).toHaveBeenCalledWith(1);
-    expect(consoleLogSpy).toHaveBeenCalledWith('dart:installed');
-    expect(consoleLogSpy).toHaveBeenCalledWith('dcm:not_installed');
-    expect(consoleLogSpy).toHaveBeenCalledWith('melos:not_installed');
-    expect(consoleLogSpy).toHaveBeenCalledWith('claude:installed');
+    expect(consoleLogSpy).toHaveBeenCalledWith('dart: installed');
+    expect(consoleLogSpy).toHaveBeenCalledWith('dcm: not_installed');
+    expect(consoleLogSpy).toHaveBeenCalledWith('melos: not_installed');
+    expect(consoleLogSpy).toHaveBeenCalledWith('claude: installed');
   });
 
   it('should exit with code 1 when no dependencies are installed', () => {
@@ -56,10 +56,10 @@ describe('checkExternals', () => {
     expect(() => checkExternals()).toThrow('process.exit(1)');
 
     expect(exitSpy).toHaveBeenCalledWith(1);
-    expect(consoleLogSpy).toHaveBeenCalledWith('dart:not_installed');
-    expect(consoleLogSpy).toHaveBeenCalledWith('dcm:not_installed');
-    expect(consoleLogSpy).toHaveBeenCalledWith('melos:not_installed');
-    expect(consoleLogSpy).toHaveBeenCalledWith('claude:not_installed');
+    expect(consoleLogSpy).toHaveBeenCalledWith('dart: not_installed');
+    expect(consoleLogSpy).toHaveBeenCalledWith('dcm: not_installed');
+    expect(consoleLogSpy).toHaveBeenCalledWith('melos: not_installed');
+    expect(consoleLogSpy).toHaveBeenCalledWith('claude: not_installed');
   });
 
   it('should show verbose output when verbose flag is enabled', () => {
@@ -114,9 +114,9 @@ describe('checkExternals', () => {
 
     // Verify parseable output
     const outputs = consoleLogSpy.mock.calls.map((call: any) => call[0]);
-    expect(outputs).toContain('dart:installed');
-    expect(outputs).toContain('dcm:not_installed');
-    expect(outputs).toContain('melos:not_installed');
-    expect(outputs).toContain('claude:not_installed');
+    expect(outputs).toContain('dart: installed');
+    expect(outputs).toContain('dcm: not_installed');
+    expect(outputs).toContain('melos: not_installed');
+    expect(outputs).toContain('claude: not_installed');
   });
 });

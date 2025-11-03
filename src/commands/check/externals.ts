@@ -75,7 +75,7 @@ export function checkExternals(options: CheckExternalsOptions = {}): void {
 
   // Output parseable results to stdout
   for (const result of results) {
-    console.log(`${result.command}:${result.installed ? 'installed' : 'not_installed'}`);
+    console.log(`${result.command}: ${result.installed ? 'installed' : 'not_installed'}`);
   }
 
   if (verbose) {

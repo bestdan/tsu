@@ -22,10 +22,10 @@ tsu check externals [options]
 
 By default, outputs parseable status lines to stdout:
 ```
-dart:installed
-dcm:not_installed
-melos:not_installed
-claude:installed
+dart: installed
+dcm: not_installed
+melos: not_installed
+claude: installed
 ```
 
 With `--verbose`, also displays human-readable messages to stderr:
@@ -64,7 +64,7 @@ tsu check externals --verbose
 
 Use in scripts:
 ```bash
-if tsu check externals | grep -q "dart:installed"; then
+if tsu check externals | grep -q "dart: installed"; then
   echo "Dart is installed"
 fi
 ```
