@@ -16,7 +16,7 @@ export interface DartHookGraphqlCheckOptions {
 
 /**
  * Checks if GraphQL files are modified and runs code generation to verify fakes are up to date.
- * Supports three modes:
+ * Supports two modes:
  * 1. Explicit file list (--files)
  * 2. Default mode - checks all changed files
  *
