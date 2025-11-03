@@ -87,3 +87,9 @@ export {
 } from './commands/dart/hook/graphql/check.js';
 
 export { dartFix, type DartFixOptions } from './commands/dart/fix.js';
+
+// Check utilities
+export {
+  checkExternals,
+  type CheckExternalsOptions,
+} from './commands/check/externals.js';

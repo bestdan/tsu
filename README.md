@@ -32,6 +32,7 @@ tsu <namespace> <command> [options]
 
 ### Available Namespaces
 
+- **check** - System dependency checks ([documentation](docs/check.md))
 - **git** - Git-related utilities ([documentation](docs/git.md))
 - **dart** - Dart/Flutter project utilities ([documentation](docs/dart.md))
 - **files** - File filtering utilities ([documentation](docs/files.md))
@@ -39,6 +40,9 @@ tsu <namespace> <command> [options]
 ### Quick Examples
 
 ```bash
+# Check external dependencies
+tsutils check externals --verbose
+
 # Check if in a git repository
 tsutils git check && echo "In a git repo"
 
