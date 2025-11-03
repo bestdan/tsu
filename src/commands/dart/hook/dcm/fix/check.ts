@@ -85,7 +85,6 @@ export function dartHookDcmCheck(
     });
   }
 
-  
   // Run dcm fix on the files
   /* v8 ignore next -- @preserve */
   try {

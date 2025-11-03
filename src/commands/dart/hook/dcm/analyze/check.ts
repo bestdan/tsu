@@ -83,7 +83,6 @@ export function dartHookDcmAnalyzeCheck(
     });
   }
 
-  
   // Run dcm analyze on the files
   /* v8 ignore next -- @preserve */
   try {
