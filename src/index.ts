@@ -42,6 +42,7 @@ export {
   ensureCondition,
   ensureDartInstalled,
   ensureDCMInstalled,
+  ensureClaudeInstalled,
   type DisplayChangedFilesOptions,
 } from './utils/command-helpers.js';
 
