@@ -10,6 +10,7 @@ import {
 } from '../../../../utils/dart.js';
 import { filterFilesBySuffix } from '../../../../utils/files.js';
 import { escapeShellArg } from '../../../../utils/shell.js';
+import { ensureCondition } from '../../../../utils/command-helpers.js';
 import { logIfVerbose } from '../../../../utils/logger.js';
 
 export interface DartHookAnalysisCheckOptions {
@@ -37,15 +38,8 @@ export function dartHookAnalysisCheck(
   logIfVerbose(verbose, '🔍 Running dart fix on modified files...');
 
   // Check we're in both a git repo and a Dart package
-  if (!isGitRepo()) {
-    console.error('Error: Not in a git repository');
-    process.exit(1);
-  }
-
-  if (!isDartPackage()) {
-    console.error('Error: Not in a Dart package');
-    process.exit(1);
-  }
+  ensureCondition(isGitRepo(), 'Error: Not in a git repository');
+  ensureCondition(isDartPackage(), 'Error: Not in a Dart package');
 
   const cwd = process.cwd();
 
