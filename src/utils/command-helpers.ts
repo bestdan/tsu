@@ -1,4 +1,4 @@
-import { getChangedFiles, type ChangeType } from './git.js';
+import { getChangedFiles, type ChangeType } from '../commands/git/utils/git.js';
 import type { ChangedFilesOptions } from '../types/command-options.js';
 import { isCommandInstalled } from './shell.js';
 

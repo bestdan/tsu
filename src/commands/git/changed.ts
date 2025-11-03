@@ -1,4 +1,4 @@
-import { isGitRepo } from '../../utils/git.js';
+import { isGitRepo } from './utils/git.js';
 import { displayChangedFiles } from '../../utils/command-helpers.js';
 import type { ChangedFilesOptions } from '../../types/command-options.js';
 

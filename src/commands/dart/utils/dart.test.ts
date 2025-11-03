@@ -20,7 +20,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // Path to our test fixture
-const fixtureDir = resolve(__dirname, '../__fixtures__/dart-package');
+const fixtureDir = resolve(__dirname, '../../../__fixtures__/dart-package');
 
 describe('findDartPackageRoot', () => {
   it('should find package root from lib directory', () => {
@@ -99,7 +99,7 @@ describe('extractImports', () => {
   });
 
   it('should handle monorepo with subpackage lib directories', () => {
-    const monorepoDir = resolve(__dirname, '../__fixtures__/dart-monorepo');
+    const monorepoDir = resolve(__dirname, '../../../__fixtures__/dart-monorepo');
     const mainFile = join(monorepoDir, 'lib', 'main.dart');
     const imports = extractImports(mainFile, monorepoDir);
 
@@ -110,7 +110,7 @@ describe('extractImports', () => {
   it('should handle non-standard package structures', () => {
     const nonstandardDir = resolve(
       __dirname,
-      '../__fixtures__/dart-nonstandard'
+      '../../../__fixtures__/dart-nonstandard'
     );
     const mainFile = join(nonstandardDir, 'main.dart');
     const imports = extractImports(mainFile, nonstandardDir);

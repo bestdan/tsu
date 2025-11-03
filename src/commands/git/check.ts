@@ -1,4 +1,4 @@
-import { isGitRepo, getGitRoot } from '../../utils/git.js';
+import { isGitRepo, getGitRoot } from './utils/git.js';
 import type { CheckCommandOptions } from '../../types/command-options.js';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type

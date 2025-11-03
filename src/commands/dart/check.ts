@@ -1,4 +1,4 @@
-import { isDartPackage } from '../../utils/dart.js';
+import { isDartPackage } from './utils/dart.js';
 import type { CheckCommandOptions } from '../../types/command-options.js';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type

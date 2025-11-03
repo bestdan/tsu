@@ -6,7 +6,7 @@ import {
   displayChangedFiles,
   getChangedFilesWithOptions,
 } from './command-helpers.js';
-import * as git from './git.js';
+import * as git from '../commands/git/utils/git.js';
 import * as shell from './shell.js';
 
 describe('ensureCondition', () => {

@@ -1,7 +1,7 @@
 import { execSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { escapeShellArg } from './shell.js';
+import { escapeShellArg } from '../../../utils/shell.js';
 
 /**
  * Checks if the given directory (or current working directory) is inside a git repository.

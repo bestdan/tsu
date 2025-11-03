@@ -1,5 +1,5 @@
 import { resolve } from 'node:path';
-import { isGitRepo } from '../../../utils/git.js';
+import { isGitRepo } from '../../git/utils/git.js';
 import {
   findDartPackageRoot,
   findAllDartFiles,
@@ -7,7 +7,7 @@ import {
   buildReverseDependencyGraph,
   findDownstreamDependencies,
   findFilePackageRoot,
-} from '../../../utils/dart.js';
+} from '../utils/dart.js';
 import { getChangedFilesWithOptions } from '../../../utils/command-helpers.js';
 import type { ChangedFilesOptions } from '../../../types/command-options.js';
 

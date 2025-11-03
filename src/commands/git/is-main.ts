@@ -1,4 +1,4 @@
-import { getCurrentBranch, isGitRepo } from '../../utils/git.js';
+import { getCurrentBranch, isGitRepo } from './utils/git.js';
 import type { CheckCommandOptions } from '../../types/command-options.js';
 
 export interface GitIsMainOptions extends CheckCommandOptions {
