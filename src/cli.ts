@@ -290,12 +290,13 @@ dartHook
   .description(
     'Check if Dart files are properly formatted (suitable for pre-push hooks)'
   )
+  .argument('[files...]', 'specific files to check (defaults to all changed files)')
   .option(
     '-v, --verbose',
     'show human-readable status messages (output to stderr)'
   )
-  .action((options: { verbose?: boolean }) => {
-    dartHookFormatCheck(options);
+  .action((files: string[], options: { verbose?: boolean }) => {
+    dartHookFormatCheck({ ...options, files });
   });
 
 dartHook
@@ -304,12 +305,13 @@ dartHook
   .description(
     'Check if Dart files pass dart fix analysis and apply fixes (suitable for pre-push hooks)'
   )
+  .argument('[files...]', 'specific files to check (defaults to all changed files)')
   .option(
     '-v, --verbose',
     'show human-readable status messages (output to stderr)'
   )
-  .action((options: { verbose?: boolean }) => {
-    dartHookAnalysisCheck(options);
+  .action((files: string[], options: { verbose?: boolean }) => {
+    dartHookAnalysisCheck({ ...options, files });
   });
 
 dartHook
@@ -318,12 +320,13 @@ dartHook
   .description(
     'Check if Dart files pass DCM analysis and apply fixes (suitable for pre-push hooks)'
   )
+  .argument('[files...]', 'specific files to check (defaults to all changed files)')
   .option(
     '-v, --verbose',
     'show human-readable status messages (output to stderr)'
   )
-  .action((options: { verbose?: boolean }) => {
-    dartHookDcmCheck(options);
+  .action((files: string[], options: { verbose?: boolean }) => {
+    dartHookDcmCheck({ ...options, files });
   });
 
 dartHook

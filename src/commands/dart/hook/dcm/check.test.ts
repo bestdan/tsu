@@ -96,4 +96,44 @@ describe('dartHookDcmCheck', () => {
     );
     expect(processExitSpy).toHaveBeenCalledWith(0);
   });
+
+  it('should use provided files when files option is given', () => {
+    isGitRepoSpy.mockReturnValue(true);
+    isDartPackageSpy.mockReturnValue(true);
+
+    const providedFiles = ['lib/user.dart', 'lib/main.dart'];
+
+    expect(() => {
+      dartHookDcmCheck({ verbose: true, files: providedFiles });
+    }).toThrow('process.exit(0)');
+
+    expect(getAllChangedFilesSpy).not.toHaveBeenCalled();
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Using provided files');
+  });
+
+  it('should use getAllChangedFiles when no files option is given', () => {
+    isGitRepoSpy.mockReturnValue(true);
+    isDartPackageSpy.mockReturnValue(true);
+    getAllChangedFilesSpy.mockReturnValue([]);
+
+    expect(() => {
+      dartHookDcmCheck({ verbose: true });
+    }).toThrow('process.exit(0)');
+
+    expect(getAllChangedFilesSpy).toHaveBeenCalled();
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Checking all changed files');
+  });
+
+  it('should filter provided files to only dart files', () => {
+    isGitRepoSpy.mockReturnValue(true);
+    isDartPackageSpy.mockReturnValue(true);
+
+    const providedFiles = ['lib/user.dart', 'lib/main.ts', 'README.md'];
+
+    expect(() => {
+      dartHookDcmCheck({ verbose: true, files: providedFiles });
+    }).toThrow('process.exit(0)');
+
+    expect(getAllChangedFilesSpy).not.toHaveBeenCalled();
+  });
 });

@@ -17,11 +17,16 @@ export interface DartHookDcmCheckOptions {
   verbose?: boolean;
   /** Suffixes to exclude from DCM checks. Defaults to COMMON_DART_CODEGEN_SUFFIXES */
   excludeSuffixes?: string[];
+  files?: string[];
 }
 
 /**
  * Runs DCM fix on Dart files and checks if fixes created changes.
- * This replicates the functionality of a pre-push hook that:
+ * Supports two modes:
+ * 1. Explicit file list (--files)
+ * 2. Default mode - checks all changed files
+ *
+ * Steps:
  * 1. Checks if DCM is installed
  * 2. Gets modified Dart files (excluding generated files)
  * 3. Runs dcm fix on them
@@ -47,11 +52,21 @@ export function dartHookDcmCheck(
 
   const cwd = process.cwd();
 
-  // Get all changed Dart files (committed, staged, and unstaged)
-  const allChangedFiles = getAllChangedFiles(cwd);
+  let allFiles: string[];
+
+  // Determine which files to check
+  if (options.files && options.files.length > 0) {
+    // Mode 1: Explicit file list provided
+    logIfVerbose(verbose, 'Using provided files');
+    allFiles = options.files;
+  } else {
+    // Mode 2: Default - check all changed files
+    logIfVerbose(verbose, 'Checking all changed files');
+    allFiles = getAllChangedFiles(cwd);
+  }
 
   // Filter to only Dart files
-  const dartFiles = allChangedFiles.filter((file) => file.endsWith('.dart'));
+  const dartFiles = allFiles.filter((file) => file.endsWith('.dart'));
 
   // Filter out generated files
   const modifiedFiles = filterFilesBySuffix(dartFiles, excludeSuffixes);
