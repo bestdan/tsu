@@ -59,11 +59,13 @@ When working with GitHub Copilot in VS Code or other IDEs with MCP support, the 
 
 ### Installation Options
 
+> **Note:** These examples are for VS Code. Other IDEs with GitHub Copilot support (JetBrains, Visual Studio, etc.) may have different configuration formats. Refer to your IDE's MCP documentation for specifics.
+
 #### Remote Server (Recommended)
 
 The easiest method is using the remote GitHub MCP Server hosted by GitHub. This is typically pre-configured in VS Code with GitHub Copilot.
 
-**Configuration Location:** Add to `.vscode/mcp.json` or VS Code settings
+**Configuration Location:** Create or edit `.vscode/mcp.json` in your project
 
 **For VS Code with OAuth (automatic authentication):**
 ```json
@@ -78,6 +80,13 @@ The easiest method is using the remote GitHub MCP Server hosted by GitHub. This 
 ```
 
 **For VS Code with Personal Access Token:**
+
+First, [create a GitHub Personal Access Token](https://github.com/settings/personal-access-tokens/new) with these scopes:
+- `repo` - Full control of private repositories
+- `read:org` - Read organization membership
+- `read:packages` - Read packages
+
+Then configure:
 ```json
 {
   "servers": {
@@ -102,16 +111,21 @@ The easiest method is using the remote GitHub MCP Server hosted by GitHub. This 
 
 #### Local Server (Docker)
 
-For more control, enterprise scenarios, or when the remote server is not available:
+For more control, enterprise scenarios, or when the remote server is not available.
+
+**Prerequisites:**
+1. [Docker](https://www.docker.com/) installed and running
+2. [GitHub Personal Access Token](https://github.com/settings/personal-access-tokens/new) with scopes: `repo`, `read:org`, `read:packages`
 
 **Run the Docker container:**
 ```bash
+# Replace <your-token> with your actual GitHub Personal Access Token
 docker run -i --rm \
   -e GITHUB_PERSONAL_ACCESS_TOKEN=<your-token> \
   ghcr.io/github/github-mcp-server
 ```
 
-**Configuration Location:** Add to `.vscode/mcp.json` or your IDE's MCP settings file
+**Configuration Location:** Create or edit `.vscode/mcp.json` in your project
 
 ```json
 {
@@ -141,8 +155,6 @@ docker run -i --rm \
   }
 }
 ```
-
-**Note:** The configuration format may vary slightly depending on your IDE. VS Code uses `.vscode/mcp.json`, while other IDEs may have different locations or formats. Refer to your IDE's MCP documentation for the exact configuration syntax.
 
 ### Toolset Configuration
 
