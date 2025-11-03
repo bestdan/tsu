@@ -15,8 +15,8 @@ describe('checkExternals', () => {
   beforeEach(() => {
     consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
-      throw new Error('process.exit called');
+    exitSpy = vi.spyOn(process, 'exit').mockImplementation((code) => {
+      throw new Error(`process.exit(${code})`);
     });
   });
 
@@ -27,7 +27,7 @@ describe('checkExternals', () => {
   it('should exit with code 0 when all dependencies are installed', () => {
     vi.mocked(shell.isCommandInstalled).mockReturnValue(true);
 
-    expect(() => checkExternals()).toThrow('process.exit called');
+    expect(() => checkExternals()).toThrow('process.exit(0)');
 
     expect(exitSpy).toHaveBeenCalledWith(0);
     expect(consoleLogSpy).toHaveBeenCalledWith('dart:installed');
@@ -41,7 +41,7 @@ describe('checkExternals', () => {
       return cmd !== 'dcm' && cmd !== 'melos';
     });
 
-    expect(() => checkExternals()).toThrow('process.exit called');
+    expect(() => checkExternals()).toThrow('process.exit(1)');
 
     expect(exitSpy).toHaveBeenCalledWith(1);
     expect(consoleLogSpy).toHaveBeenCalledWith('dart:installed');
@@ -53,7 +53,7 @@ describe('checkExternals', () => {
   it('should exit with code 1 when no dependencies are installed', () => {
     vi.mocked(shell.isCommandInstalled).mockReturnValue(false);
 
-    expect(() => checkExternals()).toThrow('process.exit called');
+    expect(() => checkExternals()).toThrow('process.exit(1)');
 
     expect(exitSpy).toHaveBeenCalledWith(1);
     expect(consoleLogSpy).toHaveBeenCalledWith('dart:not_installed');
@@ -68,7 +68,7 @@ describe('checkExternals', () => {
     });
 
     expect(() => checkExternals({ verbose: true })).toThrow(
-      'process.exit called'
+      'process.exit(1)'
     );
 
     expect(consoleErrorSpy).toHaveBeenCalledWith(
@@ -97,7 +97,7 @@ describe('checkExternals', () => {
     vi.mocked(shell.isCommandInstalled).mockReturnValue(true);
 
     expect(() => checkExternals({ verbose: true })).toThrow(
-      'process.exit called'
+      'process.exit(0)'
     );
 
     expect(consoleErrorSpy).toHaveBeenCalledWith(
@@ -110,7 +110,7 @@ describe('checkExternals', () => {
       return cmd === 'dart';
     });
 
-    expect(() => checkExternals()).toThrow('process.exit called');
+    expect(() => checkExternals()).toThrow('process.exit(1)');
 
     // Verify parseable output
     const outputs = consoleLogSpy.mock.calls.map((call: any) => call[0]);
