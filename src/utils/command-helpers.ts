@@ -1,4 +1,9 @@
-import { getChangedFiles, type ChangeType } from '../commands/git/utils/git.js';
+import { execSync } from 'node:child_process';
+import {
+  getChangedFiles,
+  getFilesToPush,
+  type ChangeType,
+} from '../commands/git/utils/git.js';
 import type { ChangedFilesOptions } from '../types/command-options.js';
 import { isCommandInstalled } from './shell.js';
 
@@ -103,7 +108,7 @@ function getFilteredChangedFiles(
 
 /**
  * Generic function to display changed files with consistent formatting.
- * Handles --all, --staged, --unstaged flags and verbose output.
+ * Handles --all, --staged, --unstaged, --push flags and verbose output.
  * Outputs files to stdout and headers to stderr.
  */
 export function displayChangedFiles(options: DisplayChangedFilesOptions): void {
@@ -111,6 +116,42 @@ export function displayChangedFiles(options: DisplayChangedFilesOptions): void {
   const verbose = options.verbose || false;
   const filter = options.filter;
   const typePrefix = options.typePrefix ? `${options.typePrefix} ` : '';
+
+  // Handle --push option
+  if (options.push) {
+    const pushFiles = getFilesToPush();
+
+    if (pushFiles === null) {
+      console.error('Error: Remote branch not found or not in a git repository');
+      process.exit(1);
+    }
+
+    // Apply filter if provided
+    const filteredFiles = filter ? pushFiles.filter(filter) : pushFiles;
+
+    if (filteredFiles.length === 0) {
+      // Exit silently for pipe-friendliness
+      return;
+    }
+
+    if (verbose) {
+      // Get current branch to show in verbose output
+      const currentBranch = execSync('git branch --show-current', {
+        encoding: 'utf-8',
+        stdio: 'pipe',
+      }).trim();
+      console.error(
+        `Files to push ${typePrefix}(origin/${currentBranch}..HEAD) (${filteredFiles.length}):`
+      );
+    }
+
+    // Output files to stdout
+    filteredFiles.forEach((file) => {
+      console.log(file);
+    });
+
+    return;
+  }
 
   // Handle --all option
   if (options.all) {

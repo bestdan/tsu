@@ -14,6 +14,9 @@ export {
   getGitRoot,
   getChangedFiles,
   getAllChangedFiles,
+  getFilesInRange,
+  getFilesToPush,
+  getUpstreamBranch,
   getCurrentBranch,
   getStagedDiff,
   getBranchDiff,
@@ -25,6 +28,7 @@ export {
   hasUnstagedChanges,
   type ChangeType,
   type GetChangedFilesOptions,
+  type GetFilesInRangeOptions,
   type CallClaudeOptions,
   type GenerateCommitMessageOptions,
   type GeneratePRDescriptionOptions,
@@ -77,5 +81,10 @@ export {
   dartHookDcmCheck,
   type DartHookDcmCheckOptions,
 } from './commands/dart/hook/dcm/check.js';
+
+export {
+  dartHookGraphqlCheck,
+  type DartHookGraphqlCheckOptions,
+} from './commands/dart/hook/graphql/check.js';
 
 export { dartFix, type DartFixOptions } from './commands/dart/fix.js';

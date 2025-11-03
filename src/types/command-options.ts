@@ -34,6 +34,8 @@ export interface ChangedFilesOptions extends BaseCommandOptions {
   unstaged?: boolean;
   /** Show all changes (committed, staged, unstaged) */
   all?: boolean;
+  /** Show files in commits that would be pushed to upstream */
+  push?: boolean;
   /** Base branch to compare against (default: 'main') */
   baseBranch?: string;
 }
