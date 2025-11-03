@@ -107,6 +107,16 @@ pnpm typecheck
 4. Write tests in a `.test.ts` file
 5. Export utilities from `src/index.ts` if needed
 
+## File Organization Guidelines
+
+When creating or modifying code files:
+
+- **Prefer one public class or top-level function per file**: Each file should focus on a single exported class or main function.
+- **Private/helper methods may stay in the same file**: Methods that directly support the main class or function can remain co-located.
+- **Avoid grouping unrelated classes or functions**: Don't combine multiple independent classes or functions in a single file just because they're in the same domain.
+- **Favor clarity, discoverability, and single-responsibility**: File organization should make it easy to find and understand code. Each file should have a clear, focused purpose.
+- **Use descriptive file names**: Name files after the primary class or function they contain (e.g., `find-dart-package-root.ts` for `findDartPackageRoot()`).
+
 ## Test Coverage
 
 This project enforces test coverage for all code. Coverage checks are:
