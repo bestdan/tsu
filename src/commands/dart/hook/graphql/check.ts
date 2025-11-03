@@ -53,7 +53,7 @@ export async function dartHookGraphqlCheck(
     logIfVerbose(verbose, 'Using provided files');
     allFiles = options.files;
   } else {
-    // Mode 3: Default - check all changed files
+    // Mode 2: Default - check all changed files
     logIfVerbose(verbose, 'Checking all changed files');
     allFiles = getAllChangedFiles(cwd);
   }
