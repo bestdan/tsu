@@ -1,4 +1,6 @@
+
 import { isGitRepo, generatePRDescription } from './utils/git.js';
+import { ensureClaudeInstalled } from '../../utils/command-helpers.js';
 import type { BaseCommandOptions } from '../../types/command-options.js';
 
 export interface GitPRDescriptionOptions extends BaseCommandOptions {
@@ -11,6 +13,8 @@ export function gitPRDescription(options: GitPRDescriptionOptions = {}): void {
     console.error('Error: Not in a git repository');
     process.exit(1);
   }
+
+  ensureClaudeInstalled();
 
   const baseBranch = options.baseBranch || 'main';
   const verbose = options.verbose || false;
