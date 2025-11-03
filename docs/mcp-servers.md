@@ -61,9 +61,11 @@ When working with GitHub Copilot in VS Code or other IDEs with MCP support, the 
 
 #### Remote Server (Recommended)
 
-The easiest method is using the remote GitHub MCP Server hosted by GitHub:
+The easiest method is using the remote GitHub MCP Server hosted by GitHub. This is typically pre-configured in VS Code with GitHub Copilot.
 
-**VS Code Configuration:**
+**Configuration Location:** Add to `.vscode/mcp.json` or VS Code settings
+
+**For VS Code with OAuth (automatic authentication):**
 ```json
 {
   "servers": {
@@ -75,47 +77,72 @@ The easiest method is using the remote GitHub MCP Server hosted by GitHub:
 }
 ```
 
+**For VS Code with Personal Access Token:**
+```json
+{
+  "servers": {
+    "github": {
+      "type": "http",
+      "url": "https://api.githubcopilot.com/mcp/",
+      "headers": {
+        "Authorization": "Bearer ${input:github_mcp_pat}"
+      }
+    }
+  },
+  "inputs": [
+    {
+      "type": "promptString",
+      "id": "github_mcp_pat",
+      "description": "GitHub Personal Access Token",
+      "password": true
+    }
+  ]
+}
+```
+
 #### Local Server (Docker)
 
-For more control or enterprise scenarios:
+For more control, enterprise scenarios, or when the remote server is not available:
 
+**Run the Docker container:**
 ```bash
 docker run -i --rm \
   -e GITHUB_PERSONAL_ACCESS_TOKEN=<your-token> \
   ghcr.io/github/github-mcp-server
 ```
 
-**VS Code Configuration:**
+**Configuration Location:** Add to `.vscode/mcp.json` or your IDE's MCP settings file
+
 ```json
 {
-  "mcp": {
-    "inputs": [
-      {
-        "type": "promptString",
-        "id": "github_token",
-        "description": "GitHub Personal Access Token",
-        "password": true
-      }
-    ],
-    "servers": {
-      "github": {
-        "command": "docker",
-        "args": [
-          "run",
-          "-i",
-          "--rm",
-          "-e",
-          "GITHUB_PERSONAL_ACCESS_TOKEN",
-          "ghcr.io/github/github-mcp-server"
-        ],
-        "env": {
-          "GITHUB_PERSONAL_ACCESS_TOKEN": "${input:github_token}"
-        }
+  "inputs": [
+    {
+      "type": "promptString",
+      "id": "github_token",
+      "description": "GitHub Personal Access Token",
+      "password": true
+    }
+  ],
+  "servers": {
+    "github": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-e",
+        "GITHUB_PERSONAL_ACCESS_TOKEN",
+        "ghcr.io/github/github-mcp-server"
+      ],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${input:github_token}"
       }
     }
   }
 }
 ```
+
+**Note:** The configuration format may vary slightly depending on your IDE. VS Code uses `.vscode/mcp.json`, while other IDEs may have different locations or formats. Refer to your IDE's MCP documentation for the exact configuration syntax.
 
 ### Toolset Configuration
 
