@@ -562,12 +562,8 @@ export function getFilesToPush(cwd: string = process.cwd()): string[] | null {
 
     const resolvedCwd = resolve(cwd);
 
-    // Get current branch name
-    const currentBranch = execSync('git branch --show-current', {
-      cwd: resolvedCwd,
-      stdio: 'pipe',
-      encoding: 'utf-8',
-    }).trim();
+    // Get current branch name 
+    const currentBranch = getCurrentBranch(resolvedCwd);
 
     if (!currentBranch) {
       return null;
