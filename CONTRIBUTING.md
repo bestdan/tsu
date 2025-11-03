@@ -107,6 +107,13 @@ pnpm typecheck
 4. Write tests in a `.test.ts` file
 5. Export utilities from `src/index.ts` if needed
 
+## Copilot Agent Development
+
+For information on using MCP servers for Copilot agent development:
+- See [MCP Servers documentation](docs/mcp-servers.md)
+- The GitHub MCP server provides extensive GitHub API access for AI agents
+- Useful for automating issue management, PR creation, code analysis, and more
+
 ## Test Coverage
 
 This project enforces test coverage for all code. Coverage checks are:

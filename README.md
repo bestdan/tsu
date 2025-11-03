@@ -98,6 +98,11 @@ src/
 ```
 
 
+## Development
+
+For Copilot agent development and MCP server information:
+- [MCP Servers](docs/mcp-servers.md) - Model Context Protocol servers for AI development
+
 [Contributing](CONTRIBUTING.md)
 
 ## License
