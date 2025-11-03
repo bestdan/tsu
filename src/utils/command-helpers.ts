@@ -1,6 +1,6 @@
-import { execSync } from 'node:child_process';
 import {
   getChangedFiles,
+  getCurrentBranch,
   getFilesToPush,
   type ChangeType,
 } from '../commands/git/utils/git.js';
@@ -136,13 +136,12 @@ export function displayChangedFiles(options: DisplayChangedFilesOptions): void {
 
     if (verbose) {
       // Get current branch to show in verbose output
-      const currentBranch = execSync('git branch --show-current', {
-        encoding: 'utf-8',
-        stdio: 'pipe',
-      }).trim();
-      console.error(
-        `Files to push ${typePrefix}(origin/${currentBranch}..HEAD) (${filteredFiles.length}):`
-      );
+      const currentBranch = getCurrentBranch();
+      if (currentBranch) {
+        console.error(
+          `Files to push ${typePrefix}(origin/${currentBranch}..HEAD) (${filteredFiles.length}):`
+        );
+      }
     }
 
     // Output files to stdout
