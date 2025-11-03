@@ -94,7 +94,7 @@ describe('dartHookAnalysisCheck', () => {
     isGitRepoSpy.mockReturnValue(true);
     isDartPackageSpy.mockReturnValue(true);
 
-    const providedFiles = ['lib/user.dart', 'lib/main.dart'];
+    const providedFiles = ['lib/user.ts', 'lib/main.js'];
 
     expect(() => {
       dartHookAnalysisCheck({ verbose: true, files: providedFiles });
@@ -121,7 +121,7 @@ describe('dartHookAnalysisCheck', () => {
     isGitRepoSpy.mockReturnValue(true);
     isDartPackageSpy.mockReturnValue(true);
 
-    const providedFiles = ['lib/user.dart', 'lib/main.ts', 'README.md'];
+    const providedFiles = ['lib/user.ts', 'lib/main.js', 'README.md'];
 
     expect(() => {
       dartHookAnalysisCheck({ verbose: true, files: providedFiles });

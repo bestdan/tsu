@@ -101,7 +101,7 @@ describe('dartHookDcmCheck', () => {
     isGitRepoSpy.mockReturnValue(true);
     isDartPackageSpy.mockReturnValue(true);
 
-    const providedFiles = ['lib/user.dart', 'lib/main.dart'];
+    const providedFiles = ['lib/user.ts', 'lib/main.js'];
 
     expect(() => {
       dartHookDcmCheck({ verbose: true, files: providedFiles });
@@ -128,7 +128,7 @@ describe('dartHookDcmCheck', () => {
     isGitRepoSpy.mockReturnValue(true);
     isDartPackageSpy.mockReturnValue(true);
 
-    const providedFiles = ['lib/user.dart', 'lib/main.ts', 'README.md'];
+    const providedFiles = ['lib/user.ts', 'lib/main.js', 'README.md'];
 
     expect(() => {
       dartHookDcmCheck({ verbose: true, files: providedFiles });
