@@ -300,7 +300,6 @@ export function callClaude(options: CallClaudeOptions): string {
     throw error;
   }
 }
-/* c8 ignore stop */
 
 export interface GenerateCommitMessageOptions {
   /** The directory to run git commands in. Defaults to process.cwd() */
@@ -354,7 +353,6 @@ IMPORTANT: Do not ask questions. Do not add commentary. Do not add any attributi
 
   return callClaude({ prompt, input: diff, cwd, postProcess });
 }
-/* c8 ignore stop */
 
 export interface GeneratePRDescriptionOptions {
   /** The base branch to compare against. Defaults to 'main' */
@@ -411,7 +409,6 @@ IMPORTANT: Start immediately with the PR description. Do not ask questions. Do n
 
   return callClaude({ prompt, input: diff, cwd });
 }
-/* c8 ignore stop */
 
 export interface CreateCommitOptions {
   /** The commit message to use */
