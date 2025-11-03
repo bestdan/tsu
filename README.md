@@ -2,16 +2,6 @@
 
 TypeScript command line utilities package.
 
-## Setup
-
-This project uses:
-
-- **pnpm** for package management
-- **TypeScript** with ESM modules
-- **Commander.js** for CLI functionality
-- **Vitest** for testing
-- **ESLint** for linting
-- **Prettier** for code formatting
 
 ## Installation
 
@@ -28,9 +18,12 @@ pnpm add -g github:bestdan/tsu
 yarn global add github:bestdan/tsu
 ```
 
-## Usage
+After building, link the package globally 
+```bash
+pnpm link --global
+```
 
-After building, link the package globally (`pnpm link --global`):
+## Usage
 
 ```bash
 tsutils <namespace> <command> [options]
@@ -73,6 +66,9 @@ All commands follow a **pipe-friendly** design:
 
 - **Node.js**: >=22.0.0
 
+### Developer
+- **Vitest**: >=4.0.6 // for proper ignores in test coverage
+
 ### Optional Dependencies
 
 Some commands require additional tools:
@@ -100,10 +96,6 @@ src/
     └── files.ts                 # File utilities
 ```
 
-For detailed command documentation, see:
-- [Git Commands](docs/git.md)
-- [Dart Commands](docs/dart.md)
-- [Files Commands](docs/files.md)
 
 [Contributing](CONTRIBUTING.md)
 
