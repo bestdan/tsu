@@ -872,6 +872,7 @@ describe('getFilesToPush', () => {
         cwd: tempDir,
         stdio: 'pipe',
       });
+      execSync('git checkout -b main', { cwd: tempDir, stdio: 'pipe' });
 
       // Create initial commit
       writeFileSync(join(tempDir, 'file1.txt'), 'content1');
