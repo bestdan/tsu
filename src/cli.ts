@@ -14,6 +14,7 @@ import { dartPackage } from './commands/dart/package.js';
 import { dartChanged } from './commands/dart/changed/index.js';
 import { dartChangedDownstream } from './commands/dart/changed/downstream.js';
 import { dartHookFormatCheck } from './commands/dart/hook/format/check.js';
+import { dartHookAnalysisCheck } from './commands/dart/hook/analysis/check.js';
 import { dartHookDcmCheck } from './commands/dart/hook/dcm/check.js';
 import { dartHookGraphqlCheck } from './commands/dart/hook/graphql/check.js';
 import { dartFix } from './commands/dart/fix.js';
@@ -279,6 +280,20 @@ dartHook
   )
   .action((options: { verbose?: boolean }) => {
     dartHookFormatCheck(options);
+  });
+
+dartHook
+  .command('analysis')
+  .command('check')
+  .description(
+    'Check if Dart files pass dart fix analysis and apply fixes (suitable for pre-push hooks)'
+  )
+  .option(
+    '-v, --verbose',
+    'show human-readable status messages (output to stderr)'
+  )
+  .action((options: { verbose?: boolean }) => {
+    dartHookAnalysisCheck(options);
   });
 
 dartHook

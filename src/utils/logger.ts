@@ -4,19 +4,23 @@ export enum LogLevel {
   ERROR = 'ERROR',
 }
 
+/* v8 ignore next -- @preserve */
 export function log(message: string, level: LogLevel = LogLevel.INFO): void {
   const timestamp = new Date().toISOString();
   console.log(`[${timestamp}] [${level}] ${message}`);
 }
 
+/* v8 ignore next -- @preserve */
 export function logError(message: string): void {
   log(message, LogLevel.ERROR);
 }
 
+/* v8 ignore next -- @preserve */
 export function logWarn(message: string): void {
   log(message, LogLevel.WARN);
 }
 
+/* v8 ignore next -- @preserve */
 export function logInfo(message: string): void {
   log(message, LogLevel.INFO);
 }

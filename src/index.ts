@@ -66,6 +66,11 @@ export {
 } from './commands/dart/hook/format/check.js';
 
 export {
+  dartHookAnalysisCheck,
+  type DartHookAnalysisCheckOptions,
+} from './commands/dart/hook/analysis/check.js';
+
+export {
   dartHookDcmCheck,
   type DartHookDcmCheckOptions,
 } from './commands/dart/hook/dcm/check.js';
