@@ -15,7 +15,8 @@ import { dartChanged } from './commands/dart/changed/index.js';
 import { dartChangedDownstream } from './commands/dart/changed/downstream.js';
 import { dartHookFormatCheck } from './commands/dart/hook/format/check.js';
 import { dartHookAnalysisCheck } from './commands/dart/hook/analysis/check.js';
-import { dartHookDcmCheck } from './commands/dart/hook/dcm/check.js';
+import { dartHookDcmCheck } from './commands/dart/hook/dcm/fix/check.js';
+import { dartHookDcmAnalyzeCheck } from './commands/dart/hook/dcm/analyze/check.js';
 import { dartHookGraphqlCheck } from './commands/dart/hook/graphql/check.js';
 import { dartFix } from './commands/dart/fix.js';
 import { checkExternals } from './commands/check/externals.js';
@@ -314,11 +315,16 @@ dartHook
     dartHookAnalysisCheck({ ...options, files });
   });
 
-dartHook
+// Dart hook DCM subcommand namespace
+const dartHookDcm = dartHook
   .command('dcm')
+  .description('DCM utilities for Dart code quality');
+
+dartHookDcm
+  .command('fix')
   .command('check')
   .description(
-    'Check if Dart files pass DCM analysis and apply fixes (suitable for pre-push hooks)'
+    'Check if Dart files pass DCM fix checks (suitable for pre-push hooks)'
   )
   .argument('[files...]', 'specific files to check (defaults to all changed files)')
   .option(
@@ -327,6 +333,21 @@ dartHook
   )
   .action((files: string[], options: { verbose?: boolean }) => {
     dartHookDcmCheck({ ...options, files });
+  });
+
+dartHookDcm
+  .command('analyze')
+  .command('check')
+  .description(
+    'Check if Dart files pass DCM analyze checks (suitable for pre-push hooks)'
+  )
+  .argument('[files...]', 'specific files to check (defaults to all changed files)')
+  .option(
+    '-v, --verbose',
+    'show human-readable status messages (output to stderr)'
+  )
+  .action((files: string[], options: { verbose?: boolean }) => {
+    dartHookDcmAnalyzeCheck({ ...options, files });
   });
 
 dartHook

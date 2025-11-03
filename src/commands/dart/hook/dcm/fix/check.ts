@@ -3,15 +3,15 @@ import {
   isGitRepo,
   getAllChangedFiles,
   hasUnstagedChanges,
-} from '../../../git/utils/git.js';
+} from '../../../../git/utils/git.js';
 import {
   isDartPackage,
   COMMON_DART_CODEGEN_SUFFIXES,
-} from '../../utils/dart.js';
-import { filterFilesBySuffix } from '../../../files/utils/files.js';
-import { escapeShellArg } from '../../../../utils/shell.js';
-import { ensureCondition, ensureDCMInstalled, hasExplicitFiles } from '../../../../utils/command-helpers.js';
-import { logIfVerbose } from '../../../../utils/logger.js';
+} from '../../../utils/dart.js';
+import { filterFilesBySuffix } from '../../../../files/utils/files.js';
+import { escapeShellArg } from '../../../../../utils/shell.js';
+import { ensureCondition, ensureDCMInstalled, hasExplicitFiles } from '../../../../../utils/command-helpers.js';
+import { logIfVerbose } from '../../../../../utils/logger.js';
 
 export interface DartHookDcmCheckOptions {
   verbose?: boolean;
