@@ -89,11 +89,17 @@ export function dartHookDcmAnalyzeCheck(
     const fileArgs = modifiedFiles.map(escapeShellArg).join(' ');
     execSync(`dcm analyze ${fileArgs} --fatal-style --fatal-warnings --no-congratulate`, {
       cwd,
-      stdio: 'inherit', // Show DCM output directly to user
+      stdio: 'pipe',
+      timeout: 7000, // 7 second timeout
     });
-  } catch {
+  } catch (error) {
     console.error('');
-    console.error('❌ Push blocked: DCM analyze found issues. Please fix them before pushing.');
+    console.error('❌ Push blocked: DCM analyze found issues in the following file(s):');
+    modifiedFiles.forEach((file) => {
+      console.error(`  ${file}`);
+    });
+    console.error('');
+    console.error('Run `dcm analyze` locally for details on the issues.');
     process.exit(1);
   }
 
