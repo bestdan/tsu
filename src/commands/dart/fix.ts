@@ -4,6 +4,7 @@ import { existsSync, statSync } from 'node:fs';
 import { ensureCondition, ensureDartInstalled } from '../../utils/command-helpers.js';
 import { escapeShellArg } from '../../utils/shell.js';
 import { findAffectedPackages, readPackageName } from '../../utils/dart.js';
+import { logIfVerbose } from '../../utils/logger.js';
 
 export interface DartFixOptions {
   verbose?: boolean;
@@ -60,11 +61,10 @@ export function dartFix(options: DartFixOptions = {}): void {
   const hasPackageDirs = packageDirs.length > 0;
   const hasRegularFiles = regularFiles.length > 0;
 
-  if (verbose) {
-    console.error(
-      `🔧 Running dart fix ${apply ? '(applying fixes)' : '(dry-run)'}...`
-    );
-  }
+  logIfVerbose(
+    verbose,
+    `🔧 Running dart fix ${apply ? '(applying fixes)' : '(dry-run)'}...`
+  );
 
   // Mode 1: User provided package directories
   if (hasPackageDirs) {
@@ -138,9 +138,7 @@ function runFixOnFiles(
   verbose: boolean,
   apply: boolean
 ): void {
-  if (verbose) {
-    console.error(`Running dart fix on ${files.length} file(s)...`);
-  }
+  logIfVerbose(verbose, `Running dart fix on ${files.length} file(s)...`);
 
   try {
     const command = apply ? 'dart fix --apply' : 'dart fix --dry-run';
@@ -191,11 +189,10 @@ function runFixOnPackages(
   let hasErrors = false;
 
   for (const [location, packageName] of packages) {
-    if (verbose) {
-      console.error(
-        `Running dart fix ${apply ? '(applying) ' : '(dry-run) '}on ${packageName}...`
-      );
-    }
+    logIfVerbose(
+      verbose,
+      `Running dart fix ${apply ? '(applying) ' : '(dry-run) '}on ${packageName}...`
+    );
 
     const packagePath = resolve(cwd, location);
     if (!existsSync(packagePath)) {
@@ -225,7 +222,7 @@ function runFixOnPackages(
       }
 
       if (!hasErrors && verbose) {
-        console.error(`✓ ${packageName} dart fix passed`);
+        logIfVerbose(verbose, `✓ ${packageName} dart fix passed`);
         if (result.trim()) {
           console.error(result);
         }
@@ -254,9 +251,7 @@ function runFixOnPackages(
     process.exit(1);
   }
 
-  if (verbose) {
-    console.error('✓ All dart fix checks passed');
-  }
+  logIfVerbose(verbose, '✓ All dart fix checks passed');
   process.exit(0);
 }
 

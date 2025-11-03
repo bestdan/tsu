@@ -7,6 +7,7 @@ import {
 import { isDartPackage } from '../../../../utils/dart.js';
 import { ensureCondition } from '../../../../utils/command-helpers.js';
 import { isCommandInstalled } from '../../../../utils/shell.js';
+import { logIfVerbose } from '../../../../utils/logger.js';
 
 export interface DartHookGraphqlCheckOptions {
   verbose?: boolean;
@@ -31,9 +32,7 @@ export function dartHookGraphqlCheck(
     'melos run codegen:graphql:test',
   ];
 
-  if (verbose) {
-    console.error('🧪 Checking for modified GraphQL files...');
-  }
+  logIfVerbose(verbose, '🧪 Checking for modified GraphQL files...');
 
   // Check we're in both a git repo and a Dart package
   ensureCondition(isGitRepo(), 'Error: Not in a git repository');
@@ -78,10 +77,7 @@ export function dartHookGraphqlCheck(
     'Error: Failed to get git status'
   );
 
-  if (verbose) {
-    /* v8 ignore next -- @preserve */
-    console.error('🔧 Running GraphQL code generation...');
-  }
+  logIfVerbose(verbose, '🔧 Running GraphQL code generation...');
 
   /* v8 ignore next -- @preserve */
   // Run the code generation commands
@@ -154,9 +150,6 @@ export function dartHookGraphqlCheck(
     process.exit(1);
   }
 
-  /* v8 ignore next -- @preserve */
-  if (verbose) {
-    console.error('✓ GraphQL fakes are up to date');
-  }
+  logIfVerbose(verbose, '✓ GraphQL fakes are up to date');
   process.exit(0);
 }

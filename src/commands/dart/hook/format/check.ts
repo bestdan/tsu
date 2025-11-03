@@ -10,6 +10,7 @@ import {
 } from '../../../../utils/dart.js';
 import { filterFilesBySuffix } from '../../../../utils/files.js';
 import { escapeShellArg } from '../../../../utils/shell.js';
+import { logIfVerbose } from '../../../../utils/logger.js';
 
 export interface DartHookFormatCheckOptions {
   verbose?: boolean;
@@ -33,9 +34,7 @@ export function dartHookFormatCheck(
     ...COMMON_DART_CODEGEN_SUFFIXES,
   ];
 
-  if (verbose) {
-    console.error('🎨 Running dart format on modified files...');
-  }
+  logIfVerbose(verbose, '🎨 Running dart format on modified files...');
 
   // Check we're in both a git repo and a Dart package
   if (!isGitRepo()) {
@@ -60,9 +59,7 @@ export function dartHookFormatCheck(
   const modifiedFiles = filterFilesBySuffix(dartFiles, excludeSuffixes);
 
   if (modifiedFiles.length === 0) {
-    if (verbose) {
-      console.error('✓ No Dart source files modified');
-    }
+    logIfVerbose(verbose, '✓ No Dart source files modified');
     process.exit(0);
   }
 
@@ -100,9 +97,6 @@ export function dartHookFormatCheck(
     process.exit(1);
   }
 
-  /* v8 ignore next -- @preserve */
-  if (verbose) {
-    console.error('✓ All files properly formatted');
-  }
+  logIfVerbose(verbose, '✓ All files properly formatted');
   process.exit(0);
 }

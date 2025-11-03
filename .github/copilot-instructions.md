@@ -73,6 +73,28 @@ src/
 - Test both success and error cases
 - Mock external dependencies (like file system, git commands)
 
+### Test Coverage and V8 Ignore Comments
+
+- Maintain high test coverage (94%+ statements, 87%+ branches, 93%+ functions, 94%+ lines)
+- Use `/* v8 ignore next -- @preserve */` to mark code that cannot be tested without external tools
+- Apply ignore comments to:
+  - External tool integration code (DCM, dart format, melos, Claude CLI)
+  - Code that requires specific system commands not available in test environment
+  - Error handling paths that are difficult to trigger in tests
+- Example usage:
+  ```typescript
+  /* v8 ignore next -- @preserve */
+  try {
+    execSync(`dcm fix ${fileArgs}`, { cwd, stdio: 'pipe' });
+  } catch (error) {
+    console.error('Error: Failed to run dcm fix');
+    process.exit(1);
+  }
+  ```
+- The `--@preserve` flag ensures the comment is preserved in the compiled JavaScript
+- Use `logIfVerbose(verbose, message)` helper to reduce verbose logging code and improve coverage
+- See [Vitest Coverage Documentation](https://vitest.dev/guide/coverage.html#ignoring-code) for more details
+
 ### CLI Commands Design Principles
 
 - **Pipe-friendly output**: Commands should output clean, parseable data to stdout

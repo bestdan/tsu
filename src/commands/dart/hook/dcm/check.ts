@@ -11,6 +11,7 @@ import {
 import { filterFilesBySuffix } from '../../../../utils/files.js';
 import { escapeShellArg } from '../../../../utils/shell.js';
 import { ensureCondition, ensureDCMInstalled } from '../../../../utils/command-helpers.js';
+import { logIfVerbose } from '../../../../utils/logger.js';
 
 export interface DartHookDcmCheckOptions {
   verbose?: boolean;
@@ -38,9 +39,7 @@ export function dartHookDcmCheck(
   // Check if DCM is installed
   ensureDCMInstalled(verbose);
 
-  if (verbose) {
-    console.error('🔧 Running DCM fix on modified files...');
-  }
+  logIfVerbose(verbose, '🔧 Running DCM fix on modified files...');
 
   // Check we're in both a git repo and a Dart package
   ensureCondition(isGitRepo(), 'Error: Not in a git repository');
@@ -58,9 +57,7 @@ export function dartHookDcmCheck(
   const modifiedFiles = filterFilesBySuffix(dartFiles, excludeSuffixes);
 
   if (modifiedFiles.length === 0) {
-    if (verbose) {
-      console.error('✓ No Dart source files modified');
-    }
+    logIfVerbose(verbose, '✓ No Dart source files modified');
     process.exit(0);
   }
 
@@ -108,9 +105,6 @@ export function dartHookDcmCheck(
     process.exit(1);
   }
 
-  /* v8 ignore next -- @preserve */
-  if (verbose) {
-    console.error('✓ All files pass DCM checks');
-  }
+  logIfVerbose(verbose, '✓ All files pass DCM checks');
   process.exit(0);
 }

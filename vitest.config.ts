@@ -16,15 +16,13 @@ export default defineConfig({
         'src/gcaim.sh',
       ],
       thresholds: {
-        // Note: Per-file thresholds attempted with vitest 4.0.5 and 4.0.6 but they don't work properly.
-        // When perFile: true is set, vitest still checks all files against the global thresholds.
-        // These thresholds account for code that integrates with external tools (DCM, dart format,
-        // melos, Claude CLI) which cannot be fully tested without those tools installed.
-        // Specific files with lower coverage are documented in COVERAGE.md with v8 ignore comments.
-        statements: 76,
-        branches: 69,
-        functions: 79,
-        lines: 76,
+        // Updated thresholds after using logIfVerbose helper and /* v8 ignore next -- @preserve */
+        // These reflect coverage with external tool integration code properly marked as ignored.
+        // Current actual coverage: statements: 94.93%, branches: 88.16%, functions: 93.54%, lines: 94.87%
+        statements: 94,
+        branches: 87,
+        functions: 93,
+        lines: 94,
       },
     },
   },
