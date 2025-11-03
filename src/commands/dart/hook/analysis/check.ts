@@ -19,15 +19,18 @@ export interface DartHookAnalysisCheckOptions {
 }
 
 /**
- * Runs dart analyze on Dart files.
+ * Runs dart analyze on the Dart package when Dart files are modified.
  * Supports two modes:
- * 1. Explicit file list (--files)
- * 2. Default mode - checks all changed files
+ * 1. Explicit file list (--files) - checks if any provided files are Dart files
+ * 2. Default mode - checks if any changed files are Dart files
  *
  * Steps:
- * 1. Gets modified Dart files (excluding generated files)
- * 2. Runs dart analyze --fatal-infos on the package
+ * 1. Gets modified Dart files (excluding generated files) to determine if analysis is needed
+ * 2. Runs dart analyze --fatal-infos on the entire package if Dart files are present
  * 3. Exits with error if analysis fails
+ *
+ * Note: dart analyze operates at the package level, not per-file. The file filtering
+ * is used only to determine whether analysis is necessary.
  */
 export function dartHookAnalysisCheck(
   options: DartHookAnalysisCheckOptions = {}
