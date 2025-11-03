@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { dartHookDcmCheck } from './check.js';
-import * as gitUtils from '../../../git/utils/git.js';
-import * as dartUtils from '../../utils/dart.js';
-import * as shellUtils from '../../../../utils/shell.js';
+import * as gitUtils from '../../../../git/utils/git.js';
+import * as dartUtils from '../../../utils/dart.js';
+import * as shellUtils from '../../../../../utils/shell.js';
 
 describe('dartHookDcmCheck', () => {
   let consoleErrorSpy: any;

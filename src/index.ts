@@ -79,7 +79,12 @@ export {
 export {
   dartHookDcmCheck,
   type DartHookDcmCheckOptions,
-} from './commands/dart/hook/dcm/check.js';
+} from './commands/dart/hook/dcm/fix/check.js';
+
+export {
+  dartHookDcmAnalyzeCheck,
+  type DartHookDcmAnalyzeCheckOptions,
+} from './commands/dart/hook/dcm/analyze/check.js';
 
 export {
   dartHookGraphqlCheck,
