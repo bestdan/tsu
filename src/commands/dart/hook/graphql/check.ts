@@ -55,6 +55,7 @@ export function dartHookGraphqlCheck(
     { exitCode: 0 }
   );
 
+  /* v8 ignore start - External tool integration not testable without melos */
   if (verbose) {
     console.error(`📝 Found modified GraphQL files: ${graphqlFiles.length}`);
     graphqlFiles.forEach((file) => {
@@ -151,4 +152,5 @@ export function dartHookGraphqlCheck(
     console.error('✓ GraphQL fakes are up to date');
   }
   process.exit(0);
+  /* v8 ignore stop */
 }

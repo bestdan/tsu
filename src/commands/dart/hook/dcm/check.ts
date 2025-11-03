@@ -65,6 +65,7 @@ export function dartHookDcmCheck(
   }
 
   // Log the files being checked in verbose mode
+  /* v8 ignore start - External tool integration not testable without DCM installed */
   if (verbose) {
     console.error(`Running DCM fix on ${modifiedFiles.length} file(s):`);
     modifiedFiles.forEach((file) => {
@@ -107,4 +108,5 @@ export function dartHookDcmCheck(
     console.error('✓ All files pass DCM checks');
   }
   process.exit(0);
+  /* v8 ignore stop */
 }
