@@ -87,7 +87,7 @@ export function dartHookDcmAnalyzeCheck(
   /* v8 ignore next -- @preserve */
   try {
     const fileArgs = modifiedFiles.map(escapeShellArg).join(' ');
-    execSync(`dcm analyze ${fileArgs}`, {
+    execSync(`dcm analyze ${fileArgs} --fatal-style --fatal-warnings --no-congratulate`, {
       cwd,
       stdio: 'inherit', // Show DCM output directly to user
     });
