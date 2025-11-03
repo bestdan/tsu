@@ -111,7 +111,7 @@ Result: A focused test suite testing **business logic and error handling** rathe
 
 ## Alternative Approaches Considered
 
-We considered using vitest's per-file coverage thresholds to maintain higher default thresholds while allowing exceptions for specific files. However, vitest 4.0.5's per-file threshold feature doesn't apply file-specific thresholds correctly.
+We considered using vitest's per-file coverage thresholds to maintain higher default thresholds while allowing exceptions for specific files. However, both vitest 4.0.5 and 4.0.6's per-file threshold feature don't apply file-specific thresholds correctly - when `perFile: true` is set, vitest still checks all files against the global thresholds rather than applying file-specific overrides.
 
 Future options if vitest improves:
 1. **Per-file thresholds**: Set default 85% with exceptions for external tool integration files
