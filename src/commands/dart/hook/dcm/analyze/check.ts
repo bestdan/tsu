@@ -92,7 +92,7 @@ export function dartHookDcmAnalyzeCheck(
       stdio: 'pipe',
       timeout: 7000, // 7 second timeout
     });
-  } catch (error) {
+  } catch {
     console.error('');
     console.error('❌ Push blocked: DCM analyze found issues in the following file(s):');
     modifiedFiles.forEach((file) => {
