@@ -63,6 +63,20 @@ export function ensureDCMInstalled(verbose?: boolean): void {
 }
 
 /**
+ * Ensures that Claude CLI is installed. Exits with error code 1 if not installed,
+ * showing an appropriate error message.
+ * @example
+ * ensureClaudeInstalled();
+ */
+export function ensureClaudeInstalled(): void {
+  ensureCondition(
+    isCommandInstalled('claude'),
+    'Error: Claude CLI not found. Please install it from https://github.com/anthropics/claude-cli',
+    { exitCode: 1 }
+  );
+}
+
+/**
  * Options for displaying changed files
  */
 export interface DisplayChangedFilesOptions extends ChangedFilesOptions {

@@ -259,6 +259,49 @@ export function isMainBranch(
   return currentBranch === mainBranch;
 }
 
+export interface CallClaudeOptions {
+  /** The prompt to send to Claude */
+  prompt: string;
+  /** The input content to provide via stdin */
+  input: string;
+  /** The directory to run the command in. Defaults to process.cwd() */
+  cwd?: string;
+  /** Optional post-processing function to apply to Claude's output */
+  postProcess?: (output: string) => string;
+}
+
+/**
+ * Calls Claude CLI with a prompt and input content.
+ * This is a general interface for interacting with Claude CLI.
+ * @param options - Configuration options
+ * @returns The output from Claude, with optional post-processing applied
+ * @throws Error if Claude CLI is not available or fails
+ */
+/* v8 ignore next -- @preserve */
+export function callClaude(options: CallClaudeOptions): string {
+  const { prompt, input, cwd = process.cwd(), postProcess } = options;
+
+  try {
+    const result = execSync('claude -p', {
+      cwd: resolve(cwd),
+      input: `${prompt}\n\n${input}`,
+      stdio: ['pipe', 'pipe', 'pipe'],
+      encoding: 'utf-8',
+    });
+
+    const output = result.trim();
+    return postProcess ? postProcess(output) : output;
+  } catch (error) {
+    if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+      throw new Error(
+        'Claude CLI not found. Please install it from https://github.com/anthropics/claude-cli'
+      );
+    }
+    throw error;
+  }
+}
+/* c8 ignore stop */
+
 export interface GenerateCommitMessageOptions {
   /** The directory to run git commands in. Defaults to process.cwd() */
   cwd?: string;
@@ -276,15 +319,14 @@ export function generateCommitMessage(
 ): string | null {
   const { cwd = process.cwd() } = options;
 
-  try {
-    // Get staged diff
-    const diff = getStagedDiff(cwd);
-    if (!diff) {
-      return null;
-    }
+  // Get staged diff
+  const diff = getStagedDiff(cwd);
+  if (!diff) {
+    return null;
+  }
 
-    // Prepare the prompt for Claude
-    const prompt = `Generate a commit message from the git diff provided via stdin.
+  // Prepare the prompt for Claude
+  const prompt = `Generate a commit message from the git diff provided via stdin.
 
 Output format: Plain text only. No markdown. No code blocks. No explanations.
 
@@ -297,16 +339,9 @@ Types: feat, fix, docs, style, refactor, perf, test, build, ci, chore
 
 IMPORTANT: Do not ask questions. Do not add commentary. Do not add any attribution text, signatures, or metadata. Do not add "Generated with" text or "Co-Authored-By" lines. Output ONLY the commit message itself, nothing else.`;
 
-    // Call Claude CLI with the diff as stdin
-    const result = execSync('claude -p', {
-      cwd: resolve(cwd),
-      input: `${prompt}\n\n${diff}`,
-      stdio: ['pipe', 'pipe', 'pipe'],
-      encoding: 'utf-8',
-    });
-
-    // Filter out any git diff metadata that might be in the output
-    const lines = result.split('\n');
+  // Post-process function to filter out git diff metadata
+  const postProcess = (output: string): string => {
+    const lines = output.split('\n');
     const filteredLines = lines.filter(
       (line) =>
         !line.startsWith('diff --git') &&
@@ -314,17 +349,10 @@ IMPORTANT: Do not ask questions. Do not add commentary. Do not add any attributi
         !line.startsWith('deleted file mode') &&
         !line.startsWith('index ')
     );
-
     return filteredLines.join('\n').trim();
-  } catch (error) {
-    // Check if it's a command not found error
-    if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
-      throw new Error(
-        'Claude CLI not found. Please install it from https://github.com/anthropics/claude-cli'
-      );
-    }
-    throw error;
-  }
+  };
+
+  return callClaude({ prompt, input: diff, cwd, postProcess });
 }
 /* c8 ignore stop */
 
@@ -347,24 +375,23 @@ export function generatePRDescription(
 ): string | null {
   const { baseBranch = 'main', cwd = process.cwd() } = options;
 
-  try {
-    // Check if on main branch
-    if (isMainBranch(baseBranch, cwd)) {
-      throw new Error(
-        `Cannot generate PR description: currently on ${baseBranch} branch`
-      );
-    }
+  // Check if on main branch
+  if (isMainBranch(baseBranch, cwd)) {
+    throw new Error(
+      `Cannot generate PR description: currently on ${baseBranch} branch`
+    );
+  }
 
-    // Get branch diff
-    const diff = getBranchDiff(baseBranch, cwd);
-    if (!diff) {
-      throw new Error(
-        `No changes found between ${baseBranch} and current branch`
-      );
-    }
+  // Get branch diff
+  const diff = getBranchDiff(baseBranch, cwd);
+  if (!diff) {
+    throw new Error(
+      `No changes found between ${baseBranch} and current branch`
+    );
+  }
 
-    // Prepare the prompt for Claude
-    const prompt = `Generate a GitHub pull request description from the git diff provided via stdin.
+  // Prepare the prompt for Claude
+  const prompt = `Generate a GitHub pull request description from the git diff provided via stdin.
 
 Output format: Plain text with markdown formatting. Use standard GitHub PR description structure.
 
@@ -382,24 +409,7 @@ Brief notes on how to test these changes or what was tested
 
 IMPORTANT: Start immediately with the PR description. Do not ask questions. Do not add meta-commentary about the PR itself. Do not add any attribution text, signatures, or metadata. Do not add "Generated with" text or "Co-Authored-By" lines. Output ONLY the PR description content itself, nothing else.`;
 
-    // Call Claude CLI with the diff as stdin
-    const result = execSync('claude -p', {
-      cwd: resolve(cwd),
-      input: `${prompt}\n\n${diff}`,
-      stdio: ['pipe', 'pipe', 'pipe'],
-      encoding: 'utf-8',
-    });
-
-    return result.trim();
-  } catch (error) {
-    // Check if it's a command not found error
-    if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
-      throw new Error(
-        'Claude CLI not found. Please install it from https://github.com/anthropics/claude-cli'
-      );
-    }
-    throw error;
-  }
+  return callClaude({ prompt, input: diff, cwd });
 }
 /* c8 ignore stop */
 

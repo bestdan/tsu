@@ -18,12 +18,14 @@ export {
   getStagedDiff,
   getBranchDiff,
   isMainBranch,
+  callClaude,
   generateCommitMessage,
   generatePRDescription,
   createCommit,
   hasUnstagedChanges,
   type ChangeType,
   type GetChangedFilesOptions,
+  type CallClaudeOptions,
   type GenerateCommitMessageOptions,
   type GeneratePRDescriptionOptions,
   type CreateCommitOptions,
@@ -42,6 +44,7 @@ export {
   ensureCondition,
   ensureDartInstalled,
   ensureDCMInstalled,
+  ensureClaudeInstalled,
   type DisplayChangedFilesOptions,
 } from './utils/command-helpers.js';
 

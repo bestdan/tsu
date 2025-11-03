@@ -3,8 +3,11 @@ import {
   getStagedDiff,
   generateCommitMessage,
   createCommit,
-} from './utils/git.js';
+ } from './utils/git.js';
+
+import { ensureClaudeInstalled } from '../../utils/command-helpers.js';
 import type { BaseCommandOptions } from '../../types/command-options.js';
+import { logIfVerbose } from '../../utils/logger.js';
 
 export interface GitCommitMsgOptions extends BaseCommandOptions {
   /** Automatically create the commit with generated message */
@@ -17,6 +20,8 @@ export function gitCommitMsg(options: GitCommitMsgOptions = {}): void {
     process.exit(1);
   }
 
+  ensureClaudeInstalled();
+
   const verbose = options.verbose || false;
 
   // Check if there are staged changes
@@ -26,9 +31,7 @@ export function gitCommitMsg(options: GitCommitMsgOptions = {}): void {
     process.exit(1);
   }
 
-  if (verbose) {
-    console.error('Generating commit message with Claude...');
-  }
+  logIfVerbose(verbose, 'Generating commit message with Claude...');
 
   // Generate commit message
   let message: string | null;
@@ -50,9 +53,7 @@ export function gitCommitMsg(options: GitCommitMsgOptions = {}): void {
 
   // If --commit flag is set, create the commit
   if (options.commit) {
-    if (verbose) {
-      console.error('Creating commit...');
-    }
+    logIfVerbose(verbose, 'Creating commit...');
 
     const success = createCommit({ message });
     if (!success) {
@@ -60,9 +61,8 @@ export function gitCommitMsg(options: GitCommitMsgOptions = {}): void {
       process.exit(1);
     }
 
-    if (verbose) {
-      console.error('Commit created successfully!');
-    }
+    logIfVerbose(verbose, 'Commit created successfully!');
+    
     // Output the message to stdout for visibility
     console.log(message);
   } else {

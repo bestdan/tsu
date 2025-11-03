@@ -3,6 +3,7 @@ import {
   ensureCondition,
   ensureDartInstalled,
   ensureDCMInstalled,
+  ensureClaudeInstalled,
   displayChangedFiles,
   getChangedFilesWithOptions,
 } from './command-helpers.js';
@@ -259,6 +260,53 @@ describe('ensureDCMInstalled', () => {
       '⚠️  Warning: DCM not installed, skipping'
     );
     expect(processExitSpy).toHaveBeenCalledWith(0);
+  });
+});
+
+describe('ensureClaudeInstalled', () => {
+  let consoleErrorSpy: any;
+  let processExitSpy: any;
+  let isCommandInstalledSpy: any;
+
+  beforeEach(() => {
+    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    processExitSpy = vi.spyOn(process, 'exit').mockImplementation((code) => {
+      throw new Error(`process.exit(${code})`);
+    });
+    isCommandInstalledSpy = vi.spyOn(shell, 'isCommandInstalled');
+  });
+
+  afterEach(() => {
+    consoleErrorSpy.mockRestore();
+    processExitSpy.mockRestore();
+    isCommandInstalledSpy.mockRestore();
+    vi.clearAllMocks();
+  });
+
+  it('should do nothing when Claude is installed', () => {
+    isCommandInstalledSpy.mockReturnValue(true);
+
+    expect(() => {
+      ensureClaudeInstalled();
+    }).not.toThrow();
+
+    expect(isCommandInstalledSpy).toHaveBeenCalledWith('claude');
+    expect(consoleErrorSpy).not.toHaveBeenCalled();
+    expect(processExitSpy).not.toHaveBeenCalled();
+  });
+
+  it('should exit with code 1 and show error when Claude is not installed', () => {
+    isCommandInstalledSpy.mockReturnValue(false);
+
+    expect(() => {
+      ensureClaudeInstalled();
+    }).toThrow('process.exit(1)');
+
+    expect(isCommandInstalledSpy).toHaveBeenCalledWith('claude');
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      'Error: Claude CLI not found. Please install it from https://github.com/anthropics/claude-cli'
+    );
+    expect(processExitSpy).toHaveBeenCalledWith(1);
   });
 });
 
