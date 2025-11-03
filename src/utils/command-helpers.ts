@@ -306,3 +306,21 @@ export function getChangedFilesWithOptions(
 
   return files;
 }
+
+/**
+ * Checks if a files array has any files in it.
+ * Helper function to consolidate the common pattern of checking for explicit file lists.
+ * @param files - The files array to check
+ * @returns true if the array is defined and has at least one element
+ * @example
+ * if (hasExplicitFiles(options.files)) {
+ *   // Use the explicitly provided files
+ * } else {
+ *   // Get all changed files
+ * }
+ */
+export function hasExplicitFiles(
+  files: string[] | undefined
+): files is string[] {
+  return files !== undefined && files.length > 0;
+}

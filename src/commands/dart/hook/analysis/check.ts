@@ -10,18 +10,23 @@ import {
 } from '../../utils/dart.js';
 import { filterFilesBySuffix } from '../../../files/utils/files.js';
 import { escapeShellArg } from '../../../../utils/shell.js';
-import { ensureCondition } from '../../../../utils/command-helpers.js';
+import { ensureCondition, hasExplicitFiles } from '../../../../utils/command-helpers.js';
 import { logIfVerbose } from '../../../../utils/logger.js';
 
 export interface DartHookAnalysisCheckOptions {
   verbose?: boolean;
   /** Suffixes to exclude from analysis. Defaults to COMMON_DART_CODEGEN_SUFFIXES */
   excludeSuffixes?: string[];
+  files?: string[];
 }
 
 /**
  * Runs dart fix on Dart files and checks if analysis created changes.
- * This replicates the functionality of a pre-push hook that:
+ * Supports two modes:
+ * 1. Explicit file list (--files)
+ * 2. Default mode - checks all changed files
+ *
+ * Steps:
  * 1. Gets modified Dart files (excluding generated files)
  * 2. Runs dart fix --apply on each file individually
  * 3. Checks if fixes created any changes
@@ -43,11 +48,21 @@ export function dartHookAnalysisCheck(
 
   const cwd = process.cwd();
 
-  // Get all changed Dart files (committed, staged, and unstaged)
-  const allChangedFiles = getAllChangedFiles(cwd);
+  let allFiles: string[];
+
+  // Determine which files to check
+  if (hasExplicitFiles(options.files)) {
+    // Mode 1: Explicit file list provided
+    logIfVerbose(verbose, 'Using provided files');
+    allFiles = options.files;
+  } else {
+    // Mode 2: Default - check all changed files
+    logIfVerbose(verbose, 'Checking all changed files');
+    allFiles = getAllChangedFiles(cwd);
+  }
 
   // Filter to only Dart files
-  const dartFiles = allChangedFiles.filter((file) => file.endsWith('.dart'));
+  const dartFiles = allFiles.filter((file) => file.endsWith('.dart'));
 
   // Filter out generated files
   const modifiedFiles = filterFilesBySuffix(dartFiles, excludeSuffixes);
