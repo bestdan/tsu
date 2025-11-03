@@ -18,6 +18,7 @@ import { dartHookAnalysisCheck } from './commands/dart/hook/analysis/check.js';
 import { dartHookDcmCheck } from './commands/dart/hook/dcm/check.js';
 import { dartHookGraphqlCheck } from './commands/dart/hook/graphql/check.js';
 import { dartFix } from './commands/dart/fix.js';
+import { checkExternals } from './commands/check/externals.js';
 
 const program = new Command();
 
@@ -25,6 +26,19 @@ program
   .name('tsutils')
   .description('TypeScript command line utilities')
   .version('0.1.0');
+
+// Check subcommand namespace
+const check = program
+  .command('check')
+  .description('Check system dependencies and environment');
+
+check
+  .command('externals')
+  .description('Check if external dependencies (dart, dcm, melos, claude) are installed')
+  .option('-v, --verbose', 'show human-readable status messages (output to stderr)')
+  .action((options: { verbose?: boolean }) => {
+    checkExternals(options);
+  });
 
 // Git subcommand namespace
 const git = program.command('git').description('Git repository utilities');
