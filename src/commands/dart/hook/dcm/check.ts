@@ -10,7 +10,7 @@ import {
 } from '../../utils/dart.js';
 import { filterFilesBySuffix } from '../../../files/utils/files.js';
 import { escapeShellArg } from '../../../../utils/shell.js';
-import { ensureCondition, ensureDCMInstalled } from '../../../../utils/command-helpers.js';
+import { ensureCondition, ensureDCMInstalled, hasExplicitFiles } from '../../../../utils/command-helpers.js';
 import { logIfVerbose } from '../../../../utils/logger.js';
 
 export interface DartHookDcmCheckOptions {
@@ -55,7 +55,7 @@ export function dartHookDcmCheck(
   let allFiles: string[];
 
   // Determine which files to check
-  if (options.files && options.files.length > 0) {
+  if (hasExplicitFiles(options.files)) {
     // Mode 1: Explicit file list provided
     logIfVerbose(verbose, 'Using provided files');
     allFiles = options.files;
