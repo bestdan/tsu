@@ -1,4 +1,4 @@
-import { isGitRepo, generatePRDescription } from '../../utils/git.js';
+import { isGitRepo, generatePRDescription } from './utils/git.js';
 import type { BaseCommandOptions } from '../../types/command-options.js';
 
 export interface GitPRDescriptionOptions extends BaseCommandOptions {

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { dartHookAnalysisCheck } from './check.js';
-import * as gitUtils from '../../../../utils/git.js';
-import * as dartUtils from '../../../../utils/dart.js';
+import * as gitUtils from '../../../git/utils/git.js';
+import * as dartUtils from '../../utils/dart.js';
 
 describe('dartHookAnalysisCheck', () => {
   let consoleErrorSpy: any;

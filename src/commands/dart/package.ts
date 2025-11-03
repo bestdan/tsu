@@ -1,6 +1,6 @@
 import { resolve } from 'node:path';
 import { existsSync } from 'node:fs';
-import { findDartPackageRoot, findFilePackageRoot } from '../../utils/dart.js';
+import { findDartPackageRoot, findFilePackageRoot } from './utils/dart.js';
 import type { GetValueCommandOptions } from '../../types/command-options.js';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type

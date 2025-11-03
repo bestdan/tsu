@@ -1,5 +1,5 @@
-import { isGitRepo } from '../../../utils/git.js';
-import { isDartPackage } from '../../../utils/dart.js';
+import { isGitRepo } from '../../git/utils/git.js';
+import { isDartPackage } from '../utils/dart.js';
 import { displayChangedFiles } from '../../../utils/command-helpers.js';
 import type { ChangedFilesOptions } from '../../../types/command-options.js';
 

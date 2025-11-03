@@ -27,13 +27,13 @@ export {
   type GenerateCommitMessageOptions,
   type GeneratePRDescriptionOptions,
   type CreateCommitOptions,
-} from './utils/git.js';
+} from './commands/git/utils/git.js';
 
 // Shell utilities
 export { escapeShellArg, isCommandInstalled } from './utils/shell.js';
 
 // File utilities
-export { filterFilesBySuffix } from './utils/files.js';
+export { filterFilesBySuffix } from './commands/files/utils/files.js';
 
 // Command helper utilities
 export {
@@ -57,7 +57,7 @@ export {
   TSU_PACKAGE_INDEX,
   COMMON_DART_CODEGEN_SUFFIXES,
   type PackageIndexEntry,
-} from './utils/dart.js';
+} from './commands/dart/utils/dart.js';
 
 // Dart hook utilities
 export {

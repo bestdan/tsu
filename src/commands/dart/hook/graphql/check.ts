@@ -3,8 +3,8 @@ import {
   isGitRepo,
   getAllChangedFiles,
   getGitStatus,
-} from '../../../../utils/git.js';
-import { isDartPackage } from '../../../../utils/dart.js';
+} from '../../../git/utils/git.js';
+import { isDartPackage } from '../../utils/dart.js';
 import { ensureCondition } from '../../../../utils/command-helpers.js';
 import { isCommandInstalled } from '../../../../utils/shell.js';
 import { logIfVerbose } from '../../../../utils/logger.js';

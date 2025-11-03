@@ -3,7 +3,7 @@ import {
   getStagedDiff,
   generateCommitMessage,
   createCommit,
-} from '../../utils/git.js';
+} from './utils/git.js';
 import type { BaseCommandOptions } from '../../types/command-options.js';
 
 export interface GitCommitMsgOptions extends BaseCommandOptions {
