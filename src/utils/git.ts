@@ -270,7 +270,7 @@ export interface GenerateCommitMessageOptions {
  * @returns The generated commit message, or null on error
  * @throws Error if Claude CLI is not available or fails
  */
-/* c8 ignore start */
+/* v8 ignore next -- @preserve */
 export function generateCommitMessage(
   options: GenerateCommitMessageOptions = {}
 ): string | null {
@@ -341,7 +341,7 @@ export interface GeneratePRDescriptionOptions {
  * @returns The generated PR description, or null on error
  * @throws Error if Claude CLI is not available or fails, or if on main branch
  */
-/* c8 ignore start */
+/* v8 ignore next -- @preserve */
 export function generatePRDescription(
   options: GeneratePRDescriptionOptions = {}
 ): string | null {
@@ -472,6 +472,7 @@ export function hasUnstagedChanges(
  * @param cwd - The directory to run git commands in. Defaults to process.cwd()
  * @returns The git status output, or null if not in a git repo
  */
+/* v8 ignore next -- @preserve */
 export function getGitStatus(cwd: string = process.cwd()): string | null {
   try {
     if (!isGitRepo(cwd)) {

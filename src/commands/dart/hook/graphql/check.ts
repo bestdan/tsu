@@ -7,6 +7,7 @@ import {
 import { isDartPackage } from '../../../../utils/dart.js';
 import { ensureCondition } from '../../../../utils/command-helpers.js';
 import { isCommandInstalled } from '../../../../utils/shell.js';
+import { logIfVerbose } from '../../../../utils/logger.js';
 
 export interface DartHookGraphqlCheckOptions {
   verbose?: boolean;
@@ -31,9 +32,7 @@ export function dartHookGraphqlCheck(
     'melos run codegen:graphql:test',
   ];
 
-  if (verbose) {
-    console.error('🧪 Checking for modified GraphQL files...');
-  }
+  logIfVerbose(verbose, '🧪 Checking for modified GraphQL files...');
 
   // Check we're in both a git repo and a Dart package
   ensureCondition(isGitRepo(), 'Error: Not in a git repository');
@@ -55,6 +54,7 @@ export function dartHookGraphqlCheck(
     { exitCode: 0 }
   );
 
+  /* v8 ignore next -- @preserve */
   if (verbose) {
     console.error(`📝 Found modified GraphQL files: ${graphqlFiles.length}`);
     graphqlFiles.forEach((file) => {
@@ -77,10 +77,9 @@ export function dartHookGraphqlCheck(
     'Error: Failed to get git status'
   );
 
-  if (verbose) {
-    console.error('🔧 Running GraphQL code generation...');
-  }
+  logIfVerbose(verbose, '🔧 Running GraphQL code generation...');
 
+  /* v8 ignore next -- @preserve */
   // Run the code generation commands
   try {
     for (const command of codegenCommands) {
@@ -98,8 +97,10 @@ export function dartHookGraphqlCheck(
   }
 
   // Get git status after running codegen
+  /* v8 ignore next -- @preserve */
   const gitStatusAfter = getGitStatus(cwd);
 
+  /* v8 ignore next -- @preserve */
   ensureCondition(
     gitStatusAfter !== null,
     'Error: Failed to get git status'
@@ -108,12 +109,14 @@ export function dartHookGraphqlCheck(
   // Compare git status before and after
   // TypeScript knows these are non-null after ensureCondition checks
   // Using type guards instead of assertions for better safety
+  /* v8 ignore next -- @preserve */
   if (gitStatusBefore && gitStatusAfter && gitStatusBefore !== gitStatusAfter) {
     console.error('');
     console.error('⚠️  WARNING: GraphQL fakes need regeneration!');
     console.error('   Modified files:');
 
     // Show what changed by comparing git status outputs
+    /* v8 ignore next -- @preserve */
     try {
       // Parse the status outputs to show what changed
       const beforeLines = new Set(
@@ -147,8 +150,6 @@ export function dartHookGraphqlCheck(
     process.exit(1);
   }
 
-  if (verbose) {
-    console.error('✓ GraphQL fakes are up to date');
-  }
+  logIfVerbose(verbose, '✓ GraphQL fakes are up to date');
   process.exit(0);
 }

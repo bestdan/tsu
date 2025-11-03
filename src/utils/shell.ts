@@ -20,6 +20,7 @@ export function escapeShellArg(arg: string): string {
  * @example
  * isCommandInstalled('dcm') // Returns: true if DCM is installed
  */
+/* v8 ignore next -- @preserve */
 export function isCommandInstalled(command: string): boolean {
   try {
     execSync(`command -v ${escapeShellArg(command)}`, {

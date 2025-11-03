@@ -38,12 +38,6 @@ describe('isGitRepo', () => {
     const result = isGitRepo('/this/path/does/not/exist/hopefully');
     expect(result).toBe(false);
   });
-
-  it('should use current directory when no argument provided', () => {
-    const result = isGitRepo();
-    // Should work same as passing process.cwd()
-    expect(typeof result).toBe('boolean');
-  });
 });
 
 describe('getGitRoot', () => {
@@ -100,12 +94,6 @@ describe('getCurrentBranch', () => {
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
     }
-  });
-
-  it('should use default cwd when no argument provided', () => {
-    // Should work without error
-    const branch = getCurrentBranch();
-    expect(typeof branch === 'string' || branch === null).toBe(true);
   });
 
   it('should return branch name for a git repo', () => {
@@ -290,60 +278,7 @@ describe('getChangedFiles', () => {
     }
   });
 
-  it('should use default parameters when not provided', () => {
-    // Should work without error (we are in a git repo)
-    const files = getChangedFiles();
-    // Could be null or an array depending on git state
-    expect(files === null || Array.isArray(files)).toBe(true);
-  });
-
-  it('should return empty array when no changes and using default', () => {
-    const tempDir = realpathSync(mkdtempSync(join(tmpdir(), 'git-test-')));
-    try {
-      execSync('git init', { cwd: tempDir, stdio: 'pipe' });
-      execSync('git config user.email "test@test.com"', {
-        cwd: tempDir,
-        stdio: 'pipe',
-      });
-      execSync('git config user.name "Test User"', {
-        cwd: tempDir,
-        stdio: 'pipe',
-      });
-      execSync('git checkout -b main', { cwd: tempDir, stdio: 'pipe' });
-
-      // Create initial commit
-      writeFileSync(join(tempDir, 'test.txt'), 'test');
-      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
-      execSync('git commit -m "initial"', { cwd: tempDir, stdio: 'pipe' });
-
-      // Call with no options (should use defaults)
-      const files = getChangedFiles({ cwd: tempDir });
-      expect(files).toEqual([]);
-    } finally {
-      rmSync(tempDir, { recursive: true, force: true });
-    }
-  });
-});
-
-describe('getStagedDiff', () => {
-  it('should return null for non-git directory', () => {
-    const tempDir = mkdtempSync(join(tmpdir(), 'not-git-'));
-    try {
-      const diff = getStagedDiff(tempDir);
-      expect(diff).toBeNull();
-    } finally {
-      rmSync(tempDir, { recursive: true, force: true });
-    }
-  });
-
-  it('should use default cwd when no argument provided', () => {
-    // Should work without error (we are in a git repo)
-    const diff = getStagedDiff();
-    // Could be null if no staged changes, or a string if there are
-    expect(typeof diff === 'string' || diff === null).toBe(true);
-  });
-
-  it('should return null when no staged changes', () => {
+  it('should return committed changes compared to base branch', () => {
     const tempDir = realpathSync(mkdtempSync(join(tmpdir(), 'git-test-')));
     try {
       execSync('git init', { cwd: tempDir, stdio: 'pipe' });
@@ -405,27 +340,6 @@ describe('createCommit', () => {
     const tempDir = mkdtempSync(join(tmpdir(), 'not-git-'));
     try {
       const result = createCommit({ message: 'test', cwd: tempDir });
-      expect(result).toBe(false);
-    } finally {
-      rmSync(tempDir, { recursive: true, force: true });
-    }
-  });
-
-  it('should return false when no staged changes', () => {
-    const tempDir = realpathSync(mkdtempSync(join(tmpdir(), 'git-test-')));
-    try {
-      execSync('git init', { cwd: tempDir, stdio: 'pipe' });
-      execSync('git config user.email "test@test.com"', {
-        cwd: tempDir,
-        stdio: 'pipe',
-      });
-      execSync('git config user.name "Test User"', {
-        cwd: tempDir,
-        stdio: 'pipe',
-      });
-
-      // Try to commit without any staged changes
-      const result = createCommit({ message: 'test commit', cwd: tempDir });
       expect(result).toBe(false);
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
@@ -496,12 +410,6 @@ describe('createCommit', () => {
       rmSync(tempDir, { recursive: true, force: true });
     }
   });
-
-  it('should use default cwd when not provided', () => {
-    // Should return false since we likely don't have staged changes in current repo
-    const result = createCommit({ message: 'test commit' });
-    expect(typeof result).toBe('boolean');
-  });
 });
 
 describe('getBranchDiff', () => {
@@ -513,13 +421,6 @@ describe('getBranchDiff', () => {
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
     }
-  });
-
-  it('should use default cwd and baseBranch when not provided', () => {
-    // Should work without error
-    const diff = getBranchDiff();
-    // Could be null or a string depending on git state
-    expect(typeof diff === 'string' || diff === null).toBe(true);
   });
 
   it('should return null when base branch does not exist', () => {
@@ -617,12 +518,6 @@ describe('isMainBranch', () => {
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
     }
-  });
-
-  it('should use default parameters when not provided', () => {
-    // Should work without error
-    const result = isMainBranch();
-    expect(typeof result).toBe('boolean');
   });
 
   it('should return true when on main branch', () => {

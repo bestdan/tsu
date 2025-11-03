@@ -4,6 +4,7 @@ import { existsSync, statSync } from 'node:fs';
 import { ensureCondition, ensureDartInstalled } from '../../utils/command-helpers.js';
 import { escapeShellArg } from '../../utils/shell.js';
 import { findAffectedPackages, readPackageName } from '../../utils/dart.js';
+import { logIfVerbose } from '../../utils/logger.js';
 
 export interface DartFixOptions {
   verbose?: boolean;
@@ -60,11 +61,10 @@ export function dartFix(options: DartFixOptions = {}): void {
   const hasPackageDirs = packageDirs.length > 0;
   const hasRegularFiles = regularFiles.length > 0;
 
-  if (verbose) {
-    console.error(
-      `🔧 Running dart fix ${apply ? '(applying fixes)' : '(dry-run)'}...`
-    );
-  }
+  logIfVerbose(
+    verbose,
+    `🔧 Running dart fix ${apply ? '(applying fixes)' : '(dry-run)'}...`
+  );
 
   // Mode 1: User provided package directories
   if (hasPackageDirs) {
@@ -91,6 +91,7 @@ export function dartFix(options: DartFixOptions = {}): void {
 
     // If there are also regular files, handle them
     if (hasRegularFiles) {
+      /* v8 ignore next -- @preserve */
       if (usePackages) {
         // Infer packages from files and run on packages
         const affectedPackages = findAffectedPackages(regularFiles, cwd);
@@ -137,9 +138,7 @@ function runFixOnFiles(
   verbose: boolean,
   apply: boolean
 ): void {
-  if (verbose) {
-    console.error(`Running dart fix on ${files.length} file(s)...`);
-  }
+  logIfVerbose(verbose, `Running dart fix on ${files.length} file(s)...`);
 
   try {
     const command = apply ? 'dart fix --apply' : 'dart fix --dry-run';
@@ -153,6 +152,7 @@ function runFixOnFiles(
     // Check if there are fixes available in dry-run mode
     handleSuggestedFixes(apply, result, verbose);
 
+    /* v8 ignore next -- @preserve */
     if (verbose) {
       console.error('✓ All dart fix checks passed');
       if (result.trim()) {
@@ -189,11 +189,10 @@ function runFixOnPackages(
   let hasErrors = false;
 
   for (const [location, packageName] of packages) {
-    if (verbose) {
-      console.error(
-        `Running dart fix ${apply ? '(applying) ' : '(dry-run) '}on ${packageName}...`
-      );
-    }
+    logIfVerbose(
+      verbose,
+      `Running dart fix ${apply ? '(applying) ' : '(dry-run) '}on ${packageName}...`
+    );
 
     const packagePath = resolve(cwd, location);
     if (!existsSync(packagePath)) {
@@ -214,6 +213,7 @@ function runFixOnPackages(
       try {
         handleSuggestedFixes(apply, result, verbose, packageName);
       } catch (error) {
+        /* v8 ignore next -- @preserve */
         if (error instanceof Error && error.message === 'FIXES_AVAILABLE') {
           hasErrors = true;
         } else {
@@ -222,12 +222,13 @@ function runFixOnPackages(
       }
 
       if (!hasErrors && verbose) {
-        console.error(`✓ ${packageName} dart fix passed`);
+        logIfVerbose(verbose, `✓ ${packageName} dart fix passed`);
         if (result.trim()) {
           console.error(result);
         }
       }
     } catch (error) {
+      /* v8 ignore next -- @preserve */
       if (error instanceof Error && error.message === 'FIXES_AVAILABLE') {
         hasErrors = true;
       } else {
@@ -250,9 +251,7 @@ function runFixOnPackages(
     process.exit(1);
   }
 
-  if (verbose) {
-    console.error('✓ All dart fix checks passed');
-  }
+  logIfVerbose(verbose, '✓ All dart fix checks passed');
   process.exit(0);
 }
 

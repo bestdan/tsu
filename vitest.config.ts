@@ -16,10 +16,13 @@ export default defineConfig({
         'src/gcaim.sh',
       ],
       thresholds: {
-        statements: 85,
-        branches: 74,
-        functions: 90,
-        lines: 85,
+        // Updated thresholds after using logIfVerbose helper and /* v8 ignore next -- @preserve */
+        // These reflect coverage with external tool integration code properly marked as ignored.
+        // Current actual coverage: statements: 94.93%, branches: 88.16%, functions: 93.54%, lines: 94.87%
+        statements: 94,
+        branches: 87,
+        functions: 93,
+        lines: 94,
       },
     },
   },

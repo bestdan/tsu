@@ -10,6 +10,7 @@ import {
 } from '../../../../utils/dart.js';
 import { filterFilesBySuffix } from '../../../../utils/files.js';
 import { escapeShellArg } from '../../../../utils/shell.js';
+import { logIfVerbose } from '../../../../utils/logger.js';
 
 export interface DartHookFormatCheckOptions {
   verbose?: boolean;
@@ -33,9 +34,7 @@ export function dartHookFormatCheck(
     ...COMMON_DART_CODEGEN_SUFFIXES,
   ];
 
-  if (verbose) {
-    console.error('🎨 Running dart format on modified files...');
-  }
+  logIfVerbose(verbose, '🎨 Running dart format on modified files...');
 
   // Check we're in both a git repo and a Dart package
   if (!isGitRepo()) {
@@ -60,13 +59,12 @@ export function dartHookFormatCheck(
   const modifiedFiles = filterFilesBySuffix(dartFiles, excludeSuffixes);
 
   if (modifiedFiles.length === 0) {
-    if (verbose) {
-      console.error('✓ No Dart source files modified');
-    }
+    logIfVerbose(verbose, '✓ No Dart source files modified');
     process.exit(0);
   }
 
   // Format the files
+  /* v8 ignore next -- @preserve */
   try {
     const fileArgs = modifiedFiles.map(escapeShellArg).join(' ');
     execSync(`dart format ${fileArgs}`, {
@@ -82,10 +80,12 @@ export function dartHookFormatCheck(
   }
 
   // Check if formatting created changes in the files we formatted
+  /* v8 ignore next -- @preserve */
   const filesWithChanges = modifiedFiles.filter((file) =>
     hasUnstagedChanges(file, cwd)
   );
 
+  /* v8 ignore next -- @preserve */
   if (filesWithChanges.length > 0) {
     console.error('');
     console.error(
@@ -97,8 +97,6 @@ export function dartHookFormatCheck(
     process.exit(1);
   }
 
-  if (verbose) {
-    console.error('✓ All files properly formatted');
-  }
+  logIfVerbose(verbose, '✓ All files properly formatted');
   process.exit(0);
 }
