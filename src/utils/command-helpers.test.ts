@@ -6,6 +6,7 @@ import {
   ensureClaudeInstalled,
   displayChangedFiles,
   getChangedFilesWithOptions,
+  hasExplicitFiles,
 } from './command-helpers.js';
 import * as git from '../commands/git/utils/git.js';
 import * as shell from './shell.js';
@@ -816,5 +817,30 @@ describe('getChangedFilesWithOptions', () => {
       expect(files).toContain('file2.dart');
       expect(files.length).toBe(2);
     });
+  });
+});
+
+describe('hasExplicitFiles', () => {
+  it('should return true when files array has elements', () => {
+    expect(hasExplicitFiles(['file1.ts', 'file2.ts'])).toBe(true);
+    expect(hasExplicitFiles(['single-file.dart'])).toBe(true);
+  });
+
+  it('should return false when files array is empty', () => {
+    expect(hasExplicitFiles([])).toBe(false);
+  });
+
+  it('should return false when files is undefined', () => {
+    expect(hasExplicitFiles(undefined)).toBe(false);
+  });
+
+  it('should act as a type guard', () => {
+    const files: string[] | undefined = ['test.ts'];
+    
+    if (hasExplicitFiles(files)) {
+      // TypeScript should know files is string[] here
+      expect(files.length).toBe(1);
+      expect(files[0]).toBe('test.ts');
+    }
   });
 });

@@ -11,6 +11,7 @@ import {
 import { filterFilesBySuffix } from '../../../files/utils/files.js';
 import { escapeShellArg } from '../../../../utils/shell.js';
 import { logIfVerbose } from '../../../../utils/logger.js';
+import { hasExplicitFiles } from '../../../../utils/command-helpers.js';
 
 export interface DartHookFormatCheckOptions {
   verbose?: boolean;
@@ -57,7 +58,7 @@ export function dartHookFormatCheck(
   let allFiles: string[];
 
   // Determine which files to check
-  if (options.files && options.files.length > 0) {
+  if (hasExplicitFiles(options.files)) {
     // Mode 1: Explicit file list provided
     logIfVerbose(verbose, 'Using provided files');
     allFiles = options.files;
