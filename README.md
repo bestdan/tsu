@@ -27,6 +27,7 @@ pnpm link --global
 
 ```bash
 tsutils <namespace> <command> [options]
+tsu <namespace> <command> [options]
 ```
 
 ### Available Namespaces
