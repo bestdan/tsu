@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   bump-version:
@@ -51,14 +52,17 @@ jobs:
           # Update package.json
           npm version $NEW_VERSION --no-git-tag-version
 
-          # Commit and push
-          git add package.json
-          git commit -m "chore: bump version to $NEW_VERSION [skip ci]"
-          git push
-
           echo "VERSION=$NEW_VERSION" >> $GITHUB_ENV
 
-      - name: Create version tag
-        run: |
-          git tag "v${{ env.VERSION }}"
-          git push origin "v${{ env.VERSION }}"
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: bump-version-${{ github.sha }}
+          base: main
+          title: "chore: bump version to ${{ env.VERSION }}"
+          body: |
+            Automated version bump to ${{ env.VERSION }}
+            
+            This PR was automatically created after merging PR #${{ github.event.pull_request.number }}.
+          commit-message: "chore: bump version to ${{ env.VERSION }} [skip ci]"
+          delete-branch: true

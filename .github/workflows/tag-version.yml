@@ -1,0 +1,63 @@
+name: Tag Version After Bump
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  create-tag:
+    if: |
+      github.event.pull_request.merged == true &&
+      startsWith(github.event.pull_request.head.ref, 'bump-version-')
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract version from package.json
+        id: get_version
+        run: |
+          if [ ! -f package.json ]; then
+            echo "Error: package.json not found"
+            exit 1
+          fi
+          
+          VERSION=$(node -p "require('./package.json').version" 2>&1)
+          if [ $? -ne 0 ] || [ -z "$VERSION" ]; then
+            echo "Error: Failed to extract version from package.json"
+            exit 1
+          fi
+          
+          # Validate version format (X.Y.Z)
+          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Error: Invalid version format: $VERSION"
+            exit 1
+          fi
+          
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Create and push tag
+        run: |
+          TAG_NAME="v${{ steps.get_version.outputs.version }}"
+          
+          # Check if tag already exists
+          if git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
+            echo "Error: Tag $TAG_NAME already exists"
+            exit 1
+          fi
+          
+          git tag "$TAG_NAME"
+          git push origin "$TAG_NAME"
