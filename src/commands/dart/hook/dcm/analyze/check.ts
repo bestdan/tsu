@@ -1,7 +1,6 @@
 import { execSync } from 'node:child_process';
 import {
   isGitRepo,
-  getAllChangedFiles,
 } from '../../../../git/utils/git.js';
 import {
   isDartPackage,
@@ -9,7 +8,12 @@ import {
 } from '../../../utils/dart.js';
 import { filterFilesBySuffix } from '../../../../files/utils/files.js';
 import { escapeShellArg } from '../../../../../utils/shell.js';
-import { ensureCondition, ensureDCMInstalled, hasExplicitFiles } from '../../../../../utils/command-helpers.js';
+import {
+  ensureCondition,
+  ensureDCMInstalled,
+  getHookChangedFiles,
+  displayFileList,
+} from '../../../../../utils/command-helpers.js';
 import { logIfVerbose } from '../../../../../utils/logger.js';
 
 export interface DartHookDcmAnalyzeCheckOptions {
@@ -50,18 +54,8 @@ export function dartHookDcmAnalyzeCheck(
 
   const cwd = process.cwd();
 
-  let allFiles: string[];
-
-  // Determine which files to check
-  if (hasExplicitFiles(options.files)) {
-    // Mode 1: Explicit file list provided
-    logIfVerbose(verbose, 'Using provided files');
-    allFiles = options.files;
-  } else {
-    // Mode 2: Default - check all changed files
-    logIfVerbose(verbose, 'Checking all changed files');
-    allFiles = getAllChangedFiles(cwd);
-  }
+  // Get files to check (explicit or changed files)
+  const allFiles = getHookChangedFiles({ files: options.files, verbose, cwd });
 
   // Filter to only Dart files
   const dartFiles = allFiles.filter((file) => file.endsWith('.dart'));
@@ -74,14 +68,12 @@ export function dartHookDcmAnalyzeCheck(
     process.exit(0);
   }
 
-  // Log the files being checked in verbose mode
-  /* v8 ignore next -- @preserve */
-  if (verbose) {
-    console.error(`Running DCM analyze on ${modifiedFiles.length} file(s):`);
-    modifiedFiles.forEach((file) => {
-      console.error(`  ${file}`);
-    });
-  }
+  // Display files being checked in verbose mode
+  displayFileList({
+    files: modifiedFiles,
+    verbose,
+    message: 'Running DCM analyze on',
+  });
 
   // Run dcm analyze on the files
   /* v8 ignore next -- @preserve */

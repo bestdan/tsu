@@ -7,6 +7,8 @@ import {
   displayChangedFiles,
   getChangedFilesWithOptions,
   hasExplicitFiles,
+  getHookChangedFiles,
+  displayFileList,
 } from './command-helpers.js';
 import * as git from '../commands/git/utils/git.js';
 import * as shell from './shell.js';
@@ -842,5 +844,137 @@ describe('hasExplicitFiles', () => {
       expect(files.length).toBe(1);
       expect(files[0]).toBe('test.ts');
     }
+  });
+});
+
+describe('getHookChangedFiles', () => {
+  let consoleErrorSpy: any;
+  let getAllChangedFilesMock: any;
+
+  beforeEach(() => {
+    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    getAllChangedFilesMock = vi.spyOn(git, 'getAllChangedFiles');
+  });
+
+  afterEach(() => {
+    consoleErrorSpy.mockRestore();
+    getAllChangedFilesMock.mockRestore();
+    vi.clearAllMocks();
+  });
+
+  it('should return explicit files when provided', () => {
+    const explicitFiles = ['file1.dart', 'file2.dart'];
+    const result = getHookChangedFiles({ files: explicitFiles });
+    
+    expect(result).toEqual(explicitFiles);
+    expect(getAllChangedFilesMock).not.toHaveBeenCalled();
+  });
+
+  it('should log verbose message when using explicit files', () => {
+    const explicitFiles = ['file1.dart'];
+    getHookChangedFiles({ files: explicitFiles, verbose: true });
+    
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Using provided files');
+  });
+
+  it('should get changed files from git when no explicit files provided', () => {
+    const changedFiles = ['changed1.dart', 'changed2.dart'];
+    getAllChangedFilesMock.mockReturnValue(changedFiles);
+    
+    const result = getHookChangedFiles({});
+    
+    expect(result).toEqual(changedFiles);
+    expect(getAllChangedFilesMock).toHaveBeenCalledWith(process.cwd());
+  });
+
+  it('should log verbose message when getting changed files', () => {
+    getAllChangedFilesMock.mockReturnValue(['test.dart']);
+    
+    getHookChangedFiles({ verbose: true });
+    
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Checking all changed files');
+  });
+
+  it('should use provided cwd when getting changed files', () => {
+    const customCwd = '/custom/path';
+    getAllChangedFilesMock.mockReturnValue([]);
+    
+    getHookChangedFiles({ cwd: customCwd });
+    
+    expect(getAllChangedFilesMock).toHaveBeenCalledWith(customCwd);
+  });
+
+  it('should return empty array when no files are provided and no changed files', () => {
+    getAllChangedFilesMock.mockReturnValue([]);
+    
+    const result = getHookChangedFiles({});
+    
+    expect(result).toEqual([]);
+  });
+});
+
+describe('displayFileList', () => {
+  let consoleErrorSpy: any;
+
+  beforeEach(() => {
+    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    consoleErrorSpy.mockRestore();
+    vi.clearAllMocks();
+  });
+
+  it('should display files with message in verbose mode', () => {
+    displayFileList({
+      files: ['file1.dart', 'file2.dart'],
+      verbose: true,
+      message: 'Running DCM analyze on',
+    });
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Running DCM analyze on 2 file(s):');
+    expect(consoleErrorSpy).toHaveBeenCalledWith('  file1.dart');
+    expect(consoleErrorSpy).toHaveBeenCalledWith('  file2.dart');
+  });
+
+  it('should display files with default message when message not provided', () => {
+    displayFileList({
+      files: ['test.dart'],
+      verbose: true,
+    });
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Processing 1 file(s):');
+    expect(consoleErrorSpy).toHaveBeenCalledWith('  test.dart');
+  });
+
+  it('should not display anything when verbose is false', () => {
+    displayFileList({
+      files: ['file1.dart', 'file2.dart'],
+      verbose: false,
+      message: 'Running DCM analyze on',
+    });
+
+    expect(consoleErrorSpy).not.toHaveBeenCalled();
+  });
+
+  it('should not display anything when files array is empty', () => {
+    displayFileList({
+      files: [],
+      verbose: true,
+      message: 'Running DCM analyze on',
+    });
+
+    expect(consoleErrorSpy).not.toHaveBeenCalled();
+  });
+
+  it('should handle single file correctly', () => {
+    displayFileList({
+      files: ['single.dart'],
+      verbose: true,
+      message: 'Formatting',
+    });
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Formatting 1 file(s):');
+    expect(consoleErrorSpy).toHaveBeenCalledWith('  single.dart');
   });
 });

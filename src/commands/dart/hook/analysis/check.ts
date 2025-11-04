@@ -1,14 +1,17 @@
 import { execSync } from 'node:child_process';
 import {
   isGitRepo,
-  getAllChangedFiles,
 } from '../../../git/utils/git.js';
 import {
   isDartPackage,
   COMMON_DART_CODEGEN_SUFFIXES,
 } from '../../utils/dart.js';
 import { filterFilesBySuffix } from '../../../files/utils/files.js';
-import { ensureCondition, hasExplicitFiles } from '../../../../utils/command-helpers.js';
+import {
+  ensureCondition,
+  getHookChangedFiles,
+  displayFileList,
+} from '../../../../utils/command-helpers.js';
 import { logIfVerbose } from '../../../../utils/logger.js';
 
 export interface DartHookAnalysisCheckOptions {
@@ -48,18 +51,8 @@ export function dartHookAnalysisCheck(
 
   const cwd = process.cwd();
 
-  let allFiles: string[];
-
-  // Determine which files to check
-  if (hasExplicitFiles(options.files)) {
-    // Mode 1: Explicit file list provided
-    logIfVerbose(verbose, 'Using provided files');
-    allFiles = options.files;
-  } else {
-    // Mode 2: Default - check all changed files
-    logIfVerbose(verbose, 'Checking all changed files');
-    allFiles = getAllChangedFiles(cwd);
-  }
+  // Get files to check (explicit or changed files)
+  const allFiles = getHookChangedFiles({ files: options.files, verbose, cwd });
 
   // Filter to only Dart files
   const dartFiles = allFiles.filter((file) => file.endsWith('.dart'));
@@ -71,6 +64,14 @@ export function dartHookAnalysisCheck(
     logIfVerbose(verbose, '✓ No Dart source files modified');
     process.exit(0);
   }
+
+  // Display files being checked in verbose mode
+  // Note: dart analyze operates at package level, but we show which files triggered it
+  displayFileList({
+    files: modifiedFiles,
+    verbose,
+    message: 'Running dart analyze (triggered by)',
+  });
 
   // Run dart analyze --fatal-infos on the package
   /* v8 ignore next -- @preserve */

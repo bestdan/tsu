@@ -1,7 +1,6 @@
 import { execSync } from 'node:child_process';
 import {
   isGitRepo,
-  getAllChangedFiles,
   hasUnstagedChanges,
 } from '../../../git/utils/git.js';
 import {
@@ -11,7 +10,11 @@ import {
 import { filterFilesBySuffix } from '../../../files/utils/files.js';
 import { escapeShellArg } from '../../../../utils/shell.js';
 import { logIfVerbose } from '../../../../utils/logger.js';
-import { hasExplicitFiles } from '../../../../utils/command-helpers.js';
+import {
+  ensureCondition,
+  getHookChangedFiles,
+  displayFileList,
+} from '../../../../utils/command-helpers.js';
 
 export interface DartHookFormatCheckOptions {
   verbose?: boolean;
@@ -43,30 +46,13 @@ export function dartHookFormatCheck(
   logIfVerbose(verbose, '🎨 Running dart format on modified files...');
 
   // Check we're in both a git repo and a Dart package
-  if (!isGitRepo()) {
-    console.error('Error: Not in a git repository');
-    process.exit(1);
-  }
-
-  if (!isDartPackage()) {
-    console.error('Error: Not in a Dart package');
-    process.exit(1);
-  }
+  ensureCondition(isGitRepo(), 'Error: Not in a git repository');
+  ensureCondition(isDartPackage(), 'Error: Not in a Dart package');
 
   const cwd = process.cwd();
 
-  let allFiles: string[];
-
-  // Determine which files to check
-  if (hasExplicitFiles(options.files)) {
-    // Mode 1: Explicit file list provided
-    logIfVerbose(verbose, 'Using provided files');
-    allFiles = options.files;
-  } else {
-    // Mode 2: Default - check all changed files
-    logIfVerbose(verbose, 'Checking all changed files');
-    allFiles = getAllChangedFiles(cwd);
-  }
+  // Get files to check (explicit or changed files)
+  const allFiles = getHookChangedFiles({ files: options.files, verbose, cwd });
 
   // Filter to only Dart files
   const dartFiles = allFiles.filter((file) => file.endsWith('.dart'));
@@ -78,6 +64,13 @@ export function dartHookFormatCheck(
     logIfVerbose(verbose, '✓ No Dart source files modified');
     process.exit(0);
   }
+
+  // Display files being checked in verbose mode
+  displayFileList({
+    files: modifiedFiles,
+    verbose,
+    message: 'Running dart format on',
+  });
 
   // Format the files
   /* v8 ignore next -- @preserve */

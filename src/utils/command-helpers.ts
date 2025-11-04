@@ -2,6 +2,7 @@ import {
   getChangedFiles,
   getFilesToPush,
   getCurrentBranch,
+  getAllChangedFiles,
   type ChangeType,
 } from '../commands/git/utils/git.js';
 import type { ChangedFilesOptions } from '../types/command-options.js';
@@ -323,4 +324,93 @@ export function hasExplicitFiles(
   files: string[] | undefined
 ): files is string[] {
   return files !== undefined && files.length > 0;
+}
+
+/**
+ * Options for getting changed files in hook checks
+ */
+export interface HookChangedFilesOptions {
+  /** Explicit file list to use instead of getting changed files */
+  files?: string[];
+  /** Whether to log verbose output */
+  verbose?: boolean;
+  /** Current working directory (defaults to process.cwd()) */
+  cwd?: string;
+}
+
+/**
+ * Gets the list of files to check for hook commands.
+ * Handles two modes:
+ * 1. Explicit file list provided via options.files
+ * 2. Default mode - gets all changed files from git
+ *
+ * This centralizes the common pattern used across all hook check commands.
+ *
+ * @param options - Options for getting changed files
+ * @returns Array of file paths to check
+ * @example
+ * const files = getHookChangedFiles({ files: options.files, verbose });
+ */
+export function getHookChangedFiles(
+  options: HookChangedFilesOptions = {}
+): string[] {
+  const { files, verbose = false, cwd = process.cwd() } = options;
+
+  if (hasExplicitFiles(files)) {
+    // Mode 1: Explicit file list provided
+    if (verbose) {
+      console.error('Using provided files');
+    }
+    return files;
+  } else {
+    // Mode 2: Default - check all changed files
+    if (verbose) {
+      console.error('Checking all changed files');
+    }
+    return getAllChangedFiles(cwd);
+  }
+}
+
+/**
+ * Options for displaying file list in verbose mode
+ */
+export interface DisplayFileListOptions {
+  /** Files to display */
+  files: string[];
+  /** Verbose mode flag */
+  verbose?: boolean;
+  /** Message to display before the file list (e.g., "Running DCM analyze on") */
+  message?: string;
+}
+
+/**
+ * Displays a list of files in verbose mode with consistent formatting.
+ * This centralizes the common pattern of displaying file lists across hook commands.
+ *
+ * Format: "{message} {count} file(s):\n  {file1}\n  {file2}\n..."
+ *
+ * @param options - Options for displaying files
+ * @example
+ * displayFileList({
+ *   files: modifiedFiles,
+ *   verbose,
+ *   message: 'Running DCM analyze on'
+ * });
+ */
+export function displayFileList(options: DisplayFileListOptions): void {
+  const { files, verbose = false, message } = options;
+
+  if (!verbose || files.length === 0) {
+    return;
+  }
+
+  if (message) {
+    console.error(`${message} ${files.length} file(s):`);
+  } else {
+    console.error(`Processing ${files.length} file(s):`);
+  }
+
+  files.forEach((file) => {
+    console.error(`  ${file}`);
+  });
 }
