@@ -1,11 +1,14 @@
 import { execSync } from 'node:child_process';
 import {
   isGitRepo,
-  getAllChangedFiles,
   getGitStatus,
 } from '../../../git/utils/git.js';
 import { isDartPackage } from '../../utils/dart.js';
-import { ensureCondition } from '../../../../utils/command-helpers.js';
+import {
+  ensureCondition,
+  getHookChangedFiles,
+  displayFileList,
+} from '../../../../utils/command-helpers.js';
 import { isCommandInstalled } from '../../../../utils/shell.js';
 import { logIfVerbose } from '../../../../utils/logger.js';
 
@@ -45,18 +48,8 @@ export async function dartHookGraphqlCheck(
 
   const cwd = process.cwd();
 
-  let allFiles: string[];
-
-  // Determine which files to check
-  if (options.files && options.files.length > 0) {
-    // Mode 1: Explicit file list provided
-    logIfVerbose(verbose, 'Using provided files');
-    allFiles = options.files;
-  } else {
-    // Mode 2: Default - check all changed files
-    logIfVerbose(verbose, 'Checking all changed files');
-    allFiles = getAllChangedFiles(cwd);
-  }
+  // Get files to check (explicit or changed files)
+  const allFiles = getHookChangedFiles({ files: options.files, verbose, cwd });
 
   // Filter to only GraphQL files
   const graphqlFiles = allFiles.filter((file) => file.endsWith('.graphql'));
@@ -67,13 +60,12 @@ export async function dartHookGraphqlCheck(
     { exitCode: 0 }
   );
 
-  /* v8 ignore next -- @preserve */
-  if (verbose) {
-    console.error(`📝 Found modified GraphQL files: ${graphqlFiles.length}`);
-    graphqlFiles.forEach((file) => {
-      console.error(`  ${file}`);
-    });
-  }
+  // Display files being checked in verbose mode
+  displayFileList({
+    files: graphqlFiles,
+    verbose,
+    message: 'Found modified GraphQL files:',
+  });
 
   // Check if melos is installed
   ensureCondition(
