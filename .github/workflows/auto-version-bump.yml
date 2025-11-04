@@ -1,5 +1,8 @@
 name: Auto Version Bump
 
+env:
+  GITHUB_TOKEN: ${{ secrets.TSU_ACTIONS }}
+
 on:
   pull_request:
     types: [closed]
@@ -62,7 +65,7 @@ jobs:
           title: "chore: bump version to ${{ env.VERSION }}"
           body: |
             Automated version bump to ${{ env.VERSION }}
-            
+
             This PR was automatically created after merging PR #${{ github.event.pull_request.number }}.
           commit-message: "chore: bump version to ${{ env.VERSION }} [skip ci]"
           delete-branch: true
