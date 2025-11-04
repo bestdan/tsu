@@ -39,6 +39,20 @@ describe('findDartPackageRoot', () => {
     const result = findDartPackageRoot('/tmp');
     expect(result).toBe(null);
   });
+
+  it('should find package roots in multi-package monorepo with DCM fixture', () => {
+    const dcmFixtureDir = resolve(__dirname, '../../../__fixtures__/dart-app-with-dcm');
+    const corePackage = join(dcmFixtureDir, 'packages/core');
+    const appPackage = join(dcmFixtureDir, 'packages/app');
+    
+    // Test from lib directory in core package
+    const coreLibDir = join(corePackage, 'lib');
+    expect(findDartPackageRoot(coreLibDir)).toBe(corePackage);
+    
+    // Test from lib directory in app package
+    const appLibDir = join(appPackage, 'lib');
+    expect(findDartPackageRoot(appLibDir)).toBe(appPackage);
+  });
 });
 
 describe('findFilePackageRoot', () => {
@@ -65,6 +79,15 @@ describe('isDartPackage', () => {
   it('should return false when not in a Dart package', () => {
     const result = isDartPackage('/tmp');
     expect(result).toBe(false);
+  });
+
+  it('should detect packages in multi-package monorepo with DCM fixture', () => {
+    const dcmFixtureDir = resolve(__dirname, '../../../__fixtures__/dart-app-with-dcm');
+    const corePackage = join(dcmFixtureDir, 'packages/core');
+    const appPackage = join(dcmFixtureDir, 'packages/app');
+
+    expect(isDartPackage(corePackage)).toBe(true);
+    expect(isDartPackage(appPackage)).toBe(true);
   });
 });
 
@@ -118,6 +141,22 @@ describe('extractImports', () => {
     // Should find the custom_pkg/util.dart import (without lib/)
     expect(imports).toContain('custom_pkg/util.dart');
   });
+
+  it('should extract imports from multi-package monorepo with DCM fixture', () => {
+    const dcmFixtureDir = resolve(__dirname, '../../../__fixtures__/dart-app-with-dcm');
+    const coreUserFile = join(dcmFixtureDir, 'packages/core/lib/user.dart');
+    const imports = extractImports(coreUserFile, join(dcmFixtureDir, 'packages/core'));
+
+    // The User file itself has no imports (simple model), but test that it works
+    expect(imports).toEqual([]);
+    
+    // Test that we can read from the core package
+    const coreUtilsFile = join(dcmFixtureDir, 'packages/core/lib/utils.dart');
+    const utilsImports = extractImports(coreUtilsFile, join(dcmFixtureDir, 'packages/core'));
+    
+    // utils.dart also has no imports, but confirms file can be read
+    expect(utilsImports).toEqual([]);
+  });
 });
 
 describe('resolveImportPath', () => {
@@ -152,6 +191,21 @@ describe('findAllDartFiles', () => {
     expect(fileNames).toContain('auth.dart');
     expect(fileNames).toContain('logger.dart');
     expect(fileNames).toContain('user_test.dart');
+  });
+
+  it('should find dart files in multi-package monorepo with DCM fixture', () => {
+    const dcmFixtureDir = resolve(__dirname, '../../../__fixtures__/dart-app-with-dcm');
+    const corePackage = join(dcmFixtureDir, 'packages/core');
+    const files = findAllDartFiles(corePackage);
+
+    expect(files).not.toBe(null);
+    expect(files!.length).toBeGreaterThan(0);
+
+    // Should find user.dart, utils.dart, and core.dart
+    const fileNames = files!.map((f) => f.split('/').pop());
+    expect(fileNames).toContain('user.dart');
+    expect(fileNames).toContain('utils.dart');
+    expect(fileNames).toContain('core.dart');
   });
 
   it('should return null for errors', () => {
@@ -382,5 +436,21 @@ describe('readPackageIndex and findAffectedPackages', () => {
     expect(result.size).toBe(0);
 
     rmSync(tempDir, { recursive: true });
+  });
+
+  it('should find affected packages in multi-package monorepo using DCM fixture', async () => {
+    const { findAffectedPackages } = await import('./dart.js');
+    const dcmFixtureDir = resolve(__dirname, '../../../__fixtures__/dart-app-with-dcm');
+    
+    const files = [
+      'packages/app/lib/main.dart',
+      'packages/core/lib/user.dart',
+    ];
+    const result = findAffectedPackages(files, dcmFixtureDir);
+
+    // Should find both packages
+    expect(result.size).toBe(2);
+    expect(result.get('packages/app')).toBe('app');
+    expect(result.get('packages/core')).toBe('core');
   });
 });

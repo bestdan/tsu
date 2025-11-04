@@ -8,6 +8,7 @@ const __dirname = dirname(__filename);
 
 // Path to our test fixture
 const fixtureDir = resolve(__dirname, '../../__fixtures__/dart-package');
+const dcmFixtureDir = resolve(__dirname, '../../__fixtures__/dart-app-with-dcm');
 
 describe('dartRoot', () => {
   let consoleLogSpy: any;
@@ -36,6 +37,18 @@ describe('dartRoot', () => {
     }).toThrow('process.exit(0)');
 
     expect(consoleLogSpy).toHaveBeenCalledWith(fixtureDir);
+    expect(processExitSpy).toHaveBeenCalledWith(0);
+  });
+
+  it('should output package root for multi-package monorepo', () => {
+    const appPackage = resolve(dcmFixtureDir, 'packages/app');
+    const libDir = resolve(appPackage, 'lib');
+
+    expect(() => {
+      dartRoot(libDir, { verbose: false });
+    }).toThrow('process.exit(0)');
+
+    expect(consoleLogSpy).toHaveBeenCalledWith(appPackage);
     expect(processExitSpy).toHaveBeenCalledWith(0);
   });
 
