@@ -8,6 +8,7 @@ const __dirname = dirname(__filename);
 
 // Path to our test fixture
 const fixtureDir = resolve(__dirname, '../../__fixtures__/dart-package');
+const dcmFixtureDir = resolve(__dirname, '../../__fixtures__/dart-app-with-dcm');
 
 describe('dartCheck', () => {
   let consoleErrorSpy: any;
@@ -28,6 +29,16 @@ describe('dartCheck', () => {
   it('should exit with 0 when in a Dart package', () => {
     expect(() => {
       dartCheck(fixtureDir, { verbose: false });
+    }).toThrow('process.exit(0)');
+
+    expect(processExitSpy).toHaveBeenCalledWith(0);
+  });
+
+  it('should exit with 0 for packages in multi-package monorepo', () => {
+    const corePackage = resolve(dcmFixtureDir, 'packages/core');
+    
+    expect(() => {
+      dartCheck(corePackage, { verbose: false });
     }).toThrow('process.exit(0)');
 
     expect(processExitSpy).toHaveBeenCalledWith(0);
