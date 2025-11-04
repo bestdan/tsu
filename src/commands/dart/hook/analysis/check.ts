@@ -10,6 +10,7 @@ import { filterFilesBySuffix } from '../../../files/utils/files.js';
 import {
   ensureCondition,
   getHookChangedFiles,
+  displayFileList,
 } from '../../../../utils/command-helpers.js';
 import { logIfVerbose } from '../../../../utils/logger.js';
 
@@ -63,6 +64,14 @@ export function dartHookAnalysisCheck(
     logIfVerbose(verbose, '✓ No Dart source files modified');
     process.exit(0);
   }
+
+  // Display files being checked in verbose mode
+  // Note: dart analyze operates at package level, but we show which files triggered it
+  displayFileList({
+    files: modifiedFiles,
+    verbose,
+    message: 'Running dart analyze (triggered by)',
+  });
 
   // Run dart analyze --fatal-infos on the package
   /* v8 ignore next -- @preserve */
