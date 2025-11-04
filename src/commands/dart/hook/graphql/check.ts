@@ -64,7 +64,7 @@ export async function dartHookGraphqlCheck(
   displayFileList({
     files: graphqlFiles,
     verbose,
-    message: 'Found modified GraphQL files:',
+    message: 'Running GraphQL codegen on',
   });
 
   // Check if melos is installed
