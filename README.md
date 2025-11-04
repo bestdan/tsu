@@ -101,8 +101,10 @@ src/
     └── files.ts                 # File utilities
 ```
 
+## Development
 
-[Contributing](CONTRIBUTING.md)
+- [Contributing Guide](CONTRIBUTING.md)
+- [Release Management](docs/release.md) - Automated versioning and releases
 
 ## License
 
