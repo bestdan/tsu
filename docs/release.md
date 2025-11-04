@@ -17,16 +17,18 @@ When a pull request is merged to the `main` branch:
 
 1. The workflow automatically increments the **minor** version
 2. The patch version is reset to 0
-3. The new version is committed to `package.json`
-4. A git tag is created (e.g., `v0.2.0`)
-5. Changes are pushed back to the repository
+3. A new pull request is created with the version bump in `package.json`
+4. Once the version bump PR is merged, a git tag is created automatically (e.g., `v0.2.0`)
+
+This two-step process ensures that all branch protection rules and required status checks are respected.
 
 ### Example
 
 - Current version: `0.1.0`
 - PR #123 is merged to main
-- New version becomes: `0.2.0`
-- Tag `v0.2.0` is created
+- Auto version bump workflow creates PR #124 to bump version to `0.2.0`
+- PR #124 is reviewed and merged
+- Tag `v0.2.0` is automatically created
 
 ### Skipping Version Bump
 
