@@ -15,6 +15,7 @@ import { dartChanged } from './commands/dart/changed/index.js';
 import { dartChangedDownstream } from './commands/dart/changed/downstream.js';
 import { dartHookFormatCheck } from './commands/dart/hook/format/check.js';
 import { dartHookAnalysisCheck } from './commands/dart/hook/analysis/check.js';
+import { dartHookFixCheck } from './commands/dart/hook/fix/check.js';
 import { dartHookDcmCheck } from './commands/dart/hook/dcm/fix/check.js';
 import { dartHookDcmAnalyzeCheck } from './commands/dart/hook/dcm/analyze/check.js';
 import { dartHookGraphqlCheck } from './commands/dart/hook/graphql/check.js';
@@ -304,7 +305,7 @@ dartHook
   .command('analysis')
   .command('check')
   .description(
-    'Check if Dart files pass dart fix analysis and apply fixes (suitable for pre-push hooks)'
+    'Check if Dart files pass dart analyze (suitable for pre-push hooks)'
   )
   .argument('[files...]', 'specific files to check (defaults to all changed files)')
   .option(
@@ -313,6 +314,21 @@ dartHook
   )
   .action((files: string[], options: { verbose?: boolean }) => {
     dartHookAnalysisCheck({ ...options, files });
+  });
+
+dartHook
+  .command('fix')
+  .command('check')
+  .description(
+    'Check if Dart files pass dart fix and apply fixes (suitable for pre-push hooks)'
+  )
+  .argument('[files...]', 'specific files to check (defaults to all changed files)')
+  .option(
+    '-v, --verbose',
+    'show human-readable status messages (output to stderr)'
+  )
+  .action((files: string[], options: { verbose?: boolean }) => {
+    dartHookFixCheck({ ...options, files });
   });
 
 // Dart hook DCM subcommand namespace

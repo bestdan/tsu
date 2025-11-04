@@ -2,45 +2,45 @@ import { execSync } from 'node:child_process';
 import {
   isGitRepo,
   getAllChangedFiles,
+  hasUnstagedChanges,
 } from '../../../git/utils/git.js';
 import {
   isDartPackage,
   COMMON_DART_CODEGEN_SUFFIXES,
 } from '../../utils/dart.js';
 import { filterFilesBySuffix } from '../../../files/utils/files.js';
+import { escapeShellArg } from '../../../../utils/shell.js';
 import { ensureCondition, hasExplicitFiles } from '../../../../utils/command-helpers.js';
 import { logIfVerbose } from '../../../../utils/logger.js';
 
-export interface DartHookAnalysisCheckOptions {
+export interface DartHookFixCheckOptions {
   verbose?: boolean;
-  /** Suffixes to exclude from analysis. Defaults to COMMON_DART_CODEGEN_SUFFIXES */
+  /** Suffixes to exclude from fix. Defaults to COMMON_DART_CODEGEN_SUFFIXES */
   excludeSuffixes?: string[];
   files?: string[];
 }
 
 /**
- * Runs dart analyze on the Dart package when Dart files are modified.
+ * Runs dart fix on Dart files and checks if fixes created changes.
  * Supports two modes:
- * 1. Explicit file list (--files) - checks if any provided files are Dart files
- * 2. Default mode - checks if any changed files are Dart files
+ * 1. Explicit file list (--files)
+ * 2. Default mode - checks all changed files
  *
  * Steps:
- * 1. Gets modified Dart files (excluding generated files) to determine if analysis is needed
- * 2. Runs dart analyze --fatal-infos on the entire package if Dart files are present
- * 3. Exits with error if analysis fails
- *
- * Note: dart analyze operates at the package level, not per-file. The file filtering
- * is used only to determine whether analysis is necessary.
+ * 1. Gets modified Dart files (excluding generated files)
+ * 2. Runs dart fix --apply on each file individually
+ * 3. Checks if fixes created any changes
+ * 4. Exits with error if files were modified
  */
-export function dartHookAnalysisCheck(
-  options: DartHookAnalysisCheckOptions = {}
+export function dartHookFixCheck(
+  options: DartHookFixCheckOptions = {}
 ): void {
   const verbose = options.verbose || false;
   const excludeSuffixes = options.excludeSuffixes || [
     ...COMMON_DART_CODEGEN_SUFFIXES,
   ];
 
-  logIfVerbose(verbose, '🔍 Running dart analyze on modified files...');
+  logIfVerbose(verbose, '🔧 Running dart fix on modified files...');
 
   // Check we're in both a git repo and a Dart package
   ensureCondition(isGitRepo(), 'Error: Not in a git repository');
@@ -72,21 +72,43 @@ export function dartHookAnalysisCheck(
     process.exit(0);
   }
 
-  // Run dart analyze --fatal-infos on the package
+  // Run dart fix --apply on each file individually
+  // Note: dart fix can only be run on one file at a time
   /* v8 ignore next -- @preserve */
   try {
-    execSync(`dart analyze --fatal-infos`, {
-      cwd,
-      stdio: 'pipe',
-    });
+    for (const file of modifiedFiles) {
+      const fileArg = escapeShellArg(file);
+      execSync(`dart fix --apply ${fileArg}`, {
+        cwd,
+        stdio: 'pipe',
+      });
+    }
   } catch (error) {
-    console.error('Error: Dart analyze failed');
+    console.error('Error: Failed to run dart fix');
     if (error instanceof Error) {
       console.error(error.message);
     }
     process.exit(1);
   }
 
-  logIfVerbose(verbose, '✓ All files pass dart analyze');
+  // Check if fixes created changes in the files we analyzed
+  /* v8 ignore next -- @preserve */
+  const filesWithChanges = modifiedFiles.filter((file) =>
+    hasUnstagedChanges(file, cwd)
+  );
+
+  /* v8 ignore next -- @preserve */
+  if (filesWithChanges.length > 0) {
+    console.error('');
+    console.error(
+      '❌ Push blocked: Dart fixes were applied. Please stage and commit these changes:'
+    );
+    filesWithChanges.forEach((file) => {
+      console.error(file);
+    });
+    process.exit(1);
+  }
+
+  logIfVerbose(verbose, '✓ All files pass dart fix');
   process.exit(0);
 }
