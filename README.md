@@ -2,7 +2,6 @@
 
 TypeScript command line utilities package.
 
-
 ## Installation
 
 For straight usage:
@@ -18,7 +17,8 @@ pnpm add -g github:bestdan/tsu
 yarn global add github:bestdan/tsu
 ```
 
-After building, link the package globally 
+After building, link the package globally
+
 ```bash
 pnpm link --global
 ```
@@ -62,6 +62,7 @@ tsutils git changed | tsutils files filter --suffix .ts
 ### Command Design Philosophy
 
 All commands follow a **pipe-friendly** design:
+
 - Clean, parseable output to **stdout**
 - Error messages to **stderr**
 - Appropriate exit codes
@@ -72,11 +73,13 @@ All commands follow a **pipe-friendly** design:
 - **Node.js**: >=22.0.0
 
 ### Developer
+
 - **Vitest**: >=4.0.6 // for proper ignores in test coverage
 
 ### Optional Dependencies
 
 Some commands require additional tools:
+
 - **Claude CLI**: For `git commit-msg` and `git pr-description` - [Install](https://github.com/anthropics/claude-cli)
 - **Dart SDK**: For `dart` commands - [Install](https://dart.dev)
 - **DCM**: For `dart hook dcm check` - [Install](https://dcm.dev)
