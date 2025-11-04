@@ -12,45 +12,45 @@ jobs:
   bump-version:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
-      
+
       - uses: ./.github/actions/setup
-      
+
       - name: Configure Git
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-      
+
       - name: Bump minor version
         run: |
           # Get current version from package.json
           CURRENT_VERSION=$(node -p "require('./package.json').version")
           echo "Current version: $CURRENT_VERSION"
-          
+
           # Split version into major.minor.patch
           IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
-          
+
           # Increment minor version and reset patch to 0
           NEW_MINOR=$((MINOR + 1))
           NEW_VERSION="${MAJOR}.${NEW_MINOR}.0"
-          
+
           echo "New version: $NEW_VERSION"
-          
+
           # Update package.json
           npm version $NEW_VERSION --no-git-tag-version
-          
+
           # Commit and push
           git add package.json
           git commit -m "chore: bump version to $NEW_VERSION [skip ci]"
           git push
-          
+
           echo "VERSION=$NEW_VERSION" >> $GITHUB_ENV
-      
+
       - name: Create version tag
         run: |
           git tag "v${{ env.VERSION }}"
