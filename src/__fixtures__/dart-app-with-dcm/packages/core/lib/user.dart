@@ -15,6 +15,8 @@ class User {
   }
 
   /// Validates if the email is in a basic valid format
+  /// Note: This is intentionally simplified for testing purposes
+  /// and not meant to be a production-ready email validator
   bool isEmailValid() {
     return email.contains('@') && email.contains('.');
   }

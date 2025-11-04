@@ -29,7 +29,8 @@ dart_code_metrics:
 linter:
   rules:
     - always_declare_return_types
-    - avoid_print
+    # avoid_print is intentionally not enabled for this test fixture
+    # as the code uses print statements for demonstration purposes
     - prefer_single_quotes
     - prefer_const_constructors
     - unnecessary_const
