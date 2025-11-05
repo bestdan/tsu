@@ -2,13 +2,6 @@ import { describe, it, expect } from 'vitest';
 import { parseDartAnalyzeOutput, dartAnalyze } from './dart-analyze-parse.js';
 
 
-interface ExecError extends Error {
-  code?: string;
-  signal?: string;
-  stdout?: Buffer | string;
-  stderr?: Buffer | string;
-}
-
 describe('parseDartAnalyzeOutput', () => {
   it('should parse single issue from dart analyze output', () => {
     const output = `Analyzing ....                         11.1s
