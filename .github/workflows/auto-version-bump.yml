@@ -67,5 +67,5 @@ jobs:
             Automated version bump to ${{ env.VERSION }}
 
             This PR was automatically created after merging PR #${{ github.event.pull_request.number }}.
-          commit-message: "chore: bump version to ${{ env.VERSION }} [skip ci]"
+          commit-message: "chore: bump version to ${{ env.VERSION }}"
           delete-branch: true
