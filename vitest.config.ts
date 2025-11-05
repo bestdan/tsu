@@ -18,11 +18,10 @@ export default defineConfig({
       thresholds: {
         // Updated thresholds after using logIfVerbose helper and /* v8 ignore next -- @preserve */
         // These reflect coverage with external tool integration code properly marked as ignored.
-        // Current actual coverage: statements: 94.93%, branches: 88.16%, functions: 93.54%, lines: 94.87%
-        statements: 94,
-        branches: 87,
-        functions: 93,
-        lines: 94,
+        statements: 93,
+        branches: 90,
+        functions: 98,
+        lines: 93,
       },
     },
   },

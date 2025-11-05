@@ -1,4 +1,3 @@
-import { execSync } from 'node:child_process';
 import {
   isGitRepo,
 } from '../../../../git/utils/git.js';
@@ -7,7 +6,6 @@ import {
   COMMON_DART_CODEGEN_SUFFIXES,
 } from '../../../utils/dart.js';
 import { filterFilesBySuffix } from '../../../../files/utils/files.js';
-import { escapeShellArg } from '../../../../../utils/shell.js';
 import {
   ensureCondition,
   ensureDCMInstalled,
@@ -15,6 +13,7 @@ import {
   displayFileList,
 } from '../../../../../utils/command-helpers.js';
 import { logIfVerbose } from '../../../../../utils/logger.js';
+import { dcmAnalyze } from '../../../../../utils/dcm-parse.js';
 
 export interface DartHookDcmAnalyzeCheckOptions {
   verbose?: boolean;
@@ -76,22 +75,18 @@ export function dartHookDcmAnalyzeCheck(
   });
 
   // Run dcm analyze on the files
-  /* v8 ignore next -- @preserve */
-  try {
-    const fileArgs = modifiedFiles.map(escapeShellArg).join(' ');
-    execSync(`dcm analyze ${fileArgs} --fatal-style --fatal-warnings --no-congratulate`, {
-      cwd,
-      stdio: 'pipe',
-      timeout: 7000, // 7 second timeout
-    });
-  } catch {
+  const result = dcmAnalyze({ cwd, timeout: 20000, files: modifiedFiles });
+
+  if (!result.success) {
+    const filesWithIssues = result.filesWithIssues;
+
     console.error('');
     console.error('❌ Push blocked: DCM analyze found issues in the following file(s):');
-    modifiedFiles.forEach((file) => {
+    filesWithIssues.forEach((file) => {
       console.error(`  ${file}`);
     });
     console.error('');
-    console.error('Run `dcm analyze` locally for details on the issues.');
+    console.error('Run `dcm fix` to fix the issues.');
     process.exit(1);
   }
 

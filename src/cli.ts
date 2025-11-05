@@ -20,6 +20,7 @@ import { dartHookDcmCheck } from './commands/dart/hook/dcm/fix/check.js';
 import { dartHookDcmAnalyzeCheck } from './commands/dart/hook/dcm/analyze/check.js';
 import { dartHookGraphqlCheck } from './commands/dart/hook/graphql/check.js';
 import { dartFix } from './commands/dart/fix.js';
+import { dartDcmAnalyze } from './commands/dart/dcm/analyze.js';
 import { checkExternals } from './commands/check/externals.js';
 
 const program = new Command();
@@ -278,6 +279,28 @@ dart
       packages?: boolean;
     }) => {
       dartFix(options);
+    }
+  );
+
+// Dart DCM subcommand namespace
+const dartDcm = dart
+  .command('dcm')
+  .description('DCM code quality utilities');
+
+dartDcm
+  .command('analyze')
+  .description('Run DCM analyze and output files with issues')
+  .option('-v, --verbose', 'show detailed progress information')
+  .option('--timeout <ms>', 'timeout in milliseconds', '7000')
+  .action(
+    (options: {
+      verbose?: boolean;
+      timeout?: string;
+    }) => {
+      dartDcmAnalyze({
+        verbose: options.verbose,
+        timeout: options.timeout ? parseInt(options.timeout, 10) : undefined,
+      });
     }
   );
 

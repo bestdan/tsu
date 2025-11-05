@@ -98,6 +98,19 @@ export {
 
 export { dartFix, type DartFixOptions } from './commands/dart/fix.js';
 
+// DCM utilities
+export {
+  parseDcmAnalyzeOutput,
+  dcmAnalyze,
+  type CallAndParseDcmOptions,
+  type CallAndParseDcmResult,
+} from './utils/dcm-parse.js';
+
+export {
+  dartDcmAnalyze,
+  type DartDcmAnalyzeOptions,
+} from './commands/dart/dcm/analyze.js';
+
 // Check utilities
 export {
   checkExternals,
