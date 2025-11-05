@@ -82,8 +82,9 @@ describe('DCM integration tests with analysis_options.yaml', () => {
     const configFile = join(corePackageDir, 'lib', 'config.dart');
     const originalContent = readFileSync(configFile, 'utf-8');
 
-    // Verify original has violations
+    // Verify original has violations (multi-line format without trailing commas)
     expect(originalContent).toContain('this.debugMode\n  );');
+    expect(originalContent).toContain("'debugMode': debugMode\n    };");
 
     // Run dcm fix to apply trailing commas
     execSync(`dcm fix ${configFile}`, {
@@ -94,9 +95,17 @@ describe('DCM integration tests with analysis_options.yaml', () => {
     // Read the fixed content
     const fixedContent = readFileSync(configFile, 'utf-8');
 
-    // After fix, trailing commas should be added
-    expect(fixedContent).toContain('this.debugMode,\n  );');
-    expect(fixedContent).toContain("'debugMode': debugMode,\n    };");
+    // After fix, DCM reformats the code:
+    // - The constructor is collapsed to a single line (no trailing comma needed for single-line)
+    // - The toMap return is collapsed to a single line (no trailing comma needed for single-line)
+    // - The factory constructor keeps multi-line format and adds trailing comma
+    expect(fixedContent).toContain(
+      'const Config(this.appName, this.version, this.debugMode);'
+    );
+    expect(fixedContent).toContain(
+      "return {'appName': appName, 'version': version, 'debugMode': debugMode};"
+    );
+    expect(fixedContent).toContain("map['debugMode'] as bool,\n    );");
 
     // Verify dcm analyze now passes
     let analyzeError = null;
