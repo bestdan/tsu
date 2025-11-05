@@ -31,7 +31,7 @@ To run these integration tests with actual DCM execution, you need:
 
 ```bash
 # Run the integration tests
-pnpm test:run src/commands/dart/hook/dcm/integration.test.ts
+pnpm test:run src/commands/hook/dcm/integration.test.ts
 
 # Or run all tests
 pnpm test:run
