@@ -20,8 +20,8 @@ export default defineConfig({
         // These reflect coverage with external tool integration code properly marked as ignored.
         // Current actual coverage after adding dcm-parse: statements: 93.18%, branches: 89%, functions: 95%, lines: 93.06%
         statements: 93,
-        branches: 87,
-        functions: 93,
+        branches: 89,
+        functions: 98,
         lines: 93,
       },
     },
