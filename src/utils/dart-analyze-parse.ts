@@ -20,15 +20,24 @@ export function parseDartAnalyzeOutput(output: string): DartAnalyzeIssue[] {
   
   let match;
   while ((match = issuePattern.exec(output)) !== null) {
-    // Regex pattern guarantees all capture groups exist (verified by pattern)
-    issues.push({
-      severity: match[1]!.trim(),
-      filePath: match[2]!.trim(),
-      line: parseInt(match[3]!, 10),
-      column: parseInt(match[4]!, 10),
-      message: match[5]!.trim(),
-      code: match[6]!.trim(),
-    });
+    // TypeScript regex match guarantees these exist due to the pattern
+    const severity = match[1];
+    const filePath = match[2];
+    const line = match[3];
+    const column = match[4];
+    const message = match[5];
+    const code = match[6];
+
+    if (severity && filePath && line && column && message && code) {
+      issues.push({
+        severity: severity.trim(),
+        filePath: filePath.trim(),
+        line: parseInt(line, 10),
+        column: parseInt(column, 10),
+        message: message.trim(),
+        code: code.trim(),
+      });
+    }
   }
   
   return issues;
@@ -70,13 +79,6 @@ interface DartAnalyzeRunResult {
   issues: DartAnalyzeIssue[];
 }
 
-interface ExecError {
-  code?: string;
-  signal?: string;
-  stdout?: Buffer | string;
-  stderr?: Buffer | string;
-}
-
 /**
  * Processes error from dart analyze execution and extracts results.
  * Distinguishes between timeout/execution errors and dart analyze finding issues.
@@ -86,7 +88,12 @@ function processDartAnalyzeError(
   packageRoot: string,
   timeout: number
 ): DartAnalyzeRunResult {
-  const err = error as ExecError;
+  const err = error as {
+    code?: string;
+    signal?: string;
+    stdout?: Buffer | string;
+    stderr?: Buffer | string;
+  };
 
   // Distinguish between timeout/execution errors and dart analyze finding issues
   if (err.code === 'ETIMEDOUT' || err.signal === 'SIGTERM') {
