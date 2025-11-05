@@ -631,6 +631,132 @@ describe('getAllChangedFiles', () => {
       rmSync(tempDir, { recursive: true, force: true });
     }
   });
+
+  it('should return empty array when no changes exist', () => {
+    const tempDir = mkdtempSync(join(tmpdir(), 'git-test-'));
+    try {
+      execSync('git init', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git config user.email "test@test.com"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git config user.name "Test User"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git checkout -b main', { cwd: tempDir, stdio: 'pipe' });
+
+      // Create initial commit
+      writeFileSync(join(tempDir, 'initial.txt'), 'initial');
+      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "Initial commit"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+
+      const allFiles = getAllChangedFiles(tempDir);
+      expect(allFiles).toEqual([]);
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it('should deduplicate files that appear in multiple categories', () => {
+    const tempDir = mkdtempSync(join(tmpdir(), 'git-test-'));
+    try {
+      execSync('git init', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git config user.email "test@test.com"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git config user.name "Test User"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git checkout -b main', { cwd: tempDir, stdio: 'pipe' });
+
+      // Create initial commit
+      writeFileSync(join(tempDir, 'file1.txt'), 'initial');
+      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "Initial commit"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+
+      // Create feature branch
+      execSync('git checkout -b feature', { cwd: tempDir, stdio: 'pipe' });
+
+      // Modify file1.txt (will be committed)
+      writeFileSync(join(tempDir, 'file1.txt'), 'modified');
+      execSync('git add file1.txt', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "Modify file1"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+
+      // Modify file1.txt again and stage it
+      writeFileSync(join(tempDir, 'file1.txt'), 'modified again');
+      execSync('git add file1.txt', { cwd: tempDir, stdio: 'pipe' });
+
+      // Modify file1.txt one more time without staging
+      writeFileSync(join(tempDir, 'file1.txt'), 'modified yet again');
+
+      const allFiles = getAllChangedFiles(tempDir);
+
+      // Should only contain file1.txt once, even though it appears in committed, staged, and unstaged
+      expect(allFiles).toEqual(['file1.txt']);
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it('should return empty array for non-git directory', () => {
+    const tempDir = mkdtempSync(join(tmpdir(), 'not-git-'));
+    try {
+      const allFiles = getAllChangedFiles(tempDir);
+      expect(allFiles).toEqual([]);
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it('should include unstaged tracked files but not untracked files', () => {
+    const tempDir = mkdtempSync(join(tmpdir(), 'git-test-'));
+    try {
+      execSync('git init', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git config user.email "test@test.com"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git config user.name "Test User"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+
+      // Create and commit initial files
+      writeFileSync(join(tempDir, 'tracked.txt'), 'initial');
+      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "Initial commit"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+
+      // Modify tracked file without staging
+      writeFileSync(join(tempDir, 'tracked.txt'), 'modified');
+
+      // Create untracked file
+      writeFileSync(join(tempDir, 'untracked.txt'), 'new file');
+
+      const allFiles = getAllChangedFiles(tempDir);
+
+      // Should contain tracked.txt (unstaged but tracked)
+      expect(allFiles).toContain('tracked.txt');
+      // Should not contain untracked.txt
+      expect(allFiles).not.toContain('untracked.txt');
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
 });
 
 describe('hasUnstagedChanges', () => {
@@ -836,7 +962,7 @@ describe('getFilesToPush', () => {
     }
   });
 
-  it('should return null when no remote branch exists', () => {
+  it('should compare against base branch when no remote branch exists', () => {
     const tempDir = realpathSync(mkdtempSync(join(tmpdir(), 'git-test-')));
     try {
       execSync('git init', { cwd: tempDir, stdio: 'pipe' });
@@ -848,13 +974,49 @@ describe('getFilesToPush', () => {
         cwd: tempDir,
         stdio: 'pipe',
       });
+      execSync('git checkout -b main', { cwd: tempDir, stdio: 'pipe' });
 
+      // Create initial commit on main
       writeFileSync(join(tempDir, 'file1.txt'), 'content1');
       execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
       execSync('git commit -m "initial"', { cwd: tempDir, stdio: 'pipe' });
 
+      // Create feature branch with new commit
+      execSync('git checkout -b feature', { cwd: tempDir, stdio: 'pipe' });
+      writeFileSync(join(tempDir, 'file2.txt'), 'content2');
+      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "add file2"', { cwd: tempDir, stdio: 'pipe' });
+
+      // Should compare against main branch when remote doesn't exist
       const files = getFilesToPush(tempDir);
-      expect(files).toBeNull();
+      expect(files).toEqual(['file2.txt']);
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it('should return empty array when on base branch with no remote', () => {
+    const tempDir = realpathSync(mkdtempSync(join(tmpdir(), 'git-test-')));
+    try {
+      execSync('git init', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git config user.email "test@test.com"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git config user.name "Test User"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git checkout -b main', { cwd: tempDir, stdio: 'pipe' });
+
+      // Create initial commit on main
+      writeFileSync(join(tempDir, 'file1.txt'), 'content1');
+      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "initial"', { cwd: tempDir, stdio: 'pipe' });
+
+      // Should return empty when on main branch with no remote
+      const files = getFilesToPush(tempDir);
+      expect(files).toEqual([]);
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
     }
