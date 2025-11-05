@@ -50,9 +50,9 @@ With `--verbose`, also displays human-readable messages to stderr:
 
 | Command  | Name       | Required For                           | Install URL                              |
 | -------- | ---------- | -------------------------------------- | ---------------------------------------- |
-| `dart`   | Dart SDK   | All `dart` commands                    | https://dart.dev                         |
-| `dcm`    | DCM        | `dart hook dcm check`                  | https://dcm.dev                          |
-| `melos`  | Melos      | `dart hook graphql check`              | https://melos.invertase.dev              |
+| `dart`   | Dart SDK   | All `dart` and `hook` commands         | https://dart.dev                         |
+| `dcm`    | DCM        | `hook dcm` commands                    | https://dcm.dev                          |
+| `melos`  | Melos      | `hook graphql check`                   | https://melos.invertase.dev              |
 | `claude` | Claude CLI | `git commit-msg`, `git pr-description` | https://github.com/anthropics/claude-cli |
 
 **Examples:**

@@ -35,6 +35,7 @@ tsu <namespace> <command> [options]
 - **check** - System dependency checks ([documentation](docs/check.md))
 - **git** - Git-related utilities ([documentation](docs/git.md))
 - **dart** - Dart/Flutter project utilities ([documentation](docs/dart.md))
+- **hook** - Git hook utilities for Dart ([documentation](docs/hook.md))
 - **files** - File filtering utilities ([documentation](docs/files.md))
 
 ### Quick Examples
@@ -53,7 +54,7 @@ cd "$(tsutils git root)"
 tsutils git changed
 
 # Format check for Dart files (git hook)
-tsutils dart hook format check
+tsutils hook format check
 
 # Filter files by extension
 tsutils git changed | tsutils files filter --suffix .ts
@@ -82,8 +83,8 @@ Some commands require additional tools:
 
 - **Claude CLI**: For `git commit-msg` and `git pr-description` - [Install](https://github.com/anthropics/claude-cli)
 - **Dart SDK**: For `dart` commands - [Install](https://dart.dev)
-- **DCM**: For `dart hook dcm check` - [Install](https://dcm.dev)
-- **Melos**: For `dart hook graphql check` - [Install](https://melos.invertase.dev)
+- **DCM**: For `hook dcm check` - [Install](https://dcm.dev)
+- **Melos**: For `hook graphql check` - [Install](https://melos.invertase.dev)
 
 See the [git docs](docs/git.md) and [dart docs](docs/dart.md) for details on which commands need what.
 
