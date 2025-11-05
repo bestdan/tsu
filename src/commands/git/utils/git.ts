@@ -47,4 +47,7 @@ export {
   getFilesInRange,
   type GetFilesInRangeOptions,
 } from './range/get-files-in-range.js';
-export { getFilesToPush } from './range/get-files-to-push.js';
+export {
+  getFilesToPush,
+  type GetFilesToPushOptions,
+} from './range/get-files-to-push.js';
