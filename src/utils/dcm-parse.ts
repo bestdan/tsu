@@ -75,6 +75,52 @@ function runDcmForPackage(packageRoot: string, timeout: number): string {
   );
 }
 
+interface DcmRunResult {
+  success: boolean;
+  output: string;
+  filesWithIssues: string[];
+}
+
+/**
+ * Processes error from DCM execution and extracts results.
+ * Distinguishes between timeout/execution errors and DCM finding issues.
+ */
+function processDcmError(
+  error: unknown,
+  packageRoot: string,
+  timeout: number
+): DcmRunResult {
+  const err = error as {
+    code?: string;
+    signal?: string;
+    stdout?: Buffer | string;
+    stderr?: Buffer | string;
+  };
+
+  // Distinguish between timeout/execution errors and DCM finding issues
+  if (err.code === 'ETIMEDOUT' || err.signal === 'SIGTERM') {
+    throw new Error(`DCM analyze timed out in ${packageRoot} after ${timeout}ms`);
+  }
+
+  // If DCM ran but found issues, stdout will have the JSON report
+  const stdout = err.stdout?.toString() || '';
+  const stderr = err.stderr?.toString() || '';
+
+  if (stdout.length > 0) {
+    // DCM found issues (exit code non-zero but produced JSON output)
+    const filesWithIssues = parseDcmAnalyzeOutput(stdout);
+    return {
+      success: false,
+      output: stdout,
+      filesWithIssues,
+    };
+  }
+
+  // DCM failed to run properly - no output
+  const errorMsg = stderr.length > 0 ? stderr : 'No output from DCM';
+  throw new Error(`DCM analyze failed in ${packageRoot}: ${errorMsg}`);
+}
+
 export function dcmAnalyze(
   options: CallAndParseDcmOptions,
   // Allow dependency injection for testing
@@ -110,33 +156,10 @@ export function dcmAnalyze(
       const output = dcmRunner(packageRoot, timeout);
       combinedOutput += output;
     } catch (error: unknown) {
-      const err = error as {
-        code?: string;
-        signal?: string;
-        stdout?: Buffer | string;
-        stderr?: Buffer | string;
-      };
-
-      // Distinguish between timeout/execution errors and DCM finding issues
-      if (err.code === 'ETIMEDOUT' || err.signal === 'SIGTERM') {
-        throw new Error(`DCM analyze timed out in ${packageRoot} after ${timeout}ms`);
-      }
-
-      // If DCM ran but found issues, stdout will have the JSON report
-      const stdout = err.stdout?.toString() || '';
-      const stderr = err.stderr?.toString() || '';
-
-      if (stdout.length > 0) {
-        // DCM found issues (exit code non-zero but produced JSON output)
-        allSuccess = false;
-        combinedOutput += stdout;
-        const filesWithIssues = parseDcmAnalyzeOutput(stdout);
-        allFilesWithIssues.push(...filesWithIssues);
-      } else {
-        // DCM failed to run properly - no output
-        const errorMsg = stderr.length > 0 ? stderr : 'No output from DCM';
-        throw new Error(`DCM analyze failed in ${packageRoot}: ${errorMsg}`);
-      }
+      const result = processDcmError(error, packageRoot, timeout);
+      allSuccess = false;
+      combinedOutput += result.output;
+      allFilesWithIssues.push(...result.filesWithIssues);
     }
   }
 
