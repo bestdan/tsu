@@ -1,6 +1,13 @@
 import { describe, it, expect } from 'vitest';
 import { parseDartAnalyzeOutput, dartAnalyze } from './dart-analyze-parse.js';
 
+interface ExecError extends Error {
+  code?: string;
+  signal?: string;
+  stdout?: Buffer | string;
+  stderr?: Buffer | string;
+}
+
 describe('parseDartAnalyzeOutput', () => {
   it('should parse single issue from dart analyze output', () => {
     const output = `Analyzing ....                         11.1s
@@ -115,13 +122,13 @@ describe('dartAnalyze', () => {
 
   it('should detect issues and return failure', () => {
     const mockRunner = () => {
-      const error: any = new Error('dart analyze failed');
+      const error: ExecError = new Error('dart analyze failed') as ExecError;
       error.stdout = `Analyzing ....
 
    info • lib/main.dart:10:5 • Prefer const. • prefer_const_constructors
 
 1 issue found.`;
-      error.code = 1;
+      error.code = '1';
       throw error;
     };
 
@@ -138,7 +145,7 @@ describe('dartAnalyze', () => {
 
   it('should handle multiple files with issues', () => {
     const mockRunner = () => {
-      const error: any = new Error('dart analyze failed');
+      const error: ExecError = new Error('dart analyze failed') as ExecError;
       error.stdout = `Analyzing ....
 
    info • lib/main.dart:10:5 • Message 1 • code1
@@ -146,7 +153,7 @@ describe('dartAnalyze', () => {
    info • lib/main.dart:30:15 • Message 3 • code3
 
 3 issues found.`;
-      error.code = 1;
+      error.code = '1';
       throw error;
     };
 
@@ -164,7 +171,7 @@ describe('dartAnalyze', () => {
 
   it('should throw error on timeout', () => {
     const mockRunner = () => {
-      const error: any = new Error('Timeout');
+      const error: ExecError = new Error('Timeout') as ExecError;
       error.code = 'ETIMEDOUT';
       throw error;
     };
@@ -176,7 +183,7 @@ describe('dartAnalyze', () => {
 
   it('should throw error when dart analyze fails without output', () => {
     const mockRunner = () => {
-      const error: any = new Error('Failed');
+      const error: ExecError = new Error('Failed') as ExecError;
       error.stdout = '';
       error.stderr = 'dart command not found';
       throw error;
