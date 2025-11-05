@@ -1,19 +1,19 @@
 import {
   isGitRepo,
-} from '../../../../git/utils/git.js';
+} from '../../../git/utils/git.js';
 import {
   isDartPackage,
   COMMON_DART_CODEGEN_SUFFIXES,
-} from '../../../utils/dart.js';
-import { filterFilesBySuffix } from '../../../../files/utils/files.js';
+} from '../../../dart/utils/dart.js';
+import { filterFilesBySuffix } from '../../../files/utils/files.js';
 import {
   ensureCondition,
   ensureDCMInstalled,
   getHookChangedFiles,
   displayFileList,
-} from '../../../../../utils/command-helpers.js';
-import { logIfVerbose } from '../../../../../utils/logger.js';
-import { dcmAnalyze } from '../../../../../utils/dcm-parse.js';
+} from '../../../../utils/command-helpers.js';
+import { logIfVerbose } from '../../../../utils/logger.js';
+import { dcmAnalyze } from '../../../../utils/dcm-parse.js';
 
 export interface DartHookDcmAnalyzeCheckOptions {
   verbose?: boolean;

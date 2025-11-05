@@ -2,15 +2,15 @@ import { execSync } from 'node:child_process';
 import {
   isGitRepo,
   getGitStatus,
-} from '../../../git/utils/git.js';
-import { isDartPackage } from '../../utils/dart.js';
+} from '../../git/utils/git.js';
+import { isDartPackage } from '../../dart/utils/dart.js';
 import {
   ensureCondition,
   getHookChangedFiles,
   displayFileList,
-} from '../../../../utils/command-helpers.js';
-import { isCommandInstalled } from '../../../../utils/shell.js';
-import { logIfVerbose } from '../../../../utils/logger.js';
+} from '../../../utils/command-helpers.js';
+import { isCommandInstalled } from '../../../utils/shell.js';
+import { logIfVerbose } from '../../../utils/logger.js';
 
 export interface DartHookGraphqlCheckOptions {
   verbose?: boolean;

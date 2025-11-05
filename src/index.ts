@@ -65,36 +65,36 @@ export {
   type PackageIndexEntry,
 } from './commands/dart/utils/dart.js';
 
-// Dart hook utilities
+// Hook utilities
 export {
   dartHookFormatCheck,
   type DartHookFormatCheckOptions,
-} from './commands/dart/hook/format/check.js';
+} from './commands/hook/format/check.js';
 
 export {
   dartHookAnalysisCheck,
   type DartHookAnalysisCheckOptions,
-} from './commands/dart/hook/analysis/check.js';
+} from './commands/hook/analysis/check.js';
 
 export {
   dartHookFixCheck,
   type DartHookFixCheckOptions,
-} from './commands/dart/hook/fix/check.js';
+} from './commands/hook/fix/check.js';
 
 export {
   dartHookDcmCheck,
   type DartHookDcmCheckOptions,
-} from './commands/dart/hook/dcm/fix/check.js';
+} from './commands/hook/dcm/fix/check.js';
 
 export {
   dartHookDcmAnalyzeCheck,
   type DartHookDcmAnalyzeCheckOptions,
-} from './commands/dart/hook/dcm/analyze/check.js';
+} from './commands/hook/dcm/analyze/check.js';
 
 export {
   dartHookGraphqlCheck,
   type DartHookGraphqlCheckOptions,
-} from './commands/dart/hook/graphql/check.js';
+} from './commands/hook/graphql/check.js';
 
 export { dartFix, type DartFixOptions } from './commands/dart/fix.js';
 

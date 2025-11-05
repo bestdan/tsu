@@ -1,18 +1,18 @@
 import {
   isGitRepo,
-} from '../../../git/utils/git.js';
+} from '../../git/utils/git.js';
 import {
   isDartPackage,
   COMMON_DART_CODEGEN_SUFFIXES,
-} from '../../utils/dart.js';
-import { filterFilesBySuffix } from '../../../files/utils/files.js';
+} from '../../dart/utils/dart.js';
+import { filterFilesBySuffix } from '../../files/utils/files.js';
 import {
   ensureCondition,
   getHookChangedFiles,
   displayFileList,
-} from '../../../../utils/command-helpers.js';
-import { logIfVerbose } from '../../../../utils/logger.js';
-import { dartAnalyze } from '../../../../utils/dart-analyze-parse.js';
+} from '../../../utils/command-helpers.js';
+import { logIfVerbose } from '../../../utils/logger.js';
+import { dartAnalyze } from '../../../utils/dart-analyze-parse.js';
 
 export interface DartHookAnalysisCheckOptions {
   verbose?: boolean;
