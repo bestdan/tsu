@@ -1,4 +1,3 @@
-import { execSync } from 'node:child_process';
 import {
   isGitRepo,
 } from '../../../git/utils/git.js';
@@ -13,6 +12,7 @@ import {
   displayFileList,
 } from '../../../../utils/command-helpers.js';
 import { logIfVerbose } from '../../../../utils/logger.js';
+import { dartAnalyze } from '../../../../utils/dart-analyze-parse.js';
 
 export interface DartHookAnalysisCheckOptions {
   verbose?: boolean;
@@ -22,18 +22,16 @@ export interface DartHookAnalysisCheckOptions {
 }
 
 /**
- * Runs dart analyze on the Dart package when Dart files are modified.
+ * Runs dart analyze on Dart files and checks for issues.
  * Supports two modes:
- * 1. Explicit file list (--files) - checks if any provided files are Dart files
- * 2. Default mode - checks if any changed files are Dart files
+ * 1. Explicit file list (--files)
+ * 2. Default mode - checks all changed files
  *
  * Steps:
- * 1. Gets modified Dart files (excluding generated files) to determine if analysis is needed
- * 2. Runs dart analyze --fatal-infos on the entire package if Dart files are present
- * 3. Exits with error if analysis fails
- *
- * Note: dart analyze operates at the package level, not per-file. The file filtering
- * is used only to determine whether analysis is necessary.
+ * 1. Gets modified Dart files (excluding generated files)
+ * 2. Maps files to their package roots
+ * 3. Runs dart analyze on each unique package
+ * 4. Exits with error if dart analyze reports any issues
  */
 export function dartHookAnalysisCheck(
   options: DartHookAnalysisCheckOptions = {}
@@ -66,25 +64,25 @@ export function dartHookAnalysisCheck(
   }
 
   // Display files being checked in verbose mode
-  // Note: dart analyze operates at package level, but we show which files triggered it
   displayFileList({
     files: modifiedFiles,
     verbose,
-    message: 'Running dart analyze (triggered by)',
+    message: 'Running dart analyze on',
   });
 
-  // Run dart analyze --fatal-infos on the package
-  /* v8 ignore next -- @preserve */
-  try {
-    execSync(`dart analyze . --fatal-infos --fatal-warnings`, {
-      cwd,
-      stdio: 'pipe',
+  // Run dart analyze on the files
+  const result = dartAnalyze({ cwd, timeout: 20000, files: modifiedFiles });
+
+  if (!result.success) {
+    const filesWithIssues = result.filesWithIssues;
+
+    console.error('');
+    console.error('❌ Push blocked: dart analyze found issues in the following file(s):');
+    filesWithIssues.forEach((file) => {
+      console.error(`  ${file}`);
     });
-  } catch (error) {
-    console.error('Error: Dart analyze failed');
-    if (error instanceof Error) {
-      console.error(error.message);
-    }
+    console.error('');
+    console.error('Run `dart fix --apply` to fix some issues automatically.');
     process.exit(1);
   }
 

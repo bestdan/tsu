@@ -2,6 +2,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { dartHookFormatCheck } from './check.js';
 import * as gitUtils from '../../../git/utils/git.js';
 import * as dartUtils from '../../utils/dart.js';
+import { execSync } from 'node:child_process';
+
+vi.mock('node:child_process', () => ({
+  execSync: vi.fn(),
+}));
 
 describe('dartHookFormatCheck', () => {
   let consoleErrorSpy: any;
@@ -18,6 +23,9 @@ describe('dartHookFormatCheck', () => {
     isGitRepoSpy = vi.spyOn(gitUtils, 'isGitRepo');
     isDartPackageSpy = vi.spyOn(dartUtils, 'isDartPackage');
     getAllChangedFilesSpy = vi.spyOn(gitUtils, 'getAllChangedFiles');
+
+    // Mock execSync to succeed by default
+    vi.mocked(execSync).mockReturnValue('' as any);
   });
 
   afterEach(() => {
@@ -128,6 +136,42 @@ describe('dartHookFormatCheck', () => {
     }).toThrow('process.exit(0)');
 
     expect(getAllChangedFilesSpy).not.toHaveBeenCalled();
+  });
+
+  it('should display file list in verbose mode when running dart format', () => {
+    isGitRepoSpy.mockReturnValue(true);
+    isDartPackageSpy.mockReturnValue(true);
+    getAllChangedFilesSpy.mockReturnValue(['lib/main.dart']);
+
+    const hasUnstagedChangesSpy = vi.spyOn(gitUtils, 'hasUnstagedChanges').mockReturnValue(false);
+
+    expect(() => {
+      dartHookFormatCheck({ verbose: true });
+    }).toThrow('process.exit(0)');
+
+    // Should display the file list
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Running dart format on 1 file(s):');
+    expect(consoleErrorSpy).toHaveBeenCalledWith('  lib/main.dart');
+
+    hasUnstagedChangesSpy.mockRestore();
+  });
+
+  it('should accept files as argument and run dart format on them', () => {
+    isGitRepoSpy.mockReturnValue(true);
+    isDartPackageSpy.mockReturnValue(true);
+
+    const hasUnstagedChangesSpy = vi.spyOn(gitUtils, 'hasUnstagedChanges').mockReturnValue(false);
+
+    const files = ['lib/main.dart', 'lib/user.dart'];
+
+    expect(() => {
+      dartHookFormatCheck({ verbose: true, files });
+    }).toThrow('process.exit(0)');
+
+    expect(getAllChangedFilesSpy).not.toHaveBeenCalled();
+    expect(consoleErrorSpy).toHaveBeenCalledWith('✓ All files properly formatted');
+
+    hasUnstagedChangesSpy.mockRestore();
   });
 
 });

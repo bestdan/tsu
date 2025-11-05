@@ -36,4 +36,6 @@ class Config {
       map['debugMode'] as bool
     );
   }
+  
+  final foo = 23; 
 }
