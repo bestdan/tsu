@@ -76,7 +76,7 @@ export function dartHookAnalysisCheck(
   // Run dart analyze --fatal-infos on the package
   /* v8 ignore next -- @preserve */
   try {
-    execSync(`dart analyze --fatal-infos`, {
+    execSync(`dart analyze . --fatal-infos --fatal-warnings`, {
       cwd,
       stdio: 'pipe',
     });
