@@ -119,6 +119,13 @@ Trailing text`;
     const result = parseDcmAnalyzeOutput(fixtureContent);
     expect(result).toEqual(['lib/config.dart']);
   });
+
+  it('should return empty array when JSON.parse throws', () => {
+    // This has a valid JSON structure but will fail to parse as expected type
+    const invalidStructure = '{"wrong": "structure"}';
+    const result = parseDcmAnalyzeOutput(invalidStructure);
+    expect(result).toEqual([]);
+  });
 });
 
 describe('dcmAnalyze', () => {
@@ -126,54 +133,216 @@ describe('dcmAnalyze', () => {
     expect(typeof dcmAnalyze).toBe('function');
   });
 
-  it('should handle files parameter and find unique package roots', () => {
-    // This tests the package root finding logic
-    const options = {
-      cwd: '/test/monorepo',
-      files: [
-        'packages/app/lib/main.dart',
-        'packages/core/lib/config.dart',
+  it('should return success when DCM finds no issues', () => {
+    const mockOutput = JSON.stringify({
+      formatVersion: 11,
+      timestamp: '2025-11-04 14:46:10.000',
+      summary: [],
+      analyzeResults: [],
+    });
+
+    const mockRunner = () => mockOutput;
+
+    const result = dcmAnalyze({ cwd: '/test' }, mockRunner);
+
+    expect(result.success).toBe(true);
+    expect(result.filesWithIssues).toEqual([]);
+    expect(result.rawOutput).toBe(mockOutput);
+  });
+
+  it('should handle DCM finding issues (non-zero exit but with JSON output)', () => {
+    const mockOutput = JSON.stringify({
+      formatVersion: 11,
+      timestamp: '2025-11-04 14:46:10.000',
+      summary: [],
+      analyzeResults: [
+        { path: 'lib/file1.dart', issues: [{}] },
+        { path: 'lib/file2.dart', issues: [] },
       ],
-      timeout: 5000,
+    });
+
+    const mockRunner = () => {
+      const error: any = new Error('DCM found issues');
+      error.stdout = mockOutput;
+      error.stderr = '';
+      throw error;
     };
 
-    // We expect it to find package roots and call DCM
-    // The actual execSync call is ignored for coverage
-    try {
-      dcmAnalyze(options);
-    } catch (error) {
-      // Expected to fail since DCM isn't actually installed in test env
-      // or files don't exist, but we're testing the logic flow
-      expect(error).toBeDefined();
-    }
+    const result = dcmAnalyze({ cwd: '/test' }, mockRunner);
+
+    expect(result.success).toBe(false);
+    expect(result.filesWithIssues).toEqual(['lib/file1.dart', 'lib/file2.dart']);
+    expect(result.rawOutput).toBe(mockOutput);
+  });
+
+  it('should throw error on timeout', () => {
+    const mockRunner = () => {
+      const error: any = new Error('Timeout');
+      error.code = 'ETIMEDOUT';
+      throw error;
+    };
+
+    expect(() => dcmAnalyze({ cwd: '/test/pkg' }, mockRunner)).toThrow(
+      'DCM analyze timed out in /test/pkg after 7000ms'
+    );
+  });
+
+  it('should throw error on SIGTERM', () => {
+    const mockRunner = () => {
+      const error: any = new Error('Terminated');
+      error.signal = 'SIGTERM';
+      throw error;
+    };
+
+    expect(() => dcmAnalyze({ cwd: '/test/pkg' }, mockRunner)).toThrow(
+      'DCM analyze timed out in /test/pkg after 7000ms'
+    );
+  });
+
+  it('should throw error when DCM fails with no output', () => {
+    const mockRunner = () => {
+      const error: any = new Error('DCM failed');
+      error.stdout = '';
+      error.stderr = 'Command not found';
+      throw error;
+    };
+
+    expect(() => dcmAnalyze({ cwd: '/test/pkg' }, mockRunner)).toThrow(
+      'DCM analyze failed in /test/pkg: Command not found'
+    );
+  });
+
+  it('should throw error when DCM fails with no stderr', () => {
+    const mockRunner = () => {
+      const error: any = new Error('DCM failed');
+      error.stdout = '';
+      error.stderr = '';
+      throw error;
+    };
+
+    expect(() => dcmAnalyze({ cwd: '/test/pkg' }, mockRunner)).toThrow(
+      'DCM analyze failed in /test/pkg: No output from DCM'
+    );
   });
 
   it('should use cwd when no files provided', () => {
-    const options = {
-      cwd: '/test/package',
-      timeout: 5000,
+    const mockOutput = JSON.stringify({
+      formatVersion: 11,
+      timestamp: '2025-11-04 14:46:10.000',
+      summary: [],
+      analyzeResults: [],
+    });
+
+    let calledWith: string | undefined;
+    const mockRunner = (packageRoot: string) => {
+      calledWith = packageRoot;
+      return mockOutput;
     };
 
-    try {
-      dcmAnalyze(options);
-    } catch (error) {
-      // Expected to fail in test env, but we're testing the logic
-      expect(error).toBeDefined();
-    }
+    dcmAnalyze({ cwd: '/test/package' }, mockRunner);
+
+    expect(calledWith).toBe('/test/package');
   });
 
   it('should use cwd when empty files array provided', () => {
-    const options = {
-      cwd: '/test/package',
-      files: [],
-      timeout: 5000,
+    const mockOutput = JSON.stringify({
+      formatVersion: 11,
+      timestamp: '2025-11-04 14:46:10.000',
+      summary: [],
+      analyzeResults: [],
+    });
+
+    let calledWith: string | undefined;
+    const mockRunner = (packageRoot: string) => {
+      calledWith = packageRoot;
+      return mockOutput;
     };
 
-    try {
-      dcmAnalyze(options);
-    } catch (error) {
-      // Expected to fail in test env, but we're testing the logic
-      expect(error).toBeDefined();
-    }
+    dcmAnalyze({ cwd: '/test/package', files: [] }, mockRunner);
+
+    expect(calledWith).toBe('/test/package');
+  });
+
+  it('should handle multiple package roots', () => {
+    const mockOutput1 = JSON.stringify({
+      formatVersion: 11,
+      timestamp: '2025-11-04 14:46:10.000',
+      summary: [],
+      analyzeResults: [{ path: 'lib/pkg1.dart', issues: [] }],
+    });
+
+    const mockOutput2 = JSON.stringify({
+      formatVersion: 11,
+      timestamp: '2025-11-04 14:46:10.000',
+      summary: [],
+      analyzeResults: [{ path: 'lib/pkg2.dart', issues: [] }],
+    });
+
+    const calledRoots: string[] = [];
+    const mockRunner = (packageRoot: string) => {
+      calledRoots.push(packageRoot);
+      return packageRoot.includes('pkg1') ? mockOutput1 : mockOutput2;
+    };
+
+    // This will try to find package roots but fall back to cwd
+    // In a real scenario with actual Dart packages, it would find multiple roots
+    const result = dcmAnalyze({ cwd: '/test/monorepo' }, mockRunner);
+
+    expect(result.success).toBe(true);
+    expect(calledRoots.length).toBeGreaterThan(0);
+  });
+
+  it('should combine output from multiple packages with issues', () => {
+    const mockOutput1 = JSON.stringify({
+      formatVersion: 11,
+      timestamp: '2025-11-04 14:46:10.000',
+      summary: [],
+      analyzeResults: [{ path: 'lib/file1.dart', issues: [{}] }],
+    });
+
+    const mockOutput2 = JSON.stringify({
+      formatVersion: 11,
+      timestamp: '2025-11-04 14:46:10.000',
+      summary: [],
+      analyzeResults: [{ path: 'lib/file2.dart', issues: [{}] }],
+    });
+
+    let callCount = 0;
+    const mockRunner = () => {
+      callCount++;
+      const error: any = new Error('Issues found');
+      error.stdout = callCount === 1 ? mockOutput1 : mockOutput2;
+      error.stderr = '';
+      throw error;
+    };
+
+    // Force it to run on cwd which will be treated as one package
+    const result = dcmAnalyze({ cwd: '/test' }, mockRunner);
+
+    expect(result.success).toBe(false);
+    expect(result.filesWithIssues).toContain('lib/file1.dart');
+  });
+
+  it('should find package roots for provided files', () => {
+    const mockOutput = JSON.stringify({
+      formatVersion: 11,
+      timestamp: '2025-11-04 14:46:10.000',
+      summary: [],
+      analyzeResults: [],
+    });
+
+    const mockRunner = () => mockOutput;
+
+    // Provide files - the function will try to find their package roots
+    // Since these aren't real files, it will fall back to cwd
+    const result = dcmAnalyze(
+      {
+        cwd: '/test/monorepo',
+        files: ['packages/app/lib/main.dart', 'packages/core/lib/config.dart'],
+      },
+      mockRunner
+    );
+
+    expect(result.success).toBe(true);
   });
 });

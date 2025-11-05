@@ -58,8 +58,27 @@ export interface CallAndParseDcmResult {
   rawOutput?: string;
 }
 
+/**
+ * Runs DCM analyze for a single package root.
+ * Separated for easier testing and to avoid scattering v8 ignore comments.
+ */
+/* v8 ignore next -- @preserve */
+function runDcmForPackage(packageRoot: string, timeout: number): string {
+  return execSync(
+    'dcm analyze . --fatal-style --fatal-warnings --no-congratulate --reporter=json',
+    {
+      cwd: packageRoot,
+      stdio: 'pipe',
+      timeout,
+      encoding: 'utf-8',
+    }
+  );
+}
+
 export function dcmAnalyze(
-  options: CallAndParseDcmOptions
+  options: CallAndParseDcmOptions,
+  // Allow dependency injection for testing
+  dcmRunner: (packageRoot: string, timeout: number) => string = runDcmForPackage
 ): CallAndParseDcmResult {
   const { cwd, timeout = 7000, files } = options;
 
@@ -86,25 +105,11 @@ export function dcmAnalyze(
   const allFilesWithIssues: string[] = [];
   let combinedOutput = '';
 
-  /* v8 ignore next -- @preserve */
   for (const packageRoot of packageRoots) {
-    /* v8 ignore next -- @preserve */
     try {
-      /* v8 ignore next -- @preserve */
-      const output = execSync(
-        'dcm analyze . --fatal-style --fatal-warnings --no-congratulate --reporter=json',
-        {
-          cwd: packageRoot,
-          stdio: 'pipe',
-          timeout,
-          encoding: 'utf-8',
-        }
-      );
-      /* v8 ignore next -- @preserve */
+      const output = dcmRunner(packageRoot, timeout);
       combinedOutput += output;
-      /* v8 ignore next -- @preserve */
     } catch (error: unknown) {
-      /* v8 ignore next -- @preserve */
       const err = error as {
         code?: string;
         signal?: string;
@@ -112,40 +117,24 @@ export function dcmAnalyze(
         stderr?: Buffer | string;
       };
 
-      /* v8 ignore next -- @preserve */
       // Distinguish between timeout/execution errors and DCM finding issues
-      /* v8 ignore next -- @preserve */
       if (err.code === 'ETIMEDOUT' || err.signal === 'SIGTERM') {
-        /* v8 ignore next -- @preserve */
         throw new Error(`DCM analyze timed out in ${packageRoot} after ${timeout}ms`);
       }
 
-      /* v8 ignore next -- @preserve */
       // If DCM ran but found issues, stdout will have the JSON report
-      /* v8 ignore next -- @preserve */
       const stdout = err.stdout?.toString() || '';
-      /* v8 ignore next -- @preserve */
       const stderr = err.stderr?.toString() || '';
 
-      /* v8 ignore next -- @preserve */
       if (stdout.length > 0) {
-        /* v8 ignore next -- @preserve */
         // DCM found issues (exit code non-zero but produced JSON output)
-        /* v8 ignore next -- @preserve */
         allSuccess = false;
-        /* v8 ignore next -- @preserve */
         combinedOutput += stdout;
-        /* v8 ignore next -- @preserve */
         const filesWithIssues = parseDcmAnalyzeOutput(stdout);
-        /* v8 ignore next -- @preserve */
         allFilesWithIssues.push(...filesWithIssues);
-        /* v8 ignore next -- @preserve */
       } else {
-        /* v8 ignore next -- @preserve */
         // DCM failed to run properly - no output
-        /* v8 ignore next -- @preserve */
         const errorMsg = stderr.length > 0 ? stderr : 'No output from DCM';
-        /* v8 ignore next -- @preserve */
         throw new Error(`DCM analyze failed in ${packageRoot}: ${errorMsg}`);
       }
     }
