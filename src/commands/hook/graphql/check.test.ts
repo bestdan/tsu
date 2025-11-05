@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { dartHookGraphqlCheck } from './check.js';
-import * as gitUtils from '../../../git/utils/git.js';
-import * as dartUtils from '../../utils/dart.js';
-import * as shellUtils from '../../../../utils/shell.js';
+import * as gitUtils from '../../git/utils/git.js';
+import * as dartUtils from '../../dart/utils/dart.js';
+import * as shellUtils from '../../../utils/shell.js';
 import { execSync } from 'node:child_process';
 
 vi.mock('node:child_process', () => ({

@@ -6,44 +6,49 @@ import {
 import {
   isDartPackage,
   COMMON_DART_CODEGEN_SUFFIXES,
-} from '../../utils/dart.js';
+} from '../../../dart/utils/dart.js';
 import { filterFilesBySuffix } from '../../../files/utils/files.js';
 import { escapeShellArg } from '../../../../utils/shell.js';
 import {
   ensureCondition,
+  ensureDCMInstalled,
   getHookChangedFiles,
   displayFileList,
 } from '../../../../utils/command-helpers.js';
 import { logIfVerbose } from '../../../../utils/logger.js';
 
-export interface DartHookFixCheckOptions {
+export interface DartHookDcmCheckOptions {
   verbose?: boolean;
-  /** Suffixes to exclude from fix. Defaults to COMMON_DART_CODEGEN_SUFFIXES */
+  /** Suffixes to exclude from DCM checks. Defaults to COMMON_DART_CODEGEN_SUFFIXES */
   excludeSuffixes?: string[];
   files?: string[];
 }
 
 /**
- * Runs dart fix on Dart files and checks if fixes created changes.
+ * Runs DCM fix on Dart files and checks if fixes created changes.
  * Supports two modes:
  * 1. Explicit file list (--files)
  * 2. Default mode - checks all changed files
  *
  * Steps:
- * 1. Gets modified Dart files (excluding generated files)
- * 2. Runs dart fix --apply on each file individually
- * 3. Checks if fixes created any changes
- * 4. Exits with error if files were modified
+ * 1. Checks if DCM is installed
+ * 2. Gets modified Dart files (excluding generated files)
+ * 3. Runs dcm fix on them
+ * 4. Checks if fixes created any changes
+ * 5. Exits with error if files were modified by DCM
  */
-export function dartHookFixCheck(
-  options: DartHookFixCheckOptions = {}
+export function dartHookDcmCheck(
+  options: DartHookDcmCheckOptions = {}
 ): void {
   const verbose = options.verbose || false;
   const excludeSuffixes = options.excludeSuffixes || [
     ...COMMON_DART_CODEGEN_SUFFIXES,
   ];
 
-  logIfVerbose(verbose, '🔧 Running dart fix on modified files...');
+  // Check if DCM is installed
+  ensureDCMInstalled(verbose);
+
+  logIfVerbose(verbose, '🔧 Running DCM fix on modified files...');
 
   // Check we're in both a git repo and a Dart package
   ensureCondition(isGitRepo(), 'Error: Not in a git repository');
@@ -69,29 +74,26 @@ export function dartHookFixCheck(
   displayFileList({
     files: modifiedFiles,
     verbose,
-    message: 'Running dart fix on',
+    message: 'Running DCM fix on',
   });
 
-  // Run dart fix --apply on each file individually
-  // Note: dart fix can only be run on one file at a time
+  // Run dcm fix on the files
   /* v8 ignore next -- @preserve */
   try {
-    for (const file of modifiedFiles) {
-      const fileArg = escapeShellArg(file);
-      execSync(`dart fix --apply ${fileArg}`, {
-        cwd,
-        stdio: 'pipe',
-      });
-    }
+    const fileArgs = modifiedFiles.map(escapeShellArg).join(' ');
+    execSync(`dcm fix ${fileArgs}`, {
+      cwd,
+      stdio: 'pipe',
+    });
   } catch (error) {
-    console.error('Error: Failed to run dart fix');
+    console.error('Error: Failed to run dcm fix');
     if (error instanceof Error) {
       console.error(error.message);
     }
     process.exit(1);
   }
 
-  // Check if fixes created changes in the files we analyzed
+  // Check if DCM fixes created changes in the files we fixed
   /* v8 ignore next -- @preserve */
   const filesWithChanges = modifiedFiles.filter((file) =>
     hasUnstagedChanges(file, cwd)
@@ -101,7 +103,7 @@ export function dartHookFixCheck(
   if (filesWithChanges.length > 0) {
     console.error('');
     console.error(
-      '❌ Push blocked: Dart fixes were applied. Please stage and commit these changes:'
+      '❌ Push blocked: DCM fixes were applied. Please stage and commit these changes:'
     );
     filesWithChanges.forEach((file) => {
       console.error(file);
@@ -109,6 +111,6 @@ export function dartHookFixCheck(
     process.exit(1);
   }
 
-  logIfVerbose(verbose, '✓ All files pass dart fix');
+  logIfVerbose(verbose, '✓ All files pass DCM checks');
   process.exit(0);
 }

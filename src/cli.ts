@@ -13,12 +13,12 @@ import { dartRoot } from './commands/dart/root.js';
 import { dartPackage } from './commands/dart/package.js';
 import { dartChanged } from './commands/dart/changed/index.js';
 import { dartChangedDownstream } from './commands/dart/changed/downstream.js';
-import { dartHookFormatCheck } from './commands/dart/hook/format/check.js';
-import { dartHookAnalysisCheck } from './commands/dart/hook/analysis/check.js';
-import { dartHookFixCheck } from './commands/dart/hook/fix/check.js';
-import { dartHookDcmCheck } from './commands/dart/hook/dcm/fix/check.js';
-import { dartHookDcmAnalyzeCheck } from './commands/dart/hook/dcm/analyze/check.js';
-import { dartHookGraphqlCheck } from './commands/dart/hook/graphql/check.js';
+import { dartHookFormatCheck } from './commands/hook/format/check.js';
+import { dartHookAnalysisCheck } from './commands/hook/analysis/check.js';
+import { dartHookFixCheck } from './commands/hook/fix/check.js';
+import { dartHookDcmCheck } from './commands/hook/dcm/fix/check.js';
+import { dartHookDcmAnalyzeCheck } from './commands/hook/dcm/analyze/check.js';
+import { dartHookGraphqlCheck } from './commands/hook/graphql/check.js';
 import { dartFix } from './commands/dart/fix.js';
 import { dartDcmAnalyze } from './commands/dart/dcm/analyze.js';
 import { checkExternals } from './commands/check/externals.js';
@@ -304,12 +304,12 @@ dartDcm
     }
   );
 
-// Dart hook subcommand namespace
-const dartHook = dart
+// Hook subcommand namespace
+const hook = program
   .command('hook')
   .description('Git hook utilities for Dart');
 
-dartHook
+hook
   .command('format')
   .command('check')
   .description(
@@ -324,7 +324,7 @@ dartHook
     dartHookFormatCheck({ ...options, files });
   });
 
-dartHook
+hook
   .command('analysis')
   .command('check')
   .description(
@@ -339,7 +339,7 @@ dartHook
     dartHookAnalysisCheck({ ...options, files });
   });
 
-dartHook
+hook
   .command('fix')
   .command('check')
   .description(
@@ -354,12 +354,12 @@ dartHook
     dartHookFixCheck({ ...options, files });
   });
 
-// Dart hook DCM subcommand namespace
-const dartHookDcm = dartHook
+// Hook DCM subcommand namespace
+const hookDcm = hook
   .command('dcm')
   .description('DCM utilities for Dart code quality');
 
-dartHookDcm
+hookDcm
   .command('fix')
   .command('check')
   .description(
@@ -374,7 +374,7 @@ dartHookDcm
     dartHookDcmCheck({ ...options, files });
   });
 
-dartHookDcm
+hookDcm
   .command('analyze')
   .command('check')
   .description(
@@ -389,7 +389,7 @@ dartHookDcm
     dartHookDcmAnalyzeCheck({ ...options, files });
   });
 
-dartHook
+hook
   .command('graphql')
   .command('check')
   .description(

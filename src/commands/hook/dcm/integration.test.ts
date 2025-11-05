@@ -4,7 +4,7 @@ import { resolve, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { mkdtempSync, rmSync, cpSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { isCommandInstalled } from '../../../../utils/shell.js';
+import { isCommandInstalled } from '../../../utils/shell.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -12,7 +12,7 @@ const __dirname = dirname(__filename);
 // Path to our DCM test fixture
 const dcmFixtureDir = resolve(
   __dirname,
-  '../../../../__fixtures__/dart-app-with-dcm'
+  '../../../__fixtures__/dart-app-with-dcm'
 );
 
 describe('DCM integration tests with analysis_options.yaml', () => {

@@ -2,19 +2,19 @@ import { execSync } from 'node:child_process';
 import {
   isGitRepo,
   hasUnstagedChanges,
-} from '../../../git/utils/git.js';
+} from '../../git/utils/git.js';
 import {
   isDartPackage,
   COMMON_DART_CODEGEN_SUFFIXES,
-} from '../../utils/dart.js';
-import { filterFilesBySuffix } from '../../../files/utils/files.js';
-import { escapeShellArg } from '../../../../utils/shell.js';
-import { logIfVerbose } from '../../../../utils/logger.js';
+} from '../../dart/utils/dart.js';
+import { filterFilesBySuffix } from '../../files/utils/files.js';
+import { escapeShellArg } from '../../../utils/shell.js';
+import { logIfVerbose } from '../../../utils/logger.js';
 import {
   ensureCondition,
   getHookChangedFiles,
   displayFileList,
-} from '../../../../utils/command-helpers.js';
+} from '../../../utils/command-helpers.js';
 
 export interface DartHookFormatCheckOptions {
   verbose?: boolean;

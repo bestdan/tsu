@@ -1,19 +1,21 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { dartHookFormatCheck } from './check.js';
+import { dartHookDcmCheck } from './check.js';
 import * as gitUtils from '../../../git/utils/git.js';
-import * as dartUtils from '../../utils/dart.js';
+import * as dartUtils from '../../../dart/utils/dart.js';
+import * as shellUtils from '../../../../utils/shell.js';
 import { execSync } from 'node:child_process';
 
 vi.mock('node:child_process', () => ({
   execSync: vi.fn(),
 }));
 
-describe('dartHookFormatCheck', () => {
+describe('dartHookDcmCheck', () => {
   let consoleErrorSpy: any;
   let processExitSpy: any;
   let isGitRepoSpy: any;
   let isDartPackageSpy: any;
   let getAllChangedFilesSpy: any;
+  let isCommandInstalledSpy: any;
 
   beforeEach(() => {
     consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -23,7 +25,10 @@ describe('dartHookFormatCheck', () => {
     isGitRepoSpy = vi.spyOn(gitUtils, 'isGitRepo');
     isDartPackageSpy = vi.spyOn(dartUtils, 'isDartPackage');
     getAllChangedFilesSpy = vi.spyOn(gitUtils, 'getAllChangedFiles');
+    isCommandInstalledSpy = vi.spyOn(shellUtils, 'isCommandInstalled');
 
+    // Default: DCM is installed
+    isCommandInstalledSpy.mockReturnValue(true);
     // Mock execSync to succeed by default
     vi.mocked(execSync).mockReturnValue('' as any);
   });
@@ -34,6 +39,7 @@ describe('dartHookFormatCheck', () => {
     isGitRepoSpy.mockRestore();
     isDartPackageSpy.mockRestore();
     getAllChangedFilesSpy.mockRestore();
+    isCommandInstalledSpy.mockRestore();
     vi.clearAllMocks();
   });
 
@@ -41,7 +47,7 @@ describe('dartHookFormatCheck', () => {
     isGitRepoSpy.mockReturnValue(false);
 
     expect(() => {
-      dartHookFormatCheck({ verbose: false });
+      dartHookDcmCheck({ verbose: false });
     }).toThrow('process.exit(1)');
 
     expect(consoleErrorSpy).toHaveBeenCalledWith(
@@ -55,7 +61,7 @@ describe('dartHookFormatCheck', () => {
     isDartPackageSpy.mockReturnValue(false);
 
     expect(() => {
-      dartHookFormatCheck({ verbose: false });
+      dartHookDcmCheck({ verbose: false });
     }).toThrow('process.exit(1)');
 
     expect(consoleErrorSpy).toHaveBeenCalledWith(
@@ -70,7 +76,7 @@ describe('dartHookFormatCheck', () => {
     getAllChangedFilesSpy.mockReturnValue([]);
 
     expect(() => {
-      dartHookFormatCheck({ verbose: true });
+      dartHookDcmCheck({ verbose: true });
     }).toThrow('process.exit(0)');
 
     expect(consoleErrorSpy).toHaveBeenCalledWith(
@@ -89,7 +95,7 @@ describe('dartHookFormatCheck', () => {
     ]);
 
     expect(() => {
-      dartHookFormatCheck({ verbose: true });
+      dartHookDcmCheck({ verbose: true });
     }).toThrow('process.exit(0)');
 
     expect(consoleErrorSpy).toHaveBeenCalledWith(
@@ -105,7 +111,7 @@ describe('dartHookFormatCheck', () => {
     const providedFiles = ['lib/user.ts', 'lib/main.js'];
 
     expect(() => {
-      dartHookFormatCheck({ verbose: true, files: providedFiles });
+      dartHookDcmCheck({ verbose: true, files: providedFiles });
     }).toThrow('process.exit(0)');
 
     expect(getAllChangedFilesSpy).not.toHaveBeenCalled();
@@ -118,7 +124,7 @@ describe('dartHookFormatCheck', () => {
     getAllChangedFilesSpy.mockReturnValue([]);
 
     expect(() => {
-      dartHookFormatCheck({ verbose: true });
+      dartHookDcmCheck({ verbose: true });
     }).toThrow('process.exit(0)');
 
     expect(getAllChangedFilesSpy).toHaveBeenCalled();
@@ -132,13 +138,13 @@ describe('dartHookFormatCheck', () => {
     const providedFiles = ['lib/user.ts', 'lib/main.js', 'README.md'];
 
     expect(() => {
-      dartHookFormatCheck({ verbose: true, files: providedFiles });
+      dartHookDcmCheck({ verbose: true, files: providedFiles });
     }).toThrow('process.exit(0)');
 
     expect(getAllChangedFilesSpy).not.toHaveBeenCalled();
   });
 
-  it('should display file list in verbose mode when running dart format', () => {
+  it('should display file list in verbose mode when running dcm fix', () => {
     isGitRepoSpy.mockReturnValue(true);
     isDartPackageSpy.mockReturnValue(true);
     getAllChangedFilesSpy.mockReturnValue(['lib/main.dart']);
@@ -146,17 +152,17 @@ describe('dartHookFormatCheck', () => {
     const hasUnstagedChangesSpy = vi.spyOn(gitUtils, 'hasUnstagedChanges').mockReturnValue(false);
 
     expect(() => {
-      dartHookFormatCheck({ verbose: true });
+      dartHookDcmCheck({ verbose: true });
     }).toThrow('process.exit(0)');
 
     // Should display the file list
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Running dart format on 1 file(s):');
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Running DCM fix on 1 file(s):');
     expect(consoleErrorSpy).toHaveBeenCalledWith('  lib/main.dart');
 
     hasUnstagedChangesSpy.mockRestore();
   });
 
-  it('should accept files as argument and run dart format on them', () => {
+  it('should accept files as argument and run dcm fix on them', () => {
     isGitRepoSpy.mockReturnValue(true);
     isDartPackageSpy.mockReturnValue(true);
 
@@ -165,13 +171,12 @@ describe('dartHookFormatCheck', () => {
     const files = ['lib/main.dart', 'lib/user.dart'];
 
     expect(() => {
-      dartHookFormatCheck({ verbose: true, files });
+      dartHookDcmCheck({ verbose: true, files });
     }).toThrow('process.exit(0)');
 
     expect(getAllChangedFilesSpy).not.toHaveBeenCalled();
-    expect(consoleErrorSpy).toHaveBeenCalledWith('✓ All files properly formatted');
+    expect(consoleErrorSpy).toHaveBeenCalledWith('✓ All files pass DCM checks');
 
     hasUnstagedChangesSpy.mockRestore();
   });
-
 });
