@@ -1,6 +1,6 @@
 # Hook Commands
 
-Git hook utilities for Dart/Flutter projects.
+Git / Claude hook utilities for Dart/Flutter projects.
 
 ## Available Commands
 

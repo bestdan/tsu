@@ -35,7 +35,7 @@ tsu <namespace> <command> [options]
 - **check** - System dependency checks ([documentation](docs/check.md))
 - **git** - Git-related utilities ([documentation](docs/git.md))
 - **dart** - Dart/Flutter project utilities ([documentation](docs/dart.md))
-- **hook** - Git hook utilities for Dart ([documentation](docs/hook.md))
+- **hook** - Git / Claude hook utilities for Dart ([documentation](docs/hook.md))
 - **files** - File filtering utilities ([documentation](docs/files.md))
 
 ### Quick Examples

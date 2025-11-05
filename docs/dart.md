@@ -10,7 +10,7 @@ tsutils dart root                     # Get Dart package root
 tsutils dart changed                  # Show changed Dart files
 ```
 
-For git hook commands (format, analyze, dcm, graphql), see the [hook documentation](hook.md).
+For git / claude hook commands (format, analyze, dcm, graphql), see the [hook documentation](hook.md).
 
 ## Command Details
 
