@@ -18,9 +18,8 @@ export default defineConfig({
       thresholds: {
         // Updated thresholds after using logIfVerbose helper and /* v8 ignore next -- @preserve */
         // These reflect coverage with external tool integration code properly marked as ignored.
-        // Current actual coverage after adding dcm-parse: statements: 93.18%, branches: 89%, functions: 95%, lines: 93.06%
         statements: 93,
-        branches: 89,
+        branches: 90,
         functions: 98,
         lines: 93,
       },

@@ -78,9 +78,7 @@ export function dartHookDcmAnalyzeCheck(
   const result = dcmAnalyze({ cwd, timeout: 20000, files: modifiedFiles });
 
   if (!result.success) {
-    const filesWithIssues = result.filesWithIssues.length > 0
-      ? result.filesWithIssues
-      : [];
+    const filesWithIssues = result.filesWithIssues;
 
     console.error('');
     console.error('❌ Push blocked: DCM analyze found issues in the following file(s):');

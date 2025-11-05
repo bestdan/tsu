@@ -1,6 +1,6 @@
 import { execSync } from 'node:child_process';
 import { resolve, dirname } from 'node:path';
-import { findDartPackageRoot } from '../commands/dart/utils/package/find-dart-package-root.js';
+import { findDartPackageRoot } from '../commands/dart/utils/dart.js';
 
 interface DcmAnalyzeResult {
   path: string;
