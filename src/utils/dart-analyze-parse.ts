@@ -1,5 +1,5 @@
 import { execSync } from 'node:child_process';
-import { resolve, dirname } from 'node:path';
+import { resolve, dirname, relative } from 'node:path';
 import { findDartPackageRoot } from '../commands/dart/utils/dart.js';
 
 export interface DartAnalyzeIssue {
@@ -13,11 +13,14 @@ export interface DartAnalyzeIssue {
 
 export function parseDartAnalyzeOutput(output: string): DartAnalyzeIssue[] {
   const issues: DartAnalyzeIssue[] = [];
-  
-  // Match pattern: severity • filepath:line:column • message • code
-  // Example:    info • lib/account/screens/account_screen/account_screen.dart:102:16 • Use 'const' with the constructor...
-  const issuePattern = /^\s*(info|warning|error)\s+•\s+([^:]+):(\d+):(\d+)\s+•\s+([^•]+)\s+•\s+(\S+)/gm;
-  
+
+  // Match pattern: severity [•-] filepath:line:column [•-] message [•-] code
+  // Supports both bullet (•) and dash (-) separators
+  // Examples:
+  //   info • lib/account/screens/account_screen/account_screen.dart:102:16 • Use 'const' with the constructor... • prefer_const_constructors
+  //   error - lib/main.dart:1:8 - Target of URI doesn't exist... - uri_does_not_exist
+  const issuePattern = /^\s*(info|warning|error)\s+[•-]\s+([^:]+):(\d+):(\d+)\s+[•-]\s+([^•-]+)\s+[•-]\s+(\S+)/gm;
+
   let match;
   while ((match = issuePattern.exec(output)) !== null) {
     // TypeScript regex match guarantees these exist due to the pattern
@@ -39,7 +42,7 @@ export function parseDartAnalyzeOutput(output: string): DartAnalyzeIssue[] {
       });
     }
   }
-  
+
   return issues;
 }
 
@@ -57,13 +60,21 @@ export interface CallAndParseDartAnalyzeResult {
 }
 
 /**
- * Runs dart analyze for a single package root.
+ * Runs dart analyze for a single package root with optional file list.
  * Separated for easier testing and to avoid scattering v8 ignore comments.
  */
 /* v8 ignore next -- @preserve */
-function runDartAnalyzeForPackage(packageRoot: string, timeout: number): string {
+function runDartAnalyzeForPackage(
+  packageRoot: string,
+  timeout: number,
+  files?: string[]
+): string {
+  const fileArgs = files && files.length > 0
+    ? files.map(f => `"${f}"`).join(' ')
+    : '.';
+
   return execSync(
-    'dart analyze . --fatal-infos --fatal-warnings',
+    `dart analyze ${fileArgs} --fatal-infos --fatal-warnings`,
     {
       cwd: packageRoot,
       stdio: 'pipe',
@@ -122,36 +133,43 @@ function processDartAnalyzeError(
 export function dartAnalyze(
   options: CallAndParseDartAnalyzeOptions,
   // Allow dependency injection for testing
-  dartAnalyzeRunner: (packageRoot: string, timeout: number) => string = runDartAnalyzeForPackage
+  dartAnalyzeRunner: (packageRoot: string, timeout: number, files?: string[]) => string = runDartAnalyzeForPackage
 ): CallAndParseDartAnalyzeResult {
   const { cwd, timeout = 20000, files } = options;
 
-  // Find unique package roots for all the files
-  const packageRoots = new Set<string>();
+  // Group files by their package roots
+  const packageToFiles = new Map<string, string[]>();
 
   if (files && files.length > 0) {
     for (const file of files) {
       const absolutePath = resolve(cwd, file);
       const packageRoot = findDartPackageRoot(dirname(absolutePath));
       if (packageRoot) {
-        packageRoots.add(packageRoot);
+        if (!packageToFiles.has(packageRoot)) {
+          packageToFiles.set(packageRoot, []);
+        }
+        // Convert to relative path from package root
+        const relativePath = relative(packageRoot, absolutePath);
+        packageToFiles.get(packageRoot)!.push(relativePath);
       }
     }
   }
 
-  if (packageRoots.size === 0) {
-    // No files provided or no package roots found, use cwd
-    packageRoots.add(cwd);
+  if (packageToFiles.size === 0) {
+    // No files provided or no package roots found, use cwd with no specific files
+    packageToFiles.set(cwd, []);
   }
 
-  // Run dart analyze on each package
+  // Run dart analyze on each package with its associated files
   let allSuccess = true;
   const allIssues: DartAnalyzeIssue[] = [];
   let combinedOutput = '';
 
-  for (const packageRoot of packageRoots) {
+  for (const [packageRoot, packageFiles] of packageToFiles.entries()) {
+    const filesToAnalyze = packageFiles.length > 0 ? packageFiles : undefined;
+
     try {
-      const output = dartAnalyzeRunner(packageRoot, timeout);
+      const output = dartAnalyzeRunner(packageRoot, timeout, filesToAnalyze);
       combinedOutput += output;
     } catch (error: unknown) {
       const result = processDartAnalyzeError(error, packageRoot, timeout);
