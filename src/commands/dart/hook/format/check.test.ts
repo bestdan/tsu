@@ -2,6 +2,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { dartHookFormatCheck } from './check.js';
 import * as gitUtils from '../../../git/utils/git.js';
 import * as dartUtils from '../../utils/dart.js';
+import { execSync } from 'node:child_process';
+
+vi.mock('node:child_process', () => ({
+  execSync: vi.fn(),
+}));
 
 describe('dartHookFormatCheck', () => {
   let consoleErrorSpy: any;
@@ -18,6 +23,9 @@ describe('dartHookFormatCheck', () => {
     isGitRepoSpy = vi.spyOn(gitUtils, 'isGitRepo');
     isDartPackageSpy = vi.spyOn(dartUtils, 'isDartPackage');
     getAllChangedFilesSpy = vi.spyOn(gitUtils, 'getAllChangedFiles');
+
+    // Mock execSync to succeed by default
+    vi.mocked(execSync).mockReturnValue('' as any);
   });
 
   afterEach(() => {
