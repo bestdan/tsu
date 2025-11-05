@@ -1,7 +1,7 @@
 name: Auto Version Bump
 
 env:
-  GITHUB_TOKEN: ${{ secrets.TSU_ACTIONS }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 on:
   pull_request:
