@@ -22,7 +22,7 @@ describe('dartHookDcmAnalyzeCheck', () => {
     isDartPackageSpy = vi.spyOn(dartUtils, 'isDartPackage');
     getAllChangedFilesSpy = vi.spyOn(gitUtils, 'getAllChangedFiles');
     isCommandInstalledSpy = vi.spyOn(shellUtils, 'isCommandInstalled');
-    
+
     // Default: DCM is installed
     isCommandInstalledSpy.mockReturnValue(true);
   });
@@ -101,20 +101,6 @@ describe('dartHookDcmAnalyzeCheck', () => {
   it('should use provided files when files option is given', () => {
     isGitRepoSpy.mockReturnValue(true);
     isDartPackageSpy.mockReturnValue(true);
-
-    const providedFiles = ['lib/user.ts', 'lib/main.js'];
-
-    expect(() => {
-      dartHookDcmAnalyzeCheck({ verbose: true, files: providedFiles });
-    }).toThrow('process.exit(0)');
-
-    expect(getAllChangedFilesSpy).not.toHaveBeenCalled();
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Using provided files');
-  });
-
-  it('should use getAllChangedFiles when no files option is given', () => {
-    isGitRepoSpy.mockReturnValue(true);
-    isDartPackageSpy.mockReturnValue(true);
     getAllChangedFilesSpy.mockReturnValue([]);
 
     expect(() => {
@@ -122,26 +108,15 @@ describe('dartHookDcmAnalyzeCheck', () => {
     }).toThrow('process.exit(0)');
 
     expect(getAllChangedFilesSpy).toHaveBeenCalled();
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Checking all changed files');
-  });
-
-  it('should filter provided files to only dart files', () => {
-    isGitRepoSpy.mockReturnValue(true);
-    isDartPackageSpy.mockReturnValue(true);
-
-    const providedFiles = ['lib/user.ts', 'lib/main.js', 'README.md'];
-
-    expect(() => {
-      dartHookDcmAnalyzeCheck({ verbose: true, files: providedFiles });
-    }).toThrow('process.exit(0)');
-
-    expect(getAllChangedFilesSpy).not.toHaveBeenCalled();
   });
 
   it('should run dcm analyze on dart files and exit with success when no issues', () => {
     isGitRepoSpy.mockReturnValue(true);
     isDartPackageSpy.mockReturnValue(true);
-    getAllChangedFilesSpy.mockReturnValue(['lib/main.dart', 'lib/models/user.dart']);
+    getAllChangedFilesSpy.mockReturnValue([
+      'lib/main.dart',
+      'lib/models/user.dart',
+    ]);
 
     const dcmAnalyzeSpy = vi.spyOn(dcmParse, 'dcmAnalyze').mockReturnValue({
       success: true,
@@ -158,7 +133,9 @@ describe('dartHookDcmAnalyzeCheck', () => {
       timeout: 20000,
       files: ['lib/main.dart', 'lib/models/user.dart'],
     });
-    expect(consoleErrorSpy).toHaveBeenCalledWith('✓ All files pass DCM analyze checks');
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      '✓ All files pass DCM analyze checks'
+    );
 
     dcmAnalyzeSpy.mockRestore();
   });
@@ -179,7 +156,9 @@ describe('dartHookDcmAnalyzeCheck', () => {
     }).toThrow('process.exit(0)');
 
     // Should display the file list
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Running DCM analyze on 1 file(s):');
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      'Running DCM analyze on 1 file(s):'
+    );
     expect(consoleErrorSpy).toHaveBeenCalledWith('  lib/main.dart');
 
     dcmAnalyzeSpy.mockRestore();
@@ -188,7 +167,10 @@ describe('dartHookDcmAnalyzeCheck', () => {
   it('should exit with error when dcm analyze finds issues', () => {
     isGitRepoSpy.mockReturnValue(true);
     isDartPackageSpy.mockReturnValue(true);
-    getAllChangedFilesSpy.mockReturnValue(['lib/main.dart', 'lib/models/user.dart']);
+    getAllChangedFilesSpy.mockReturnValue([
+      'lib/main.dart',
+      'lib/models/user.dart',
+    ]);
 
     const dcmAnalyzeSpy = vi.spyOn(dcmParse, 'dcmAnalyze').mockReturnValue({
       success: false,
@@ -206,34 +188,10 @@ describe('dartHookDcmAnalyzeCheck', () => {
       '❌ Push blocked: DCM analyze found issues in the following file(s):'
     );
     expect(consoleErrorSpy).toHaveBeenCalledWith('  lib/main.dart');
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Run `dcm fix` to fix the issues.');
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      'Run `dcm fix` to fix the issues.'
+    );
     expect(processExitSpy).toHaveBeenCalledWith(1);
-
-    dcmAnalyzeSpy.mockRestore();
-  });
-
-  it('should accept files as argument and analyze them', () => {
-    isGitRepoSpy.mockReturnValue(true);
-    isDartPackageSpy.mockReturnValue(true);
-
-    const dcmAnalyzeSpy = vi.spyOn(dcmParse, 'dcmAnalyze').mockReturnValue({
-      success: true,
-      filesWithIssues: [],
-      rawOutput: 'No issues found!',
-    });
-
-    const files = ['lib/main.dart', 'lib/user.dart'];
-
-    expect(() => {
-      dartHookDcmAnalyzeCheck({ verbose: true, files });
-    }).toThrow('process.exit(0)');
-
-    expect(dcmAnalyzeSpy).toHaveBeenCalledWith({
-      cwd: expect.any(String),
-      timeout: 20000,
-      files: ['lib/main.dart', 'lib/user.dart'],
-    });
-    expect(getAllChangedFilesSpy).not.toHaveBeenCalled();
 
     dcmAnalyzeSpy.mockRestore();
   });

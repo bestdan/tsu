@@ -2,26 +2,22 @@ import { execSync } from 'node:child_process';
 import {
   isGitRepo,
   getGitStatus,
+  getAllChangedFiles,
 } from '../../git/utils/git.js';
 import { isDartPackage } from '../../dart/utils/dart.js';
 import {
   ensureCondition,
-  getHookChangedFiles,
   displayFileList,
 } from '../../../utils/command-helpers.js';
 import { isCommandInstalled } from '../../../utils/shell.js';
 import { logIfVerbose } from '../../../utils/logger.js';
+import type { ChangedFilesOptions } from '../../../types/command-options.js';
 
-export interface DartHookGraphqlCheckOptions {
-  verbose?: boolean;
-  files?: string[];
-}
+export type DartHookGraphqlCheckOptions = ChangedFilesOptions;
 
 /**
  * Checks if GraphQL files are modified and runs code generation to verify fakes are up to date.
- * Supports two modes:
- * 1. Explicit file list (--files)
- * 2. Default mode - checks all changed files
+ * Gets changed files based on options (staged, unstaged, all, or committed changes).
  *
  * Steps:
  * 1. Checks if melos is installed
@@ -48,8 +44,8 @@ export async function dartHookGraphqlCheck(
 
   const cwd = process.cwd();
 
-  // Get files to check (explicit or changed files)
-  const allFiles = getHookChangedFiles({ files: options.files, verbose, cwd });
+  // Get files to check based on options
+  const allFiles = getAllChangedFiles(options, cwd);
 
   // Filter to only GraphQL files
   const graphqlFiles = allFiles.filter((file) => file.endsWith('.graphql'));
@@ -77,10 +73,7 @@ export async function dartHookGraphqlCheck(
   // Get git status before running codegen
   const gitStatusBefore = getGitStatus(cwd);
 
-  ensureCondition(
-    gitStatusBefore !== null,
-    'Error: Failed to get git status'
-  );
+  ensureCondition(gitStatusBefore !== null, 'Error: Failed to get git status');
 
   logIfVerbose(verbose, '🔧 Running GraphQL code generation...');
 
@@ -106,10 +99,7 @@ export async function dartHookGraphqlCheck(
   const gitStatusAfter = getGitStatus(cwd);
 
   /* v8 ignore next -- @preserve */
-  ensureCondition(
-    gitStatusAfter !== null,
-    'Error: Failed to get git status'
-  );
+  ensureCondition(gitStatusAfter !== null, 'Error: Failed to get git status');
 
   // Compare git status before and after
   // TypeScript knows these are non-null after ensureCondition checks
@@ -127,7 +117,9 @@ export async function dartHookGraphqlCheck(
       const beforeLines = new Set(
         gitStatusBefore.split('\n').filter((line) => line.length > 0)
       );
-      const afterLines = gitStatusAfter.split('\n').filter((line) => line.length > 0);
+      const afterLines = gitStatusAfter
+        .split('\n')
+        .filter((line) => line.length > 0);
 
       // Find files that are new or have different status
       const changedFiles = afterLines.filter((line) => !beforeLines.has(line));

@@ -21,10 +21,7 @@ export { getBranchDiff } from './diff/get-branch-diff.js';
 export { isMainBranch } from './branch/is-main-branch.js';
 
 // Claude AI integration
-export {
-  callClaude,
-  type CallClaudeOptions,
-} from './claude/call-claude.js';
+export { callClaude, type CallClaudeOptions } from './claude/call-claude.js';
 export {
   generateCommitMessage,
   type GenerateCommitMessageOptions,

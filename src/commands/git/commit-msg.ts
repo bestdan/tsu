@@ -3,7 +3,7 @@ import {
   getStagedDiff,
   generateCommitMessage,
   createCommit,
- } from './utils/git.js';
+} from './utils/git.js';
 
 import { ensureClaudeInstalled } from '../../utils/command-helpers.js';
 import type { BaseCommandOptions } from '../../types/command-options.js';
@@ -62,7 +62,7 @@ export function gitCommitMsg(options: GitCommitMsgOptions = {}): void {
     }
 
     logIfVerbose(verbose, 'Commit created successfully!');
-    
+
     // Output the message to stdout for visibility
     console.log(message);
   } else {

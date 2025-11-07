@@ -94,20 +94,6 @@ describe('dartHookAnalysisCheck', () => {
   it('should use provided files when files option is given', () => {
     isGitRepoSpy.mockReturnValue(true);
     isDartPackageSpy.mockReturnValue(true);
-
-    const providedFiles = ['lib/user.ts', 'lib/main.js'];
-
-    expect(() => {
-      dartHookAnalysisCheck({ verbose: true, files: providedFiles });
-    }).toThrow('process.exit(0)');
-
-    expect(getAllChangedFilesSpy).not.toHaveBeenCalled();
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Using provided files');
-  });
-
-  it('should use getAllChangedFiles when no files option is given', () => {
-    isGitRepoSpy.mockReturnValue(true);
-    isDartPackageSpy.mockReturnValue(true);
     getAllChangedFilesSpy.mockReturnValue([]);
 
     expect(() => {
@@ -115,33 +101,24 @@ describe('dartHookAnalysisCheck', () => {
     }).toThrow('process.exit(0)');
 
     expect(getAllChangedFilesSpy).toHaveBeenCalled();
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Checking all changed files');
-  });
-
-  it('should filter provided files to only dart files', () => {
-    isGitRepoSpy.mockReturnValue(true);
-    isDartPackageSpy.mockReturnValue(true);
-
-    const providedFiles = ['lib/user.ts', 'lib/main.js', 'README.md'];
-
-    expect(() => {
-      dartHookAnalysisCheck({ verbose: true, files: providedFiles });
-    }).toThrow('process.exit(0)');
-
-    expect(getAllChangedFilesSpy).not.toHaveBeenCalled();
   });
 
   it('should run dart analyze on dart files and exit with success when no issues', () => {
     isGitRepoSpy.mockReturnValue(true);
     isDartPackageSpy.mockReturnValue(true);
-    getAllChangedFilesSpy.mockReturnValue(['lib/main.dart', 'lib/models/user.dart']);
+    getAllChangedFilesSpy.mockReturnValue([
+      'lib/main.dart',
+      'lib/models/user.dart',
+    ]);
 
-    const dartAnalyzeSpy = vi.spyOn(dartAnalyzeParse, 'dartAnalyze').mockReturnValue({
-      success: true,
-      filesWithIssues: [],
-      issues: [],
-      rawOutput: 'No issues found!',
-    });
+    const dartAnalyzeSpy = vi
+      .spyOn(dartAnalyzeParse, 'dartAnalyze')
+      .mockReturnValue({
+        success: true,
+        filesWithIssues: [],
+        issues: [],
+        rawOutput: 'No issues found!',
+      });
 
     expect(() => {
       dartHookAnalysisCheck({ verbose: true });
@@ -152,7 +129,9 @@ describe('dartHookAnalysisCheck', () => {
       timeout: 20000,
       files: ['lib/main.dart', 'lib/models/user.dart'],
     });
-    expect(consoleErrorSpy).toHaveBeenCalledWith('✓ All files pass dart analyze');
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      '✓ All files pass dart analyze'
+    );
 
     dartAnalyzeSpy.mockRestore();
   });
@@ -162,19 +141,23 @@ describe('dartHookAnalysisCheck', () => {
     isDartPackageSpy.mockReturnValue(true);
     getAllChangedFilesSpy.mockReturnValue(['lib/main.dart']);
 
-    const dartAnalyzeSpy = vi.spyOn(dartAnalyzeParse, 'dartAnalyze').mockReturnValue({
-      success: true,
-      filesWithIssues: [],
-      issues: [],
-      rawOutput: 'No issues found!',
-    });
+    const dartAnalyzeSpy = vi
+      .spyOn(dartAnalyzeParse, 'dartAnalyze')
+      .mockReturnValue({
+        success: true,
+        filesWithIssues: [],
+        issues: [],
+        rawOutput: 'No issues found!',
+      });
 
     expect(() => {
       dartHookAnalysisCheck({ verbose: true });
     }).toThrow('process.exit(0)');
 
     // Should display the file list
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Running dart analyze on 1 file(s):');
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      'Running dart analyze on 1 file(s):'
+    );
     expect(consoleErrorSpy).toHaveBeenCalledWith('  lib/main.dart');
 
     dartAnalyzeSpy.mockRestore();
@@ -183,23 +166,28 @@ describe('dartHookAnalysisCheck', () => {
   it('should exit with error when dart analyze finds issues', () => {
     isGitRepoSpy.mockReturnValue(true);
     isDartPackageSpy.mockReturnValue(true);
-    getAllChangedFilesSpy.mockReturnValue(['lib/main.dart', 'lib/models/user.dart']);
+    getAllChangedFilesSpy.mockReturnValue([
+      'lib/main.dart',
+      'lib/models/user.dart',
+    ]);
 
-    const dartAnalyzeSpy = vi.spyOn(dartAnalyzeParse, 'dartAnalyze').mockReturnValue({
-      success: false,
-      filesWithIssues: ['lib/main.dart'],
-      issues: [
-        {
-          severity: 'error',
-          filePath: 'lib/main.dart',
-          line: 10,
-          column: 5,
-          message: 'Some error',
-          code: 'error_code',
-        },
-      ],
-      rawOutput: 'error - lib/main.dart:10:5 - Some error - error_code',
-    });
+    const dartAnalyzeSpy = vi
+      .spyOn(dartAnalyzeParse, 'dartAnalyze')
+      .mockReturnValue({
+        success: false,
+        filesWithIssues: ['lib/main.dart'],
+        issues: [
+          {
+            severity: 'error',
+            filePath: 'lib/main.dart',
+            line: 10,
+            column: 5,
+            message: 'Some error',
+            code: 'error_code',
+          },
+        ],
+        rawOutput: 'error - lib/main.dart:10:5 - Some error - error_code',
+      });
 
     expect(() => {
       dartHookAnalysisCheck({ verbose: true });
@@ -218,32 +206,4 @@ describe('dartHookAnalysisCheck', () => {
 
     dartAnalyzeSpy.mockRestore();
   });
-
-  it('should accept files as argument and analyze them', () => {
-    isGitRepoSpy.mockReturnValue(true);
-    isDartPackageSpy.mockReturnValue(true);
-
-    const dartAnalyzeSpy = vi.spyOn(dartAnalyzeParse, 'dartAnalyze').mockReturnValue({
-      success: true,
-      filesWithIssues: [],
-      issues: [],
-      rawOutput: 'No issues found!',
-    });
-
-    const files = ['lib/main.dart', 'lib/user.dart'];
-
-    expect(() => {
-      dartHookAnalysisCheck({ verbose: true, files });
-    }).toThrow('process.exit(0)');
-
-    expect(dartAnalyzeSpy).toHaveBeenCalledWith({
-      cwd: expect.any(String),
-      timeout: 20000,
-      files: ['lib/main.dart', 'lib/user.dart'],
-    });
-    expect(getAllChangedFilesSpy).not.toHaveBeenCalled();
-
-    dartAnalyzeSpy.mockRestore();
-  });
-
 });

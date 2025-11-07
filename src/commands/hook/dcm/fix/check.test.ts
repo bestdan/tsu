@@ -107,20 +107,6 @@ describe('dartHookDcmCheck', () => {
   it('should use provided files when files option is given', () => {
     isGitRepoSpy.mockReturnValue(true);
     isDartPackageSpy.mockReturnValue(true);
-
-    const providedFiles = ['lib/user.ts', 'lib/main.js'];
-
-    expect(() => {
-      dartHookDcmCheck({ verbose: true, files: providedFiles });
-    }).toThrow('process.exit(0)');
-
-    expect(getAllChangedFilesSpy).not.toHaveBeenCalled();
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Using provided files');
-  });
-
-  it('should use getAllChangedFiles when no files option is given', () => {
-    isGitRepoSpy.mockReturnValue(true);
-    isDartPackageSpy.mockReturnValue(true);
     getAllChangedFilesSpy.mockReturnValue([]);
 
     expect(() => {
@@ -128,20 +114,6 @@ describe('dartHookDcmCheck', () => {
     }).toThrow('process.exit(0)');
 
     expect(getAllChangedFilesSpy).toHaveBeenCalled();
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Checking all changed files');
-  });
-
-  it('should filter provided files to only dart files', () => {
-    isGitRepoSpy.mockReturnValue(true);
-    isDartPackageSpy.mockReturnValue(true);
-
-    const providedFiles = ['lib/user.ts', 'lib/main.js', 'README.md'];
-
-    expect(() => {
-      dartHookDcmCheck({ verbose: true, files: providedFiles });
-    }).toThrow('process.exit(0)');
-
-    expect(getAllChangedFilesSpy).not.toHaveBeenCalled();
   });
 
   it('should display file list in verbose mode when running dcm fix', () => {
@@ -149,33 +121,19 @@ describe('dartHookDcmCheck', () => {
     isDartPackageSpy.mockReturnValue(true);
     getAllChangedFilesSpy.mockReturnValue(['lib/main.dart']);
 
-    const hasUnstagedChangesSpy = vi.spyOn(gitUtils, 'hasUnstagedChanges').mockReturnValue(false);
+    const hasUnstagedChangesSpy = vi
+      .spyOn(gitUtils, 'hasUnstagedChanges')
+      .mockReturnValue(false);
 
     expect(() => {
       dartHookDcmCheck({ verbose: true });
     }).toThrow('process.exit(0)');
 
     // Should display the file list
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Running DCM fix on 1 file(s):');
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      'Running DCM fix on 1 file(s):'
+    );
     expect(consoleErrorSpy).toHaveBeenCalledWith('  lib/main.dart');
-
-    hasUnstagedChangesSpy.mockRestore();
-  });
-
-  it('should accept files as argument and run dcm fix on them', () => {
-    isGitRepoSpy.mockReturnValue(true);
-    isDartPackageSpy.mockReturnValue(true);
-
-    const hasUnstagedChangesSpy = vi.spyOn(gitUtils, 'hasUnstagedChanges').mockReturnValue(false);
-
-    const files = ['lib/main.dart', 'lib/user.dart'];
-
-    expect(() => {
-      dartHookDcmCheck({ verbose: true, files });
-    }).toThrow('process.exit(0)');
-
-    expect(getAllChangedFilesSpy).not.toHaveBeenCalled();
-    expect(consoleErrorSpy).toHaveBeenCalledWith('✓ All files pass DCM checks');
 
     hasUnstagedChangesSpy.mockRestore();
   });

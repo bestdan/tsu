@@ -19,7 +19,8 @@ export function parseDartAnalyzeOutput(output: string): DartAnalyzeIssue[] {
   // Examples:
   //   info • lib/account/screens/account_screen/account_screen.dart:102:16 • Use 'const' with the constructor... • prefer_const_constructors
   //   error - lib/main.dart:1:8 - Target of URI doesn't exist... - uri_does_not_exist
-  const issuePattern = /^\s*(info|warning|error)\s+[•-]\s+([^:]+):(\d+):(\d+)\s+[•-]\s+([^•-]+)\s+[•-]\s+(\S+)/gm;
+  const issuePattern =
+    /^\s*(info|warning|error)\s+[•-]\s+([^:]+):(\d+):(\d+)\s+[•-]\s+([^•-]+)\s+[•-]\s+(\S+)/gm;
 
   let match;
   while ((match = issuePattern.exec(output)) !== null) {
@@ -69,19 +70,15 @@ function runDartAnalyzeForPackage(
   timeout: number,
   files?: string[]
 ): string {
-  const fileArgs = files && files.length > 0
-    ? files.map(f => `"${f}"`).join(' ')
-    : '.';
+  const fileArgs =
+    files && files.length > 0 ? files.map((f) => `"${f}"`).join(' ') : '.';
 
-  return execSync(
-    `dart analyze ${fileArgs} --fatal-infos --fatal-warnings`,
-    {
-      cwd: packageRoot,
-      stdio: 'pipe',
-      timeout,
-      encoding: 'utf-8',
-    }
-  );
+  return execSync(`dart analyze ${fileArgs} --fatal-infos --fatal-warnings`, {
+    cwd: packageRoot,
+    stdio: 'pipe',
+    timeout,
+    encoding: 'utf-8',
+  });
 }
 
 interface DartAnalyzeRunResult {
@@ -108,7 +105,9 @@ function processDartAnalyzeError(
 
   // Distinguish between timeout/execution errors and dart analyze finding issues
   if (err.code === 'ETIMEDOUT' || err.signal === 'SIGTERM') {
-    throw new Error(`dart analyze timed out in ${packageRoot} after ${timeout}ms`);
+    throw new Error(
+      `dart analyze timed out in ${packageRoot} after ${timeout}ms`
+    );
   }
 
   // If dart analyze ran but found issues, stdout will have the report
@@ -133,7 +132,11 @@ function processDartAnalyzeError(
 export function dartAnalyze(
   options: CallAndParseDartAnalyzeOptions,
   // Allow dependency injection for testing
-  dartAnalyzeRunner: (packageRoot: string, timeout: number, files?: string[]) => string = runDartAnalyzeForPackage
+  dartAnalyzeRunner: (
+    packageRoot: string,
+    timeout: number,
+    files?: string[]
+  ) => string = runDartAnalyzeForPackage
 ): CallAndParseDartAnalyzeResult {
   const { cwd, timeout = 20000, files } = options;
 
@@ -180,7 +183,9 @@ export function dartAnalyze(
   }
 
   // Extract unique file paths with issues
-  const filesWithIssues = [...new Set(allIssues.map(issue => issue.filePath))];
+  const filesWithIssues = [
+    ...new Set(allIssues.map((issue) => issue.filePath)),
+  ];
 
   return {
     success: allSuccess,

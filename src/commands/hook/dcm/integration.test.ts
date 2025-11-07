@@ -67,7 +67,9 @@ describe('DCM integration tests with analysis_options.yaml', () => {
     if (analyzeError) {
       const output = analyzeError.stdout || analyzeError.stderr || '';
       // DCM should report prefer-trailing-comma violations
-      expect(output.toLowerCase()).toMatch(/trailing.?comma|prefer-trailing-comma/);
+      expect(output.toLowerCase()).toMatch(
+        /trailing.?comma|prefer-trailing-comma/
+      );
     }
   });
 
@@ -130,7 +132,10 @@ describe('DCM integration tests with analysis_options.yaml', () => {
     }
 
     // Verify that analysis_options.yaml exists at package level
-    const packageAnalysisOptions = join(corePackageDir, 'analysis_options.yaml');
+    const packageAnalysisOptions = join(
+      corePackageDir,
+      'analysis_options.yaml'
+    );
     const packageOptions = readFileSync(packageAnalysisOptions, 'utf-8');
     expect(packageOptions).toContain('include: ../../analysis_options.yaml');
 

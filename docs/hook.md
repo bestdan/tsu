@@ -2,31 +2,63 @@
 
 Git / Claude hook utilities for Dart/Flutter projects.
 
+**Requirements:**
+- All hook commands must be run in a git repository
+- Dart-specific hooks (`format`, `analysis`, `fix`, `dcm`, `graphql`) must be run in a Dart package
+
 ## Available Commands
 
 ```bash
-tsutils hook format check        # Format modified Dart files (for git hooks)
-tsutils hook analysis check      # Run dart analyze on modified Dart files
-tsutils hook fix check           # Run dart fix on modified Dart files
-tsutils hook dcm fix check       # Run DCM fix on modified Dart files (for git hooks)
-tsutils hook dcm analyze check   # Run DCM analyze on modified Dart files
+tsutils hook format check        # Format Dart files about to be pushed (for git hooks)
+tsutils hook analysis check      # Run dart analyze on Dart files about to be pushed
+tsutils hook fix check           # Run dart fix on Dart files about to be pushed
+tsutils hook dcm fix check       # Run DCM fix on Dart files about to be pushed (for git hooks)
+tsutils hook dcm analyze check   # Run DCM analyze on Dart files about to be pushed
 tsutils hook graphql check       # Check GraphQL codegen is up to date (for git hooks)
+```
+
+## File Filtering Options
+
+By default, all hook commands check **files that would be pushed** (commits on your branch that haven't been pushed yet). You can override this with:
+
+- `--staged` - Check only staged files
+- `--unstaged` - Check only unstaged files
+- `--all` - Check all changes (committed + staged + unstaged)
+- `--base-branch <branch>` - Compare against a custom base branch (default: `main`)
+
+**Examples:**
+```bash
+# Check files to be pushed (default)
+tsutils hook format check
+
+# Check only staged files
+tsutils hook format check --staged
+
+# Check all changes including unstaged
+tsutils hook format check --all
+
+# Compare against develop branch instead of main
+tsutils hook format check --base-branch develop
 ```
 
 ## Command Details
 
 ### `hook format check`
 
-Formats modified Dart files (excluding generated files) and exits with error if changes were made. Perfect for pre-push hooks.
+Formats Dart files about to be pushed (excluding generated files) and exits with error if changes were made. Perfect for pre-push hooks.
 
 **How it works:**
-1. Gets all modified Dart files (excluding generated files)
-2. Runs `dart format` on those files
-3. Checks if formatting created any changes
-4. Exits with error (non-zero) if changes were made
-5. Exits successfully if no changes were needed
+1. Gets Dart files about to be pushed (or based on `--staged`, `--unstaged`, `--all` options)
+2. Filters out generated files (files ending with common codegen suffixes)
+3. Runs `dart format` on those files
+4. Checks if formatting created any changes
+5. Exits with error (non-zero) if changes were made
+6. Exits successfully if no changes were needed
 
-**Requirements**: Dart SDK must be installed. Get it from https://dart.dev
+**Requirements**: 
+- Must be run in a git repository
+- Must be run in a Dart package
+- Dart SDK must be installed. Get it from https://dart.dev
 
 **Example usage in git hooks:**
 ```bash
@@ -36,15 +68,19 @@ tsutils hook format check || exit 1
 
 ### `hook analysis check`
 
-Runs dart analyze on modified Dart files (excluding generated files) and exits with error if issues are found. Perfect for pre-push hooks.
+Runs dart analyze on Dart files about to be pushed (excluding generated files) and exits with error if issues are found. Perfect for pre-push hooks.
 
 **How it works:**
-1. Gets all modified Dart files (excluding generated files)
-2. Maps files to their package roots
-3. Runs `dart analyze` on each unique package
-4. Exits with error if dart analyze reports any issues
+1. Gets Dart files about to be pushed (or based on `--staged`, `--unstaged`, `--all` options)
+2. Filters out generated files
+3. Maps files to their package roots
+4. Runs `dart analyze` on each unique package
+5. Exits with error if dart analyze reports any issues
 
-**Requirements**: Dart SDK must be installed. Get it from https://dart.dev
+**Requirements**: 
+- Must be run in a git repository
+- Must be run in a Dart package
+- Dart SDK must be installed. Get it from https://dart.dev
 
 **Example usage in git hooks:**
 ```bash
@@ -54,16 +90,20 @@ tsutils hook analysis check || exit 1
 
 ### `hook fix check`
 
-Runs dart fix on modified Dart files (excluding generated files) and exits with error if fixes were applied. Perfect for pre-push hooks.
+Runs dart fix on Dart files about to be pushed (excluding generated files) and exits with error if fixes were applied. Perfect for pre-push hooks.
 
 **How it works:**
-1. Gets all modified Dart files (excluding generated files)
-2. Runs `dart fix --apply` on each file individually
-3. Checks if fixes created any changes
-4. Exits with error (non-zero) if changes were made
-5. Exits successfully if no changes were needed
+1. Gets Dart files about to be pushed (or based on `--staged`, `--unstaged`, `--all` options)
+2. Filters out generated files
+3. Runs `dart fix --apply` on each file individually
+4. Checks if fixes created any changes
+5. Exits with error (non-zero) if changes were made
+6. Exits successfully if no changes were needed
 
-**Requirements**: Dart SDK must be installed. Get it from https://dart.dev
+**Requirements**: 
+- Must be run in a git repository
+- Must be run in a Dart package
+- Dart SDK must be installed. Get it from https://dart.dev
 
 **Example usage in git hooks:**
 ```bash
@@ -73,17 +113,21 @@ tsutils hook fix check || exit 1
 
 ### `hook dcm fix check`
 
-Runs DCM fix on modified Dart files (excluding generated files) and exits with error if fixes were applied. Perfect for pre-push hooks. Skips gracefully if DCM is not installed.
+Runs DCM fix on Dart files about to be pushed (excluding generated files) and exits with error if fixes were applied. Perfect for pre-push hooks. Skips gracefully if DCM is not installed.
 
 **How it works:**
 1. Checks if DCM is installed, skips if not
-2. Gets all modified Dart files (excluding generated files)
-3. Runs `dcm fix` on those files
-4. Checks if DCM made any changes
-5. Exits with error (non-zero) if changes were made
-6. Exits successfully if no changes were needed
+2. Gets Dart files about to be pushed (or based on `--staged`, `--unstaged`, `--all` options)
+3. Filters out generated files
+4. Runs `dcm fix` on those files
+5. Checks if DCM made any changes
+6. Exits with error (non-zero) if changes were made
+7. Exits successfully if no changes were needed
 
-**Requirements**: DCM is optional. Install from https://dcm.dev
+**Requirements**: 
+- Must be run in a git repository
+- Must be run in a Dart package
+- DCM is optional. Install from https://dcm.dev
 
 **Example usage in git hooks:**
 ```bash
@@ -93,15 +137,19 @@ tsutils hook dcm fix check || exit 1
 
 ### `hook dcm analyze check`
 
-Runs DCM analyze on modified Dart files (excluding generated files) and exits with error if issues are found. Perfect for pre-push hooks. Skips gracefully if DCM is not installed.
+Runs DCM analyze on Dart files about to be pushed (excluding generated files) and exits with error if issues are found. Perfect for pre-push hooks. Skips gracefully if DCM is not installed.
 
 **How it works:**
 1. Checks if DCM is installed, skips if not
-2. Gets all modified Dart files (excluding generated files)
-3. Runs `dcm analyze` on those files
-4. Exits with error if DCM analyze reports any issues
+2. Gets Dart files about to be pushed (or based on `--staged`, `--unstaged`, `--all` options)
+3. Filters out generated files
+4. Runs `dcm analyze` on those files
+5. Exits with error if DCM analyze reports any issues
 
-**Requirements**: DCM is optional. Install from https://dcm.dev
+**Requirements**: 
+- Must be run in a git repository
+- Must be run in a Dart package
+- DCM is optional. Install from https://dcm.dev
 
 **Example usage in git hooks:**
 ```bash
@@ -115,13 +163,17 @@ Checks if GraphQL files have been modified and runs code generation (`melos run 
 
 **How it works:**
 1. Checks if Melos is installed, skips if not
-2. Checks if any GraphQL files (`.graphql`) have been modified
-3. If modified, runs GraphQL code generation commands
-4. Checks if code generation created any changes
-5. Exits with error (non-zero) if changes were made
-6. Exits successfully if no changes were needed or no GraphQL files modified
+2. Gets files about to be pushed (or based on `--staged`, `--unstaged`, `--all` options)
+3. Checks if any GraphQL files (`.graphql`) are in that set
+4. If modified, runs GraphQL code generation commands
+5. Checks if code generation created any changes
+6. Exits with error (non-zero) if changes were made
+7. Exits successfully if no changes were needed or no GraphQL files modified
 
-**Requirements**: Melos is optional. Install from https://melos.invertase.dev
+**Requirements**: 
+- Must be run in a git repository
+- Must be run in a Dart package
+- Melos is optional. Install from https://melos.invertase.dev
 
 **Example usage in git hooks:**
 ```bash

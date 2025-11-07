@@ -1,4 +1,3 @@
-
 import { isGitRepo, generatePRDescription } from './utils/git.js';
 import { ensureClaudeInstalled } from '../../utils/command-helpers.js';
 import type { BaseCommandOptions } from '../../types/command-options.js';

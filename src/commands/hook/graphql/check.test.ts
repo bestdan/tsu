@@ -89,20 +89,6 @@ describe('dartHookGraphqlCheck', () => {
   it('should use provided files when files option is given', async () => {
     isGitRepoSpy.mockReturnValue(true);
     isDartPackageSpy.mockReturnValue(true);
-
-    const providedFiles = ['lib/user.ts', 'lib/main.js'];
-
-    await expect(async () => {
-      await dartHookGraphqlCheck({ verbose: true, files: providedFiles });
-    }).rejects.toThrow('process.exit(0)');
-
-    expect(getAllChangedFilesSpy).not.toHaveBeenCalled();
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Using provided files');
-  });
-
-  it('should use getAllChangedFiles when no files option is given', async () => {
-    isGitRepoSpy.mockReturnValue(true);
-    isDartPackageSpy.mockReturnValue(true);
     getAllChangedFilesSpy.mockReturnValue([]);
 
     await expect(async () => {
@@ -110,7 +96,6 @@ describe('dartHookGraphqlCheck', () => {
     }).rejects.toThrow('process.exit(0)');
 
     expect(getAllChangedFilesSpy).toHaveBeenCalled();
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Checking all changed files');
   });
 
   it('should display file list in verbose mode when running graphql codegen', async () => {
@@ -125,24 +110,10 @@ describe('dartHookGraphqlCheck', () => {
     }).rejects.toThrow('process.exit(0)');
 
     // Should display the file list
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Running GraphQL codegen on 1 file(s):');
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      'Running GraphQL codegen on 1 file(s):'
+    );
     expect(consoleErrorSpy).toHaveBeenCalledWith('  lib/query.graphql');
-  });
-
-  it('should accept files as argument and run graphql codegen on them', async () => {
-    isGitRepoSpy.mockReturnValue(true);
-    isDartPackageSpy.mockReturnValue(true);
-    isCommandInstalledSpy.mockReturnValue(true);
-    getGitStatusSpy.mockReturnValue('M  lib/query.graphql');
-
-    const files = ['lib/query.graphql', 'lib/mutation.graphql'];
-
-    await expect(async () => {
-      await dartHookGraphqlCheck({ verbose: true, files });
-    }).rejects.toThrow('process.exit(0)');
-
-    expect(getAllChangedFilesSpy).not.toHaveBeenCalled();
-    expect(consoleErrorSpy).toHaveBeenCalledWith('✓ GraphQL fakes are up to date');
   });
 
   it('should exit early if melos is not installed', async () => {
@@ -155,7 +126,9 @@ describe('dartHookGraphqlCheck', () => {
       await dartHookGraphqlCheck({ verbose: true });
     }).rejects.toThrow('process.exit(0)');
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith('⚠️  Warning: Melos not installed, skipping');
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      '⚠️  Warning: Melos not installed, skipping'
+    );
     expect(processExitSpy).toHaveBeenCalledWith(0);
   });
 
@@ -183,5 +156,4 @@ describe('dartHookGraphqlCheck', () => {
 
     expect(processExitSpy).toHaveBeenCalledWith(0);
   });
-
 });

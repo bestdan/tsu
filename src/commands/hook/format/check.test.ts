@@ -98,21 +98,7 @@ describe('dartHookFormatCheck', () => {
     expect(processExitSpy).toHaveBeenCalledWith(0);
   });
 
-  it('should use provided files when files option is given', () => {
-    isGitRepoSpy.mockReturnValue(true);
-    isDartPackageSpy.mockReturnValue(true);
-
-    const providedFiles = ['lib/user.ts', 'lib/main.js'];
-
-    expect(() => {
-      dartHookFormatCheck({ verbose: true, files: providedFiles });
-    }).toThrow('process.exit(0)');
-
-    expect(getAllChangedFilesSpy).not.toHaveBeenCalled();
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Using provided files');
-  });
-
-  it('should use getAllChangedFiles when no files option is given', () => {
+  it('should use getAllChangedFiles to get files to check', () => {
     isGitRepoSpy.mockReturnValue(true);
     isDartPackageSpy.mockReturnValue(true);
     getAllChangedFilesSpy.mockReturnValue([]);
@@ -122,20 +108,6 @@ describe('dartHookFormatCheck', () => {
     }).toThrow('process.exit(0)');
 
     expect(getAllChangedFilesSpy).toHaveBeenCalled();
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Checking all changed files');
-  });
-
-  it('should filter provided files to only dart files', () => {
-    isGitRepoSpy.mockReturnValue(true);
-    isDartPackageSpy.mockReturnValue(true);
-
-    const providedFiles = ['lib/user.ts', 'lib/main.js', 'README.md'];
-
-    expect(() => {
-      dartHookFormatCheck({ verbose: true, files: providedFiles });
-    }).toThrow('process.exit(0)');
-
-    expect(getAllChangedFilesSpy).not.toHaveBeenCalled();
   });
 
   it('should display file list in verbose mode when running dart format', () => {
@@ -143,35 +115,20 @@ describe('dartHookFormatCheck', () => {
     isDartPackageSpy.mockReturnValue(true);
     getAllChangedFilesSpy.mockReturnValue(['lib/main.dart']);
 
-    const hasUnstagedChangesSpy = vi.spyOn(gitUtils, 'hasUnstagedChanges').mockReturnValue(false);
+    const hasUnstagedChangesSpy = vi
+      .spyOn(gitUtils, 'hasUnstagedChanges')
+      .mockReturnValue(false);
 
     expect(() => {
       dartHookFormatCheck({ verbose: true });
     }).toThrow('process.exit(0)');
 
     // Should display the file list
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Running dart format on 1 file(s):');
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      'Running dart format on 1 file(s):'
+    );
     expect(consoleErrorSpy).toHaveBeenCalledWith('  lib/main.dart');
 
     hasUnstagedChangesSpy.mockRestore();
   });
-
-  it('should accept files as argument and run dart format on them', () => {
-    isGitRepoSpy.mockReturnValue(true);
-    isDartPackageSpy.mockReturnValue(true);
-
-    const hasUnstagedChangesSpy = vi.spyOn(gitUtils, 'hasUnstagedChanges').mockReturnValue(false);
-
-    const files = ['lib/main.dart', 'lib/user.dart'];
-
-    expect(() => {
-      dartHookFormatCheck({ verbose: true, files });
-    }).toThrow('process.exit(0)');
-
-    expect(getAllChangedFilesSpy).not.toHaveBeenCalled();
-    expect(consoleErrorSpy).toHaveBeenCalledWith('✓ All files properly formatted');
-
-    hasUnstagedChangesSpy.mockRestore();
-  });
-
 });

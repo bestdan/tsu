@@ -1,7 +1,10 @@
 import { execSync } from 'node:child_process';
 import { resolve, join } from 'node:path';
 import { existsSync, statSync } from 'node:fs';
-import { ensureCondition, ensureDartInstalled } from '../../utils/command-helpers.js';
+import {
+  ensureCondition,
+  ensureDartInstalled,
+} from '../../utils/command-helpers.js';
 import { escapeShellArg } from '../../utils/shell.js';
 import { findAffectedPackages, readPackageName } from './utils/dart.js';
 import { logIfVerbose } from '../../utils/logger.js';

@@ -6,8 +6,6 @@ import {
   ensureClaudeInstalled,
   displayChangedFiles,
   getChangedFilesWithOptions,
-  hasExplicitFiles,
-  getHookChangedFiles,
   displayFileList,
 } from './command-helpers.js';
 import * as git from '../commands/git/utils/git.js';
@@ -822,97 +820,6 @@ describe('getChangedFilesWithOptions', () => {
   });
 });
 
-describe('hasExplicitFiles', () => {
-  it('should return true when files array has elements', () => {
-    expect(hasExplicitFiles(['file1.ts', 'file2.ts'])).toBe(true);
-    expect(hasExplicitFiles(['single-file.dart'])).toBe(true);
-  });
-
-  it('should return false when files array is empty', () => {
-    expect(hasExplicitFiles([])).toBe(false);
-  });
-
-  it('should return false when files is undefined', () => {
-    expect(hasExplicitFiles(undefined)).toBe(false);
-  });
-
-  it('should act as a type guard', () => {
-    const files: string[] | undefined = ['test.ts'];
-    
-    if (hasExplicitFiles(files)) {
-      // TypeScript should know files is string[] here
-      expect(files.length).toBe(1);
-      expect(files[0]).toBe('test.ts');
-    }
-  });
-});
-
-describe('getHookChangedFiles', () => {
-  let consoleErrorSpy: any;
-  let getAllChangedFilesMock: any;
-
-  beforeEach(() => {
-    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    getAllChangedFilesMock = vi.spyOn(git, 'getAllChangedFiles');
-  });
-
-  afterEach(() => {
-    consoleErrorSpy.mockRestore();
-    getAllChangedFilesMock.mockRestore();
-    vi.clearAllMocks();
-  });
-
-  it('should return explicit files when provided', () => {
-    const explicitFiles = ['file1.dart', 'file2.dart'];
-    const result = getHookChangedFiles({ files: explicitFiles });
-    
-    expect(result).toEqual(explicitFiles);
-    expect(getAllChangedFilesMock).not.toHaveBeenCalled();
-  });
-
-  it('should log verbose message when using explicit files', () => {
-    const explicitFiles = ['file1.dart'];
-    getHookChangedFiles({ files: explicitFiles, verbose: true });
-    
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Using provided files');
-  });
-
-  it('should get changed files from git when no explicit files provided', () => {
-    const changedFiles = ['changed1.dart', 'changed2.dart'];
-    getAllChangedFilesMock.mockReturnValue(changedFiles);
-    
-    const result = getHookChangedFiles({});
-    
-    expect(result).toEqual(changedFiles);
-    expect(getAllChangedFilesMock).toHaveBeenCalledWith(process.cwd());
-  });
-
-  it('should log verbose message when getting changed files', () => {
-    getAllChangedFilesMock.mockReturnValue(['test.dart']);
-    
-    getHookChangedFiles({ verbose: true });
-    
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Checking all changed files');
-  });
-
-  it('should use provided cwd when getting changed files', () => {
-    const customCwd = '/custom/path';
-    getAllChangedFilesMock.mockReturnValue([]);
-    
-    getHookChangedFiles({ cwd: customCwd });
-    
-    expect(getAllChangedFilesMock).toHaveBeenCalledWith(customCwd);
-  });
-
-  it('should return empty array when no files are provided and no changed files', () => {
-    getAllChangedFilesMock.mockReturnValue([]);
-    
-    const result = getHookChangedFiles({});
-    
-    expect(result).toEqual([]);
-  });
-});
-
 describe('displayFileList', () => {
   let consoleErrorSpy: any;
 
@@ -932,7 +839,9 @@ describe('displayFileList', () => {
       message: 'Running DCM analyze on',
     });
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Running DCM analyze on 2 file(s):');
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      'Running DCM analyze on 2 file(s):'
+    );
     expect(consoleErrorSpy).toHaveBeenCalledWith('  file1.dart');
     expect(consoleErrorSpy).toHaveBeenCalledWith('  file2.dart');
   });
