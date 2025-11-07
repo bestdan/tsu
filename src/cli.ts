@@ -521,5 +521,4 @@ pipe
     pipeSeries(checks, options);
   });
 
-
 program.parse();

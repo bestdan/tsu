@@ -87,16 +87,9 @@ export function pipeSeriesFromArgs(args: string[]): CheckCommand[] {
 
   const checks: CheckCommand[] = [];
   for (let i = 0; i < args.length; i += 2) {
-    const command = args[i];
-    const label = args[i + 1];
-    // TypeScript doesn't know that we've already checked args.length % 2 === 0
-    // so we need to satisfy the type checker even though this is safe
-    if (!command || !label) {
-      continue; // This will never happen due to the modulo check above
-    }
     checks.push({
-      command,
-      label,
+      command: args[i] as string,
+      label: args[i + 1] as string,
     });
   }
 
