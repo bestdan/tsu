@@ -13,8 +13,7 @@ import { isCommandInstalled } from '../../../utils/shell.js';
 import { logIfVerbose } from '../../../utils/logger.js';
 import type { ChangedFilesOptions } from '../../../types/command-options.js';
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface DartHookGraphqlCheckOptions extends ChangedFilesOptions {}
+export type DartHookGraphqlCheckOptions = ChangedFilesOptions;
 
 /**
  * Checks if GraphQL files are modified and runs code generation to verify fakes are up to date.
