@@ -620,7 +620,7 @@ describe('getAllChangedFiles', () => {
       // Add an unstaged change
       writeFileSync(join(tempDir, 'unstaged.txt'), 'unstaged');
 
-      const allFiles = getAllChangedFiles({}, tempDir);
+      const allFiles = getAllChangedFiles({ all: true }, tempDir);
 
       // Should contain committed and staged files (unstaged.txt won't show up as it's untracked)
       expect(allFiles).toContain('committed.txt');
@@ -701,7 +701,7 @@ describe('getAllChangedFiles', () => {
       // Modify file1.txt one more time without staging
       writeFileSync(join(tempDir, 'file1.txt'), 'modified yet again');
 
-      const allFiles = getAllChangedFiles({}, tempDir);
+      const allFiles = getAllChangedFiles({ all: true }, tempDir);
 
       // Should only contain file1.txt once, even though it appears in committed, staged, and unstaged
       expect(allFiles).toEqual(['file1.txt']);
@@ -747,12 +747,174 @@ describe('getAllChangedFiles', () => {
       // Create untracked file
       writeFileSync(join(tempDir, 'untracked.txt'), 'new file');
 
-      const allFiles = getAllChangedFiles({}, tempDir);
+      const allFiles = getAllChangedFiles({ all: true }, tempDir);
 
       // Should contain tracked.txt (unstaged but tracked)
       expect(allFiles).toContain('tracked.txt');
       // Should not contain untracked.txt
       expect(allFiles).not.toContain('untracked.txt');
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it('should default to push behavior when no options specified', () => {
+    const tempDir = mkdtempSync(join(tmpdir(), 'git-test-'));
+    try {
+      execSync('git init', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git config user.email "test@test.com"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git config user.name "Test User"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+
+      // Create initial commit on main
+      writeFileSync(join(tempDir, 'initial.txt'), 'initial');
+      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "Initial commit"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git branch -m main', { cwd: tempDir, stdio: 'pipe' });
+
+      // Create feature branch
+      execSync('git checkout -b feature', { cwd: tempDir, stdio: 'pipe' });
+
+      // Add commits on feature branch
+      writeFileSync(join(tempDir, 'feature1.txt'), 'feature1');
+      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "Add feature1"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+
+      writeFileSync(join(tempDir, 'feature2.txt'), 'feature2');
+      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "Add feature2"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+
+      // Default behavior should return files that would be pushed
+      const pushFiles = getAllChangedFiles({}, tempDir);
+
+      expect(pushFiles).toContain('feature1.txt');
+      expect(pushFiles).toContain('feature2.txt');
+      expect(pushFiles).not.toContain('initial.txt');
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it('should support explicit push option', () => {
+    const tempDir = mkdtempSync(join(tmpdir(), 'git-test-'));
+    try {
+      execSync('git init', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git config user.email "test@test.com"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git config user.name "Test User"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+
+      writeFileSync(join(tempDir, 'initial.txt'), 'initial');
+      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "Initial commit"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git branch -m main', { cwd: tempDir, stdio: 'pipe' });
+
+      execSync('git checkout -b feature', { cwd: tempDir, stdio: 'pipe' });
+
+      writeFileSync(join(tempDir, 'feature.txt'), 'feature');
+      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "Add feature"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+
+      const pushFiles = getAllChangedFiles({ push: true }, tempDir);
+
+      expect(pushFiles).toContain('feature.txt');
+      expect(pushFiles).not.toContain('initial.txt');
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it('should support staged option', () => {
+    const tempDir = mkdtempSync(join(tmpdir(), 'git-test-'));
+    try {
+      execSync('git init', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git config user.email "test@test.com"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git config user.name "Test User"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+
+      writeFileSync(join(tempDir, 'initial.txt'), 'initial');
+      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "Initial commit"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+
+      // Add staged file
+      writeFileSync(join(tempDir, 'staged.txt'), 'staged');
+      execSync('git add staged.txt', { cwd: tempDir, stdio: 'pipe' });
+
+      // Add unstaged file
+      writeFileSync(join(tempDir, 'unstaged.txt'), 'unstaged');
+
+      const stagedFiles = getAllChangedFiles({ staged: true }, tempDir);
+
+      expect(stagedFiles).toContain('staged.txt');
+      expect(stagedFiles).not.toContain('unstaged.txt');
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it('should support unstaged option', () => {
+    const tempDir = mkdtempSync(join(tmpdir(), 'git-test-'));
+    try {
+      execSync('git init', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git config user.email "test@test.com"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git config user.name "Test User"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+
+      writeFileSync(join(tempDir, 'tracked.txt'), 'initial');
+      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "Initial commit"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+
+      // Add staged file
+      writeFileSync(join(tempDir, 'staged.txt'), 'staged');
+      execSync('git add staged.txt', { cwd: tempDir, stdio: 'pipe' });
+
+      // Modify tracked file without staging
+      writeFileSync(join(tempDir, 'tracked.txt'), 'modified');
+
+      const unstagedFiles = getAllChangedFiles({ unstaged: true }, tempDir);
+
+      expect(unstagedFiles).toContain('tracked.txt');
+      expect(unstagedFiles).not.toContain('staged.txt');
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
     }
