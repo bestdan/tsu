@@ -53,7 +53,7 @@ export function pipeCheck(
 
     console.log(`❌ ${label} failed`);
 
-    if (verbose && exitCode) {
+    if (verbose) {
       console.error(`Exit code: ${exitCode}`);
     }
 

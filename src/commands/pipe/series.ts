@@ -52,7 +52,7 @@ export function pipeSeries(
 
       console.log(`❌ ${check.label} failed`);
 
-      if (verbose && exitCode) {
+      if (verbose) {
         console.error(`Exit code: ${exitCode}`);
       }
     }
