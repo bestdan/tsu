@@ -5,41 +5,10 @@ Helper utilities for running and tracking command execution in shell scripts usi
 ## Overview
 
 The pipe commands are designed to work together in a Unix pipeline, allowing you to:
-- Run commands and propagate their exit codes through the pipe
 - Display success/failure messages for checks
 - Accumulate failures across multiple checks
 
-## pipe run
-
-Run a command and output its exit code to stdout (for piping to the next command).
-
-**Usage:**
-
-```bash
-tsu pipe run <command> [options]
-```
-
-**Arguments:**
-
-- `command` - The command to execute (must be quoted if it contains spaces or special characters)
-
-**Options:**
-
-- `-v, --verbose` - Show the command being run (output to stderr)
-
-**Behavior:**
-
-1. Executes the given command with stdio inherited (output is visible)
-2. Captures the exit code
-3. Outputs the exit code to stdout (for piping)
-4. Exits with that exit code
-
-**Examples:**
-
-Run a command and pipe to echoOutcome:
-```bash
-tsu pipe run 'tsu hook format check' | tsu pipe echoOutcome 'format'
-```
+Commands that support piping output their exit code to stdout so they can be chained together.
 
 ## pipe echoOutcome
 
@@ -82,7 +51,7 @@ Failure:
 
 Display outcome for a check:
 ```bash
-tsu pipe run 'tsu hook format check' | tsu pipe echoOutcome 'format'
+tsu hook format check | tsu pipe echoOutcome 'format'
 # stderr: ✅ format passed
 # stdout: 0
 # exit code: 0
@@ -90,7 +59,7 @@ tsu pipe run 'tsu hook format check' | tsu pipe echoOutcome 'format'
 
 Chain with other pipe commands:
 ```bash
-tsu pipe run 'tsu hook format check' | tsu pipe echoOutcome 'format' | tsu pipe updateExitCode
+tsu hook format check | tsu pipe echoOutcome 'format' | tsu pipe updateExitCode
 ```
 
 ## pipe updateExitCode
@@ -125,9 +94,9 @@ Track failures across multiple checks:
 tsu pipe updateExitCode --reset
 
 # Run checks - failures are accumulated
-tsu pipe run 'tsu hook format check' | tsu pipe echoOutcome 'format' | tsu pipe updateExitCode || true
-tsu pipe run 'tsu hook analysis check' | tsu pipe echoOutcome 'analysis' | tsu pipe updateExitCode || true
-tsu pipe run 'tsu hook dcm check' | tsu pipe echoOutcome 'dcm' | tsu pipe updateExitCode || true
+tsu hook format check | tsu pipe echoOutcome 'format' | tsu pipe updateExitCode || true
+tsu hook analysis check | tsu pipe echoOutcome 'analysis' | tsu pipe updateExitCode || true
+tsu hook dcm check | tsu pipe echoOutcome 'dcm' | tsu pipe updateExitCode || true
 
 # Check final result (exit code will be 1 if any check failed)
 tsu pipe updateExitCode < /dev/null
@@ -138,7 +107,7 @@ tsu pipe updateExitCode < /dev/null
 ### Basic check with outcome display
 
 ```bash
-tsu pipe run 'tsu hook format check' | tsu pipe echoOutcome 'format'
+tsu hook format check | tsu pipe echoOutcome 'format'
 ```
 
 Output:
@@ -156,9 +125,9 @@ set +e  # Don't exit on error
 tsu pipe updateExitCode --reset > /dev/null 2>&1
 
 # Run all checks
-tsu pipe run 'tsu hook format check' | tsu pipe echoOutcome 'format' | tsu pipe updateExitCode > /dev/null 2>&1 || true
-tsu pipe run 'tsu hook analysis check' | tsu pipe echoOutcome 'analysis' | tsu pipe updateExitCode > /dev/null 2>&1 || true
-tsu pipe run 'tsu hook dcm check' | tsu pipe echoOutcome 'dcm' | tsu pipe updateExitCode > /dev/null 2>&1 || true
+tsu hook format check | tsu pipe echoOutcome 'format' | tsu pipe updateExitCode > /dev/null 2>&1 || true
+tsu hook analysis check | tsu pipe echoOutcome 'analysis' | tsu pipe updateExitCode > /dev/null 2>&1 || true
+tsu hook dcm check | tsu pipe echoOutcome 'dcm' | tsu pipe updateExitCode > /dev/null 2>&1 || true
 
 # Get final exit code
 exit_code=$(tsu pipe updateExitCode < /dev/null 2>&1)
@@ -179,7 +148,7 @@ Create a helper script to make it easier:
 run_check() {
     local cmd="$1"
     local label="$2"
-    tsu pipe run "$cmd" | tsu pipe echoOutcome "$label" | tsu pipe updateExitCode > /dev/null 2>&1 || true
+    $cmd | tsu pipe echoOutcome "$label" | tsu pipe updateExitCode > /dev/null 2>&1 || true
 }
 
 # Reset
@@ -208,7 +177,7 @@ tsu pipe check <command> <label> [options]
 
 This is equivalent to, but more convenient than:
 ```bash
-tsu pipe run '<command>' | tsu pipe echoOutcome '<label>'
+<command> | tsu pipe echoOutcome '<label>'
 ```
 
 ### pipe series
@@ -225,7 +194,7 @@ This is more convenient than chaining multiple pipe commands when you don't need
 
 ## Comparison
 
-**Pipe chain approach** (using `run`, `echoOutcome`, `updateExitCode`):
+**Pipe chain approach** (using `echoOutcome`, `updateExitCode`):
 - More flexible and composable
 - Can be used in complex shell scripts
 - Follows Unix philosophy of small tools

@@ -8,9 +8,9 @@ export interface PipeEchoOutcomeOptions {
  * Reads exit code from stdin, displays outcome message with label,
  * and propagates the exit code through the pipe.
  *
- * This command is designed to work in a pipe chain after `tsu pipe run`:
+ * This command is designed to work in a pipe chain:
  * ```bash
- * tsu pipe run 'tsu hook format check' | tsu pipe echoOutcome 'format'
+ * tsu hook format check | tsu pipe echoOutcome 'format'
  * ```
  *
  * The command:

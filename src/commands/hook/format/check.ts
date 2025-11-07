@@ -1,9 +1,5 @@
 import { execSync } from 'node:child_process';
-import {
-  isGitRepo,
-  hasUnstagedChanges,
-  getAllChangedFiles,
-} from '../../git/utils/git.js';
+import { isGitRepo, getAllChangedFiles } from '../../git/utils/git.js';
 import {
   isDartPackage,
   COMMON_DART_CODEGEN_SUFFIXES,
@@ -23,14 +19,14 @@ export interface DartHookFormatCheckOptions extends ChangedFilesOptions {
 }
 
 /**
- * Formats Dart files and checks if formatting created changes.
+ * Checks if Dart files would be reformatted.
  * Gets changed files based on options (staged, unstaged, all, or committed changes).
  *
  * Steps:
  * 1. Gets modified Dart files (excluding generated files)
- * 2. Formats them with dart format
- * 3. Checks if formatting created any changes
- * 4. Exits with error if files were formatted
+ * 2. Runs dart format with --output=none --set-exit-if-changed
+ * 3. Exits with code 0 if files are properly formatted, 1 if they would be reformatted
+ * 4. Lists files that would be reformatted in verbose mode
  */
 export function dartHookFormatCheck(
   options: DartHookFormatCheckOptions = {}
@@ -40,7 +36,7 @@ export function dartHookFormatCheck(
     ...COMMON_DART_CODEGEN_SUFFIXES,
   ];
 
-  logIfVerbose(verbose, '🎨 Running dart format on modified files...');
+  logIfVerbose(verbose, '🎨 Checking dart format on modified files...');
 
   // Check we're in both a git repo and a Dart package
   ensureCondition(isGitRepo(), 'Error: Not in a git repository');
@@ -59,6 +55,7 @@ export function dartHookFormatCheck(
 
   if (modifiedFiles.length === 0) {
     logIfVerbose(verbose, '✓ No Dart source files modified');
+    console.log(0);
     process.exit(0);
   }
 
@@ -66,43 +63,55 @@ export function dartHookFormatCheck(
   displayFileList({
     files: modifiedFiles,
     verbose,
-    message: 'Running dart format on',
+    message: 'Checking dart format on',
   });
 
-  // Format the files
+  // Check if files would be reformatted using dart format's exit code
   /* v8 ignore next -- @preserve */
   try {
     const fileArgs = modifiedFiles.map(escapeShellArg).join(' ');
-    execSync(`dart format ${fileArgs}`, {
+    execSync(`dart format --output=none --set-exit-if-changed ${fileArgs}`, {
       cwd,
+      encoding: 'utf-8',
       stdio: 'pipe',
     });
-  } catch (error) {
+
+    // Exit code 0 means no files would be reformatted
+    logIfVerbose(verbose, '✓ All files properly formatted');
+    console.log(0);
+    process.exit(0);
+  } catch (error: unknown) {
+    // Exit code 1 means files would be reformatted
+    if (
+      error instanceof Error &&
+      'status' in error &&
+      (error as { status: number }).status === 1
+    ) {
+      const output =
+        'stdout' in error
+          ? (error as { stdout: Buffer }).stdout.toString()
+          : '';
+
+      if (verbose) {
+        console.error('');
+        console.error(
+          '❌ Files would be reformatted. Please run dart format and commit these changes:'
+        );
+        if (output) {
+          console.error(output);
+        }
+      }
+
+      console.log(1);
+      process.exit(1);
+    }
+
+    // Any other error means dart format failed
     console.error('Error: Failed to run dart format');
     if (error instanceof Error) {
       console.error(error.message);
     }
+    console.log(1);
     process.exit(1);
   }
-
-  // Check if formatting created changes in the files we formatted
-  /* v8 ignore next -- @preserve */
-  const filesWithChanges = modifiedFiles.filter((file) =>
-    hasUnstagedChanges(file, cwd)
-  );
-
-  /* v8 ignore next -- @preserve */
-  if (filesWithChanges.length > 0) {
-    console.error('');
-    console.error(
-      '❌ Push blocked: Files were formatted. Please stage and commit these changes:'
-    );
-    filesWithChanges.forEach((file) => {
-      console.error(file);
-    });
-    process.exit(1);
-  }
-
-  logIfVerbose(verbose, '✓ All files properly formatted');
-  process.exit(0);
 }

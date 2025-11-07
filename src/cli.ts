@@ -24,7 +24,6 @@ import { dartDcmAnalyze } from './commands/dart/dcm/analyze.js';
 import { checkExternals } from './commands/check/externals.js';
 import { pipeCheck } from './commands/pipe/check.js';
 import { pipeSeries, pipeSeriesFromArgs } from './commands/pipe/series.js';
-import { pipeRun } from './commands/pipe/run.js';
 import { pipeEchoOutcome } from './commands/pipe/echo-outcome.js';
 import { pipeUpdateExitCode } from './commands/pipe/update-exit-code.js';
 
@@ -522,15 +521,6 @@ pipe
   .action((commands: string[], options: { verbose?: boolean }) => {
     const checks = pipeSeriesFromArgs(commands);
     pipeSeries(checks, options);
-  });
-
-pipe
-  .command('run')
-  .description('Run a command and output its exit code to stdout (for piping)')
-  .argument('<command>', 'command to execute')
-  .option('-v, --verbose', 'show detailed information (output to stderr)')
-  .action((command: string, options: { verbose?: boolean }) => {
-    pipeRun(command, options);
   });
 
 pipe

@@ -13,8 +13,8 @@ export interface PipeUpdateExitCodeOptions {
  *
  * This command is designed to work in a pipe chain to track failures across multiple checks:
  * ```bash
- * tsu pipe run 'tsu hook format check' | tsu pipe echoOutcome 'format' | tsu pipe updateExitCode
- * tsu pipe run 'tsu hook analysis check' | tsu pipe echoOutcome 'analysis' | tsu pipe updateExitCode
+ * tsu hook format check | tsu pipe echoOutcome 'format' | tsu pipe updateExitCode
+ * tsu hook analysis check | tsu pipe echoOutcome 'analysis' | tsu pipe updateExitCode
  * tsu pipe updateExitCode --reset  # Reset the accumulated exit code
  * ```
  *

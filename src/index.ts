@@ -127,8 +127,6 @@ export {
   type CheckCommand,
 } from './commands/pipe/series.js';
 
-export { pipeRun, type PipeRunOptions } from './commands/pipe/run.js';
-
 export {
   pipeEchoOutcome,
   type PipeEchoOutcomeOptions,
