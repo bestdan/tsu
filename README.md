@@ -37,6 +37,7 @@ tsu <namespace> <command> [options]
 - **dart** - Dart/Flutter project utilities ([documentation](docs/dart.md))
 - **hook** - Git / Claude hook utilities for Dart ([documentation](docs/hook.md))
 - **files** - File filtering utilities ([documentation](docs/files.md))
+- **pipe** - Pipeline helper utilities ([documentation](docs/pipe.md))
 
 ### Quick Examples
 
@@ -58,6 +59,15 @@ tsutils hook format check
 
 # Filter files by extension
 tsutils git changed | tsutils files filter --suffix .ts
+
+# Run a command with success/failure feedback
+tsutils pipe check 'npm test' 'tests'
+
+# Run multiple checks and fail if any fail
+tsutils pipe series \
+  'npm run lint' 'linting' \
+  'npm test' 'tests' \
+  'npm run build' 'build'
 ```
 
 ### Command Design Philosophy

@@ -116,3 +116,13 @@ export {
   checkExternals,
   type CheckExternalsOptions,
 } from './commands/check/externals.js';
+
+// Pipe utilities
+export { pipeCheck, type PipeCheckOptions } from './commands/pipe/check.js';
+
+export {
+  pipeSeries,
+  pipeSeriesFromArgs,
+  type PipeSeriesOptions,
+  type CheckCommand,
+} from './commands/pipe/series.js';

@@ -22,6 +22,8 @@ import { dartHookGraphqlCheck } from './commands/hook/graphql/check.js';
 import { dartFix } from './commands/dart/fix.js';
 import { dartDcmAnalyze } from './commands/dart/dcm/analyze.js';
 import { checkExternals } from './commands/check/externals.js';
+import { pipeCheck } from './commands/pipe/check.js';
+import { pipeSeries, pipeSeriesFromArgs } from './commands/pipe/series.js';
 
 const program = new Command();
 
@@ -492,5 +494,32 @@ hook
       await dartHookGraphqlCheck(options);
     }
   );
+
+// Pipe subcommand namespace
+const pipe = program.command('pipe').description('Pipe helper utilities');
+
+pipe
+  .command('check')
+  .description('Run a command and display success/failure message')
+  .argument('<command>', 'command to execute')
+  .argument('<label>', 'label for the check (e.g., "format", "analysis")')
+  .option('-v, --verbose', 'show detailed information (output to stderr)')
+  .action((command: string, label: string, options: { verbose?: boolean }) => {
+    pipeCheck(command, label, options);
+  });
+
+pipe
+  .command('series')
+  .description('Run multiple checks in series and fail if any check fails')
+  .argument(
+    '<commands...>',
+    'pairs of command and label (e.g., "cmd1" "label1" "cmd2" "label2")'
+  )
+  .option('-v, --verbose', 'show detailed information (output to stderr)')
+  .action((commands: string[], options: { verbose?: boolean }) => {
+    const checks = pipeSeriesFromArgs(commands);
+    pipeSeries(checks, options);
+  });
+
 
 program.parse();
