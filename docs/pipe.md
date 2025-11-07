@@ -126,8 +126,7 @@ Use in CI/CD pipelines:
 tsu pipe series \
   'npm run lint' 'linting' \
   'npm test' 'tests' \
-  'npm run build' 'build' \
-|| exit 1
+  'npm run build' 'build' || exit 1
 ```
 
 Verbose mode shows progress:

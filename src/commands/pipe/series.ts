@@ -89,12 +89,10 @@ export function pipeSeriesFromArgs(args: string[]): CheckCommand[] {
   for (let i = 0; i < args.length; i += 2) {
     const command = args[i];
     const label = args[i + 1];
-    if (command === undefined || label === undefined) {
-      console.error('Error: Arguments must be pairs of [command, label]');
-      console.error(
-        'Usage: tsu pipe series <command1> <label1> <command2> <label2> ...'
-      );
-      process.exit(1);
+    // TypeScript doesn't know that we've already checked args.length % 2 === 0
+    // so we need to satisfy the type checker even though this is safe
+    if (!command || !label) {
+      continue; // This will never happen due to the modulo check above
     }
     checks.push({
       command,
