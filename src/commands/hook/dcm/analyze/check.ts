@@ -1,5 +1,6 @@
 import {
   isGitRepo,
+  getAllChangedFiles,
 } from '../../../git/utils/git.js';
 import {
   isDartPackage,
@@ -9,24 +10,20 @@ import { filterFilesBySuffix } from '../../../files/utils/files.js';
 import {
   ensureCondition,
   ensureDCMInstalled,
-  getHookChangedFiles,
   displayFileList,
 } from '../../../../utils/command-helpers.js';
 import { logIfVerbose } from '../../../../utils/logger.js';
 import { dcmAnalyze } from '../../../../utils/dcm-parse.js';
+import type { ChangedFilesOptions } from '../../../../types/command-options.js';
 
-export interface DartHookDcmAnalyzeCheckOptions {
-  verbose?: boolean;
+export interface DartHookDcmAnalyzeCheckOptions extends ChangedFilesOptions {
   /** Suffixes to exclude from DCM checks. Defaults to COMMON_DART_CODEGEN_SUFFIXES */
   excludeSuffixes?: string[];
-  files?: string[];
 }
 
 /**
  * Runs DCM analyze on Dart files and checks for issues.
- * Supports two modes:
- * 1. Explicit file list (--files)
- * 2. Default mode - checks all changed files
+ * Gets changed files based on options (staged, unstaged, all, or committed changes).
  *
  * Steps:
  * 1. Checks if DCM is installed
@@ -53,8 +50,8 @@ export function dartHookDcmAnalyzeCheck(
 
   const cwd = process.cwd();
 
-  // Get files to check (explicit or changed files)
-  const allFiles = getHookChangedFiles({ files: options.files, verbose, cwd });
+  // Get files to check based on options
+  const allFiles = getAllChangedFiles(options, cwd);
 
   // Filter to only Dart files
   const dartFiles = allFiles.filter((file) => file.endsWith('.dart'));

@@ -620,7 +620,7 @@ describe('getAllChangedFiles', () => {
       // Add an unstaged change
       writeFileSync(join(tempDir, 'unstaged.txt'), 'unstaged');
 
-      const allFiles = getAllChangedFiles(tempDir);
+      const allFiles = getAllChangedFiles({}, tempDir);
 
       // Should contain committed and staged files (unstaged.txt won't show up as it's untracked)
       expect(allFiles).toContain('committed.txt');
@@ -654,7 +654,7 @@ describe('getAllChangedFiles', () => {
         stdio: 'pipe',
       });
 
-      const allFiles = getAllChangedFiles(tempDir);
+      const allFiles = getAllChangedFiles({}, tempDir);
       expect(allFiles).toEqual([]);
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
@@ -701,7 +701,7 @@ describe('getAllChangedFiles', () => {
       // Modify file1.txt one more time without staging
       writeFileSync(join(tempDir, 'file1.txt'), 'modified yet again');
 
-      const allFiles = getAllChangedFiles(tempDir);
+      const allFiles = getAllChangedFiles({}, tempDir);
 
       // Should only contain file1.txt once, even though it appears in committed, staged, and unstaged
       expect(allFiles).toEqual(['file1.txt']);
@@ -713,7 +713,7 @@ describe('getAllChangedFiles', () => {
   it('should return empty array for non-git directory', () => {
     const tempDir = mkdtempSync(join(tmpdir(), 'not-git-'));
     try {
-      const allFiles = getAllChangedFiles(tempDir);
+      const allFiles = getAllChangedFiles({}, tempDir);
       expect(allFiles).toEqual([]);
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
@@ -747,7 +747,7 @@ describe('getAllChangedFiles', () => {
       // Create untracked file
       writeFileSync(join(tempDir, 'untracked.txt'), 'new file');
 
-      const allFiles = getAllChangedFiles(tempDir);
+      const allFiles = getAllChangedFiles({}, tempDir);
 
       // Should contain tracked.txt (unstaged but tracked)
       expect(allFiles).toContain('tracked.txt');

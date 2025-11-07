@@ -2,6 +2,7 @@ import { execSync } from 'node:child_process';
 import {
   isGitRepo,
   hasUnstagedChanges,
+  getAllChangedFiles,
 } from '../../git/utils/git.js';
 import {
   isDartPackage,
@@ -11,23 +12,19 @@ import { filterFilesBySuffix } from '../../files/utils/files.js';
 import { escapeShellArg } from '../../../utils/shell.js';
 import {
   ensureCondition,
-  getHookChangedFiles,
   displayFileList,
 } from '../../../utils/command-helpers.js';
 import { logIfVerbose } from '../../../utils/logger.js';
+import type { ChangedFilesOptions } from '../../../types/command-options.js';
 
-export interface DartHookFixCheckOptions {
-  verbose?: boolean;
+export interface DartHookFixCheckOptions extends ChangedFilesOptions {
   /** Suffixes to exclude from fix. Defaults to COMMON_DART_CODEGEN_SUFFIXES */
   excludeSuffixes?: string[];
-  files?: string[];
 }
 
 /**
  * Runs dart fix on Dart files and checks if fixes created changes.
- * Supports two modes:
- * 1. Explicit file list (--files)
- * 2. Default mode - checks all changed files
+ * Gets changed files based on options (staged, unstaged, all, or committed changes).
  *
  * Steps:
  * 1. Gets modified Dart files (excluding generated files)
@@ -51,8 +48,8 @@ export function dartHookFixCheck(
 
   const cwd = process.cwd();
 
-  // Get files to check (explicit or changed files)
-  const allFiles = getHookChangedFiles({ files: options.files, verbose, cwd });
+  // Get files to check based on options
+  const allFiles = getAllChangedFiles(options, cwd);
 
   // Filter to only Dart files
   const dartFiles = allFiles.filter((file) => file.endsWith('.dart'));

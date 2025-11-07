@@ -1,5 +1,6 @@
 import {
   isGitRepo,
+  getAllChangedFiles,
 } from '../../git/utils/git.js';
 import {
   isDartPackage,
@@ -8,24 +9,20 @@ import {
 import { filterFilesBySuffix } from '../../files/utils/files.js';
 import {
   ensureCondition,
-  getHookChangedFiles,
   displayFileList,
 } from '../../../utils/command-helpers.js';
 import { logIfVerbose } from '../../../utils/logger.js';
 import { dartAnalyze } from '../../../utils/dart-analyze-parse.js';
+import type { ChangedFilesOptions } from '../../../types/command-options.js';
 
-export interface DartHookAnalysisCheckOptions {
-  verbose?: boolean;
+export interface DartHookAnalysisCheckOptions extends ChangedFilesOptions {
   /** Suffixes to exclude from analysis. Defaults to COMMON_DART_CODEGEN_SUFFIXES */
   excludeSuffixes?: string[];
-  files?: string[];
 }
 
 /**
  * Runs dart analyze on Dart files and checks for issues.
- * Supports two modes:
- * 1. Explicit file list (--files)
- * 2. Default mode - checks all changed files
+ * Gets changed files based on options (staged, unstaged, all, or committed changes).
  *
  * Steps:
  * 1. Gets modified Dart files (excluding generated files)
@@ -49,8 +46,8 @@ export function dartHookAnalysisCheck(
 
   const cwd = process.cwd();
 
-  // Get files to check (explicit or changed files)
-  const allFiles = getHookChangedFiles({ files: options.files, verbose, cwd });
+  // Get files to check based on options
+  const allFiles = getAllChangedFiles(options, cwd);
 
   // Filter to only Dart files
   const dartFiles = allFiles.filter((file) => file.endsWith('.dart'));

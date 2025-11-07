@@ -315,13 +315,20 @@ hook
   .description(
     'Check if Dart files are properly formatted (suitable for pre-push hooks)'
   )
-  .argument('[files...]', 'specific files to check (defaults to all changed files)')
+  .option('-s, --staged', 'check staged changes only')
+  .option('-u, --unstaged', 'check unstaged changes only')
+  .option('-a, --all', 'check all changes (committed, staged, and unstaged)')
+  .option(
+    '-b, --base-branch <branch>',
+    'base branch to compare against',
+    'main'
+  )
   .option(
     '-v, --verbose',
     'show human-readable status messages (output to stderr)'
   )
-  .action((files: string[], options: { verbose?: boolean }) => {
-    dartHookFormatCheck({ ...options, files });
+  .action((options: { staged?: boolean; unstaged?: boolean; all?: boolean; baseBranch?: string; verbose?: boolean }) => {
+    dartHookFormatCheck(options);
   });
 
 hook
@@ -330,13 +337,20 @@ hook
   .description(
     'Check if Dart files pass dart analyze (suitable for pre-push hooks)'
   )
-  .argument('[files...]', 'specific files to check (defaults to all changed files)')
+  .option('-s, --staged', 'check staged changes only')
+  .option('-u, --unstaged', 'check unstaged changes only')
+  .option('-a, --all', 'check all changes (committed, staged, and unstaged)')
+  .option(
+    '-b, --base-branch <branch>',
+    'base branch to compare against',
+    'main'
+  )
   .option(
     '-v, --verbose',
     'show human-readable status messages (output to stderr)'
   )
-  .action((files: string[], options: { verbose?: boolean }) => {
-    dartHookAnalysisCheck({ ...options, files });
+  .action((options: { staged?: boolean; unstaged?: boolean; all?: boolean; baseBranch?: string; verbose?: boolean }) => {
+    dartHookAnalysisCheck(options);
   });
 
 hook
@@ -345,13 +359,20 @@ hook
   .description(
     'Check if Dart files pass dart fix and apply fixes (suitable for pre-push hooks)'
   )
-  .argument('[files...]', 'specific files to check (defaults to all changed files)')
+  .option('-s, --staged', 'check staged changes only')
+  .option('-u, --unstaged', 'check unstaged changes only')
+  .option('-a, --all', 'check all changes (committed, staged, and unstaged)')
+  .option(
+    '-b, --base-branch <branch>',
+    'base branch to compare against',
+    'main'
+  )
   .option(
     '-v, --verbose',
     'show human-readable status messages (output to stderr)'
   )
-  .action((files: string[], options: { verbose?: boolean }) => {
-    dartHookFixCheck({ ...options, files });
+  .action((options: { staged?: boolean; unstaged?: boolean; all?: boolean; baseBranch?: string; verbose?: boolean }) => {
+    dartHookFixCheck(options);
   });
 
 // Hook DCM subcommand namespace
@@ -365,13 +386,20 @@ hookDcm
   .description(
     'Check if Dart files pass DCM fix checks (suitable for pre-push hooks)'
   )
-  .argument('[files...]', 'specific files to check (defaults to all changed files)')
+  .option('-s, --staged', 'check staged changes only')
+  .option('-u, --unstaged', 'check unstaged changes only')
+  .option('-a, --all', 'check all changes (committed, staged, and unstaged)')
+  .option(
+    '-b, --base-branch <branch>',
+    'base branch to compare against',
+    'main'
+  )
   .option(
     '-v, --verbose',
     'show human-readable status messages (output to stderr)'
   )
-  .action((files: string[], options: { verbose?: boolean }) => {
-    dartHookDcmCheck({ ...options, files });
+  .action((options: { staged?: boolean; unstaged?: boolean; all?: boolean; baseBranch?: string; verbose?: boolean }) => {
+    dartHookDcmCheck(options);
   });
 
 hookDcm
@@ -380,13 +408,20 @@ hookDcm
   .description(
     'Check if Dart files pass DCM analyze checks (suitable for pre-push hooks)'
   )
-  .argument('[files...]', 'specific files to check (defaults to all changed files)')
+  .option('-s, --staged', 'check staged changes only')
+  .option('-u, --unstaged', 'check unstaged changes only')
+  .option('-a, --all', 'check all changes (committed, staged, and unstaged)')
+  .option(
+    '-b, --base-branch <branch>',
+    'base branch to compare against',
+    'main'
+  )
   .option(
     '-v, --verbose',
     'show human-readable status messages (output to stderr)'
   )
-  .action((files: string[], options: { verbose?: boolean }) => {
-    dartHookDcmAnalyzeCheck({ ...options, files });
+  .action((options: { staged?: boolean; unstaged?: boolean; all?: boolean; baseBranch?: string; verbose?: boolean }) => {
+    dartHookDcmAnalyzeCheck(options);
   });
 
 hook
@@ -395,13 +430,20 @@ hook
   .description(
     'Check if GraphQL fakes are up to date (suitable for pre-push hooks)'
   )
-  .argument('[files...]', 'specific files to check (defaults to all changed files)')
+  .option('-s, --staged', 'check staged changes only')
+  .option('-u, --unstaged', 'check unstaged changes only')
+  .option('-a, --all', 'check all changes (committed, staged, and unstaged)')
+  .option(
+    '-b, --base-branch <branch>',
+    'base branch to compare against',
+    'main'
+  )
   .option(
     '-v, --verbose',
     'show human-readable status messages (output to stderr)'
   )
-  .action(async (files: string[], options: { verbose?: boolean; }) => {
-    await dartHookGraphqlCheck({ ...options, files });
+  .action(async (options: { staged?: boolean; unstaged?: boolean; all?: boolean; baseBranch?: string; verbose?: boolean; }) => {
+    await dartHookGraphqlCheck(options);
   });
 
 program.parse();

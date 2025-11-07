@@ -2,7 +2,6 @@ import {
   getChangedFiles,
   getFilesToPush,
   getCurrentBranch,
-  getAllChangedFiles,
   type ChangeType,
 } from '../commands/git/utils/git.js';
 import type { ChangedFilesOptions } from '../types/command-options.js';
@@ -306,69 +305,6 @@ export function getChangedFilesWithOptions(
   }
 
   return files;
-}
-
-/**
- * Checks if a files array has any files in it.
- * Helper function to consolidate the common pattern of checking for explicit file lists.
- * @param files - The files array to check
- * @returns true if the array is defined and has at least one element
- * @example
- * if (hasExplicitFiles(options.files)) {
- *   // Use the explicitly provided files
- * } else {
- *   // Get all changed files
- * }
- */
-export function hasExplicitFiles(
-  files: string[] | undefined
-): files is string[] {
-  return files !== undefined && files.length > 0;
-}
-
-/**
- * Options for getting changed files in hook checks
- */
-export interface HookChangedFilesOptions {
-  /** Explicit file list to use instead of getting changed files */
-  files?: string[];
-  /** Whether to log verbose output */
-  verbose?: boolean;
-  /** Current working directory (defaults to process.cwd()) */
-  cwd?: string;
-}
-
-/**
- * Gets the list of files to check for hook commands.
- * Handles two modes:
- * 1. Explicit file list provided via options.files
- * 2. Default mode - gets all changed files from git
- *
- * This centralizes the common pattern used across all hook check commands.
- *
- * @param options - Options for getting changed files
- * @returns Array of file paths to check
- * @example
- * const files = getHookChangedFiles({ files: options.files, verbose });
- */
-export function getHookChangedFiles(
-  options: HookChangedFilesOptions = {}
-): string[] {
-  const { files, verbose = false, cwd = process.cwd() } = options;
-
-  if (hasExplicitFiles(files)) {
-    // Mode 1: Explicit file list provided
-    if (verbose) {
-      console.error('Using provided files');
-    }
-    return files;
-  } else {
-    // Mode 2: Default - check all changed files
-    if (verbose) {
-      console.error('Checking all changed files');
-    }
-    return getAllChangedFiles(cwd);
-  }
 }
 
 /**
