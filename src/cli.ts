@@ -24,6 +24,9 @@ import { dartDcmAnalyze } from './commands/dart/dcm/analyze.js';
 import { checkExternals } from './commands/check/externals.js';
 import { pipeCheck } from './commands/pipe/check.js';
 import { pipeSeries, pipeSeriesFromArgs } from './commands/pipe/series.js';
+import { pipeRun } from './commands/pipe/run.js';
+import { pipeEchoOutcome } from './commands/pipe/echo-outcome.js';
+import { pipeUpdateExitCode } from './commands/pipe/update-exit-code.js';
 
 const program = new Command();
 
@@ -519,6 +522,37 @@ pipe
   .action((commands: string[], options: { verbose?: boolean }) => {
     const checks = pipeSeriesFromArgs(commands);
     pipeSeries(checks, options);
+  });
+
+pipe
+  .command('run')
+  .description('Run a command and output its exit code to stdout (for piping)')
+  .argument('<command>', 'command to execute')
+  .option('-v, --verbose', 'show detailed information (output to stderr)')
+  .action((command: string, options: { verbose?: boolean }) => {
+    pipeRun(command, options);
+  });
+
+pipe
+  .command('echoOutcome')
+  .description(
+    'Read exit code from stdin, display outcome message, and propagate exit code'
+  )
+  .argument('<label>', 'label for the check (e.g., "format", "analysis")')
+  .option('-v, --verbose', 'show detailed information (output to stderr)')
+  .action((label: string, options: { verbose?: boolean }) => {
+    pipeEchoOutcome(label, options);
+  });
+
+pipe
+  .command('updateExitCode')
+  .description(
+    'Read exit code from stdin, accumulate failures, and output accumulated exit code'
+  )
+  .option('-v, --verbose', 'show accumulated exit code (output to stderr)')
+  .option('--reset', 'reset the accumulated exit code')
+  .action((options: { verbose?: boolean; reset?: boolean }) => {
+    pipeUpdateExitCode(options);
   });
 
 program.parse();

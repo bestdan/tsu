@@ -126,3 +126,15 @@ export {
   type PipeSeriesOptions,
   type CheckCommand,
 } from './commands/pipe/series.js';
+
+export { pipeRun, type PipeRunOptions } from './commands/pipe/run.js';
+
+export {
+  pipeEchoOutcome,
+  type PipeEchoOutcomeOptions,
+} from './commands/pipe/echo-outcome.js';
+
+export {
+  pipeUpdateExitCode,
+  type PipeUpdateExitCodeOptions,
+} from './commands/pipe/update-exit-code.js';

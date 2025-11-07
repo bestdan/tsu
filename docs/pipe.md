@@ -1,31 +1,70 @@
 # Pipe Commands
 
-Helper utilities for running and tracking command execution in shell scripts.
+Helper utilities for running and tracking command execution in shell scripts using Unix pipes.
 
-## pipe check
+## Overview
 
-Run a command and display a success/failure message with a custom label. The command exits with the same exit code as the wrapped command, making it suitable for use in pipelines and scripts.
+The pipe commands are designed to work together in a Unix pipeline, allowing you to:
+- Run commands and propagate their exit codes through the pipe
+- Display success/failure messages for checks
+- Accumulate failures across multiple checks
+
+## pipe run
+
+Run a command and output its exit code to stdout (for piping to the next command).
 
 **Usage:**
 
 ```bash
-tsu pipe check <command> <label> [options]
+tsu pipe run <command> [options]
 ```
 
 **Arguments:**
 
 - `command` - The command to execute (must be quoted if it contains spaces or special characters)
+
+**Options:**
+
+- `-v, --verbose` - Show the command being run (output to stderr)
+
+**Behavior:**
+
+1. Executes the given command with stdio inherited (output is visible)
+2. Captures the exit code
+3. Outputs the exit code to stdout (for piping)
+4. Exits with that exit code
+
+**Examples:**
+
+Run a command and pipe to echoOutcome:
+```bash
+tsu pipe run 'tsu hook format check' | tsu pipe echoOutcome 'format'
+```
+
+## pipe echoOutcome
+
+Read exit code from stdin, display outcome message, and propagate the exit code.
+
+**Usage:**
+
+```bash
+tsu pipe echoOutcome <label> [options]
+```
+
+**Arguments:**
+
 - `label` - A descriptive label for the check (e.g., "format", "analysis", "tests")
 
 **Options:**
 
-- `-v, --verbose` - Show detailed information including the command being run and exit codes (output to stderr)
+- `-v, --verbose` - Show the exit code (output to stderr)
 
-**Exit codes:**
+**Behavior:**
 
-- Returns the same exit code as the wrapped command
-- `0` if the command succeeds
-- Non-zero if the command fails
+1. Reads exit code from stdin (output from previous pipe command)
+2. Displays ✅ {label} passed or ❌ {label} failed to stderr
+3. Outputs the exit code to stdout (for next pipe command)
+4. Exits with that exit code
 
 **Output format:**
 
@@ -41,35 +80,140 @@ Failure:
 
 **Examples:**
 
-Check if format passes:
+Display outcome for a check:
 ```bash
-tsu pipe check 'tsu hook format check' 'format'
-# Output: ✅ format passed
+tsu pipe run 'tsu hook format check' | tsu pipe echoOutcome 'format'
+# stderr: ✅ format passed
+# stdout: 0
+# exit code: 0
 ```
 
-Check if analysis passes:
+Chain with other pipe commands:
 ```bash
-tsu pipe check 'tsu hook analysis check' 'analysis'
-# Output: ❌ analysis failed (if it fails)
+tsu pipe run 'tsu hook format check' | tsu pipe echoOutcome 'format' | tsu pipe updateExitCode
 ```
 
-Use with conditional execution:
+## pipe updateExitCode
+
+Read exit code from stdin, accumulate failures in a temp file, and output the accumulated exit code.
+
+**Usage:**
+
 ```bash
-tsu pipe check 'tsu hook format check' 'format' && echo "All good!" || echo "Fix formatting"
+tsu pipe updateExitCode [options]
 ```
 
-Verbose mode shows the command and exit code:
+**Options:**
+
+- `-v, --verbose` - Show the accumulated exit code (output to stderr)
+- `--reset` - Reset the accumulated exit code to 0
+
+**Behavior:**
+
+1. Reads exit code from stdin (output from previous pipe command)
+2. Reads the accumulated exit code from a temp file
+3. If either the current or accumulated code is non-zero, sets accumulated to 1
+4. Writes the accumulated exit code back to the temp file
+5. Outputs the accumulated exit code to stdout
+6. Exits with the accumulated exit code
+
+**Examples:**
+
+Track failures across multiple checks:
 ```bash
-tsu pipe check 'exit 42' 'test' --verbose
-# stderr: Running: exit 42
-# stderr: Exit code: 42
-# stdout: ❌ test failed
-# exits with code 42
+# Reset the accumulator
+tsu pipe updateExitCode --reset
+
+# Run checks - failures are accumulated
+tsu pipe run 'tsu hook format check' | tsu pipe echoOutcome 'format' | tsu pipe updateExitCode || true
+tsu pipe run 'tsu hook analysis check' | tsu pipe echoOutcome 'analysis' | tsu pipe updateExitCode || true
+tsu pipe run 'tsu hook dcm check' | tsu pipe echoOutcome 'dcm' | tsu pipe updateExitCode || true
+
+# Check final result (exit code will be 1 if any check failed)
+tsu pipe updateExitCode < /dev/null
 ```
 
-## pipe series
+## Pipe Chain Examples
 
-Run multiple checks in series and return failure if any check fails. All checks are executed even if some fail, allowing you to see all results before the command exits.
+### Basic check with outcome display
+
+```bash
+tsu pipe run 'tsu hook format check' | tsu pipe echoOutcome 'format'
+```
+
+Output:
+```
+✅ format passed
+```
+
+### Multiple checks with failure tracking
+
+```bash
+#!/bin/bash
+set +e  # Don't exit on error
+
+# Reset accumulator
+tsu pipe updateExitCode --reset > /dev/null 2>&1
+
+# Run all checks
+tsu pipe run 'tsu hook format check' | tsu pipe echoOutcome 'format' | tsu pipe updateExitCode > /dev/null 2>&1 || true
+tsu pipe run 'tsu hook analysis check' | tsu pipe echoOutcome 'analysis' | tsu pipe updateExitCode > /dev/null 2>&1 || true
+tsu pipe run 'tsu hook dcm check' | tsu pipe echoOutcome 'dcm' | tsu pipe updateExitCode > /dev/null 2>&1 || true
+
+# Get final exit code
+exit_code=$(tsu pipe updateExitCode < /dev/null 2>&1)
+echo "All checks completed with exit code: $exit_code"
+
+# Exit with the accumulated code
+exit $exit_code
+```
+
+### Simplified version with helper script
+
+Create a helper script to make it easier:
+
+```bash
+#!/bin/bash
+# check_all.sh
+
+run_check() {
+    local cmd="$1"
+    local label="$2"
+    tsu pipe run "$cmd" | tsu pipe echoOutcome "$label" | tsu pipe updateExitCode > /dev/null 2>&1 || true
+}
+
+# Reset
+tsu pipe updateExitCode --reset > /dev/null 2>&1
+
+# Run checks
+run_check 'tsu hook format check' 'format'
+run_check 'tsu hook analysis check' 'analysis'
+run_check 'tsu hook dcm check' 'dcm'
+
+# Get result
+tsu pipe updateExitCode < /dev/null
+```
+
+## Legacy Commands (Still Available)
+
+### pipe check
+
+Wrapper command that runs a command directly (not using pipes).
+
+**Usage:**
+
+```bash
+tsu pipe check <command> <label> [options]
+```
+
+This is equivalent to, but more convenient than:
+```bash
+tsu pipe run '<command>' | tsu pipe echoOutcome '<label>'
+```
+
+### pipe series
+
+Run multiple checks in series without using pipes.
 
 **Usage:**
 
@@ -77,134 +221,20 @@ Run multiple checks in series and return failure if any check fails. All checks 
 tsu pipe series <command1> <label1> <command2> <label2> ... [options]
 ```
 
-**Arguments:**
+This is more convenient than chaining multiple pipe commands when you don't need to accumulate exit codes.
 
-- Alternating pairs of `<command>` and `<label>` arguments
-- At least one pair is required
-- Commands must be quoted if they contain spaces or special characters
+## Comparison
 
-**Options:**
+**Pipe chain approach** (using `run`, `echoOutcome`, `updateExitCode`):
+- More flexible and composable
+- Can be used in complex shell scripts
+- Follows Unix philosophy of small tools
+- Requires understanding of pipes
 
-- `-v, --verbose` - Show detailed information including commands being run and summary (output to stderr)
+**Direct approach** (using `check` and `series`):
+- Simpler to use
+- All-in-one commands
+- Better for simple scripts
+- Less flexible
 
-**Exit codes:**
-
-- `0` - All checks passed
-- `1` - One or more checks failed
-
-**Output format:**
-
-For each check:
-```
-✅ <label> passed
-```
-or
-```
-❌ <label> failed
-```
-
-**Examples:**
-
-Run multiple checks in sequence:
-```bash
-tsu pipe series \
-  'tsu hook format check' 'format' \
-  'tsu hook analysis check' 'analysis' \
-  'tsu hook dcm check' 'dcm'
-```
-
-Output (if analysis fails):
-```
-✅ format passed
-❌ analysis failed
-✅ dcm passed
-```
-Exit code: 1 (because at least one check failed)
-
-Use in CI/CD pipelines:
-```bash
-tsu pipe series \
-  'npm run lint' 'linting' \
-  'npm test' 'tests' \
-  'npm run build' 'build' || exit 1
-```
-
-Verbose mode shows progress:
-```bash
-tsu pipe series \
-  'exit 0' 'check1' \
-  'exit 0' 'check2' \
-  --verbose
-```
-
-stderr output:
-```
-Running: exit 0
-Running: exit 0
-
-✅ All checks passed
-```
-
-## Use Cases
-
-### Pre-push Hook
-
-Run multiple checks before pushing:
-
-```bash
-#!/bin/bash
-# .git/hooks/pre-push
-
-tsu pipe series \
-  'tsu hook format check' 'format' \
-  'tsu hook analysis check' 'analysis' \
-  'tsu hook dcm check' 'dcm' \
-  --verbose
-```
-
-### CI/CD Pipeline
-
-Check multiple aspects of your codebase:
-
-```bash
-tsu pipe series \
-  'tsu check externals' 'dependencies' \
-  'npm run lint' 'linting' \
-  'npm test' 'tests' \
-  'npm run build' 'build'
-```
-
-### Custom Build Script
-
-Wrap individual build steps:
-
-```bash
-#!/bin/bash
-
-tsu pipe check 'npm run clean' 'clean' || exit 1
-tsu pipe check 'npm run build:types' 'types' || exit 1
-tsu pipe check 'npm run build:js' 'javascript' || exit 1
-tsu pipe check 'npm run test' 'tests' || exit 1
-```
-
-### Tracking Multiple Check Results
-
-Use `pipe series` to run all checks and get a single exit code:
-
-```bash
-# This runs all checks and exits 1 if any fail
-tsu pipe series \
-  'tsu hook format check' 'format' \
-  'tsu hook analysis check' 'analysis' \
-  'tsu hook dcm check' 'dcm'
-
-# Capture exit code
-exit_code=$?
-
-if [ $exit_code -eq 0 ]; then
-  echo "✅ All checks passed!"
-else
-  echo "❌ Some checks failed"
-  exit 1
-fi
-```
+Choose the approach that best fits your use case!
