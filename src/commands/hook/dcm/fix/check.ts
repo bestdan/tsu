@@ -34,9 +34,7 @@ export interface DartHookDcmCheckOptions extends ChangedFilesOptions {
  * 4. Checks if fixes created any changes
  * 5. Exits with error if files were modified by DCM
  */
-export function dartHookDcmCheck(
-  options: DartHookDcmCheckOptions = {}
-): void {
+export function dartHookDcmCheck(options: DartHookDcmCheckOptions = {}): void {
   const verbose = options.verbose || false;
   const excludeSuffixes = options.excludeSuffixes || [
     ...COMMON_DART_CODEGEN_SUFFIXES,

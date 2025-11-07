@@ -16,9 +16,7 @@ vi.mock('../../../utils/command-helpers.js', async () => {
 });
 
 vi.mock('../utils/dart.js', async () => {
-  const actual = await vi.importActual<typeof dartUtils>(
-    '../utils/dart.js'
-  );
+  const actual = await vi.importActual<typeof dartUtils>('../utils/dart.js');
   return {
     ...actual,
     isDartPackage: vi.fn(),

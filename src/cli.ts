@@ -37,8 +37,13 @@ const check = program
 
 check
   .command('externals')
-  .description('Check if external dependencies (dart, dcm, melos, claude) are installed')
-  .option('-v, --verbose', 'show human-readable status messages (output to stderr)')
+  .description(
+    'Check if external dependencies (dart, dcm, melos, claude) are installed'
+  )
+  .option(
+    '-v, --verbose',
+    'show human-readable status messages (output to stderr)'
+  )
   .action((options: { verbose?: boolean }) => {
     checkExternals(options);
   });
@@ -75,7 +80,10 @@ git
   .option('-s, --staged', 'show staged changes only')
   .option('-u, --unstaged', 'show unstaged changes only')
   .option('-a, --all', 'show all changes (committed, staged, and unstaged)')
-  .option('-p, --push', 'show files in commits that would be pushed to upstream')
+  .option(
+    '-p, --push',
+    'show files in commits that would be pushed to upstream'
+  )
   .option(
     '-b, --base-branch <branch>',
     'base branch to compare against',
@@ -283,31 +291,22 @@ dart
   );
 
 // Dart DCM subcommand namespace
-const dartDcm = dart
-  .command('dcm')
-  .description('DCM code quality utilities');
+const dartDcm = dart.command('dcm').description('DCM code quality utilities');
 
 dartDcm
   .command('analyze')
   .description('Run DCM analyze and output files with issues')
   .option('-v, --verbose', 'show detailed progress information')
   .option('--timeout <ms>', 'timeout in milliseconds', '7000')
-  .action(
-    (options: {
-      verbose?: boolean;
-      timeout?: string;
-    }) => {
-      dartDcmAnalyze({
-        verbose: options.verbose,
-        timeout: options.timeout ? parseInt(options.timeout, 10) : undefined,
-      });
-    }
-  );
+  .action((options: { verbose?: boolean; timeout?: string }) => {
+    dartDcmAnalyze({
+      verbose: options.verbose,
+      timeout: options.timeout ? parseInt(options.timeout, 10) : undefined,
+    });
+  });
 
 // Hook subcommand namespace
-const hook = program
-  .command('hook')
-  .description('Git hook utilities for Dart');
+const hook = program.command('hook').description('Git hook utilities for Dart');
 
 hook
   .command('format')
@@ -327,9 +326,17 @@ hook
     '-v, --verbose',
     'show human-readable status messages (output to stderr)'
   )
-  .action((options: { staged?: boolean; unstaged?: boolean; all?: boolean; baseBranch?: string; verbose?: boolean }) => {
-    dartHookFormatCheck(options);
-  });
+  .action(
+    (options: {
+      staged?: boolean;
+      unstaged?: boolean;
+      all?: boolean;
+      baseBranch?: string;
+      verbose?: boolean;
+    }) => {
+      dartHookFormatCheck(options);
+    }
+  );
 
 hook
   .command('analysis')
@@ -349,9 +356,17 @@ hook
     '-v, --verbose',
     'show human-readable status messages (output to stderr)'
   )
-  .action((options: { staged?: boolean; unstaged?: boolean; all?: boolean; baseBranch?: string; verbose?: boolean }) => {
-    dartHookAnalysisCheck(options);
-  });
+  .action(
+    (options: {
+      staged?: boolean;
+      unstaged?: boolean;
+      all?: boolean;
+      baseBranch?: string;
+      verbose?: boolean;
+    }) => {
+      dartHookAnalysisCheck(options);
+    }
+  );
 
 hook
   .command('fix')
@@ -371,9 +386,17 @@ hook
     '-v, --verbose',
     'show human-readable status messages (output to stderr)'
   )
-  .action((options: { staged?: boolean; unstaged?: boolean; all?: boolean; baseBranch?: string; verbose?: boolean }) => {
-    dartHookFixCheck(options);
-  });
+  .action(
+    (options: {
+      staged?: boolean;
+      unstaged?: boolean;
+      all?: boolean;
+      baseBranch?: string;
+      verbose?: boolean;
+    }) => {
+      dartHookFixCheck(options);
+    }
+  );
 
 // Hook DCM subcommand namespace
 const hookDcm = hook
@@ -398,9 +421,17 @@ hookDcm
     '-v, --verbose',
     'show human-readable status messages (output to stderr)'
   )
-  .action((options: { staged?: boolean; unstaged?: boolean; all?: boolean; baseBranch?: string; verbose?: boolean }) => {
-    dartHookDcmCheck(options);
-  });
+  .action(
+    (options: {
+      staged?: boolean;
+      unstaged?: boolean;
+      all?: boolean;
+      baseBranch?: string;
+      verbose?: boolean;
+    }) => {
+      dartHookDcmCheck(options);
+    }
+  );
 
 hookDcm
   .command('analyze')
@@ -420,9 +451,17 @@ hookDcm
     '-v, --verbose',
     'show human-readable status messages (output to stderr)'
   )
-  .action((options: { staged?: boolean; unstaged?: boolean; all?: boolean; baseBranch?: string; verbose?: boolean }) => {
-    dartHookDcmAnalyzeCheck(options);
-  });
+  .action(
+    (options: {
+      staged?: boolean;
+      unstaged?: boolean;
+      all?: boolean;
+      baseBranch?: string;
+      verbose?: boolean;
+    }) => {
+      dartHookDcmAnalyzeCheck(options);
+    }
+  );
 
 hook
   .command('graphql')
@@ -442,8 +481,16 @@ hook
     '-v, --verbose',
     'show human-readable status messages (output to stderr)'
   )
-  .action(async (options: { staged?: boolean; unstaged?: boolean; all?: boolean; baseBranch?: string; verbose?: boolean; }) => {
-    await dartHookGraphqlCheck(options);
-  });
+  .action(
+    async (options: {
+      staged?: boolean;
+      unstaged?: boolean;
+      all?: boolean;
+      baseBranch?: string;
+      verbose?: boolean;
+    }) => {
+      await dartHookGraphqlCheck(options);
+    }
+  );
 
 program.parse();

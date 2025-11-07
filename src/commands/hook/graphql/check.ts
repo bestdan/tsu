@@ -13,6 +13,7 @@ import { isCommandInstalled } from '../../../utils/shell.js';
 import { logIfVerbose } from '../../../utils/logger.js';
 import type { ChangedFilesOptions } from '../../../types/command-options.js';
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface DartHookGraphqlCheckOptions extends ChangedFilesOptions {}
 
 /**
@@ -73,10 +74,7 @@ export async function dartHookGraphqlCheck(
   // Get git status before running codegen
   const gitStatusBefore = getGitStatus(cwd);
 
-  ensureCondition(
-    gitStatusBefore !== null,
-    'Error: Failed to get git status'
-  );
+  ensureCondition(gitStatusBefore !== null, 'Error: Failed to get git status');
 
   logIfVerbose(verbose, '🔧 Running GraphQL code generation...');
 
@@ -102,10 +100,7 @@ export async function dartHookGraphqlCheck(
   const gitStatusAfter = getGitStatus(cwd);
 
   /* v8 ignore next -- @preserve */
-  ensureCondition(
-    gitStatusAfter !== null,
-    'Error: Failed to get git status'
-  );
+  ensureCondition(gitStatusAfter !== null, 'Error: Failed to get git status');
 
   // Compare git status before and after
   // TypeScript knows these are non-null after ensureCondition checks
@@ -123,7 +118,9 @@ export async function dartHookGraphqlCheck(
       const beforeLines = new Set(
         gitStatusBefore.split('\n').filter((line) => line.length > 0)
       );
-      const afterLines = gitStatusAfter.split('\n').filter((line) => line.length > 0);
+      const afterLines = gitStatusAfter
+        .split('\n')
+        .filter((line) => line.length > 0);
 
       // Find files that are new or have different status
       const changedFiles = afterLines.filter((line) => !beforeLines.has(line));

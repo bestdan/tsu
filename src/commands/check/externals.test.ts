@@ -67,9 +67,7 @@ describe('checkExternals', () => {
       return cmd === 'dart' || cmd === 'claude';
     });
 
-    expect(() => checkExternals({ verbose: true })).toThrow(
-      'process.exit(1)'
-    );
+    expect(() => checkExternals({ verbose: true })).toThrow('process.exit(1)');
 
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       '🔍 Checking external dependencies...'
@@ -96,9 +94,7 @@ describe('checkExternals', () => {
   it('should show success message in verbose mode when all are installed', () => {
     vi.mocked(shell.isCommandInstalled).mockReturnValue(true);
 
-    expect(() => checkExternals({ verbose: true })).toThrow(
-      'process.exit(0)'
-    );
+    expect(() => checkExternals({ verbose: true })).toThrow('process.exit(0)');
 
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       '✓ All external dependencies are installed'

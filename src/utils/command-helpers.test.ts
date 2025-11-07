@@ -839,7 +839,9 @@ describe('displayFileList', () => {
       message: 'Running DCM analyze on',
     });
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Running DCM analyze on 2 file(s):');
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      'Running DCM analyze on 2 file(s):'
+    );
     expect(consoleErrorSpy).toHaveBeenCalledWith('  file1.dart');
     expect(consoleErrorSpy).toHaveBeenCalledWith('  file2.dart');
   });

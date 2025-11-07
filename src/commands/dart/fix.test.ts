@@ -249,7 +249,9 @@ describe('dartFix', () => {
     expect(readPackageNameSpy).toHaveBeenCalled();
     expect(execSync).toHaveBeenCalledWith(
       'dart fix --dry-run',
-      expect.objectContaining({ cwd: expect.stringContaining('packages/my_package') })
+      expect.objectContaining({
+        cwd: expect.stringContaining('packages/my_package'),
+      })
     );
     expect(processExitSpy).toHaveBeenCalledWith(0);
   });
@@ -286,7 +288,9 @@ describe('dartFix', () => {
       .mockReturnValue({ isDirectory: () => false } as any);
     existsSyncSpy.mockReturnValue(true);
     readPackageNameSpy.mockReturnValue('my_package');
-    findAffectedPackagesSpy.mockReturnValue(new Map([['packages/other', 'other']]));
+    findAffectedPackagesSpy.mockReturnValue(
+      new Map([['packages/other', 'other']])
+    );
     vi.mocked(execSync).mockReturnValue('No issues found');
 
     expect(() => {
@@ -425,7 +429,9 @@ describe('dartFix', () => {
       });
     }).toThrow('process.exit(0)');
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith('✓ All dart fix checks passed');
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      '✓ All dart fix checks passed'
+    );
     expect(consoleErrorSpy).toHaveBeenCalledWith('Analyzing lib/main.dart\n');
     expect(processExitSpy).toHaveBeenCalledWith(0);
   });
@@ -446,7 +452,9 @@ describe('dartFix', () => {
 
     expect(consoleErrorSpy).toHaveBeenCalledWith('✓ app dart fix passed');
     expect(consoleErrorSpy).toHaveBeenCalledWith('Analyzing package\n');
-    expect(consoleErrorSpy).toHaveBeenCalledWith('✓ All dart fix checks passed');
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      '✓ All dart fix checks passed'
+    );
     expect(processExitSpy).toHaveBeenCalledWith(0);
   });
 

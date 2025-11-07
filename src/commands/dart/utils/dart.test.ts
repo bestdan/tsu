@@ -41,14 +41,17 @@ describe('findDartPackageRoot', () => {
   });
 
   it('should find package roots in multi-package monorepo with DCM fixture', () => {
-    const dcmFixtureDir = resolve(__dirname, '../../../__fixtures__/dart-app-with-dcm');
+    const dcmFixtureDir = resolve(
+      __dirname,
+      '../../../__fixtures__/dart-app-with-dcm'
+    );
     const corePackage = join(dcmFixtureDir, 'packages/core');
     const appPackage = join(dcmFixtureDir, 'packages/app');
-    
+
     // Test from lib directory in core package
     const coreLibDir = join(corePackage, 'lib');
     expect(findDartPackageRoot(coreLibDir)).toBe(corePackage);
-    
+
     // Test from lib directory in app package
     const appLibDir = join(appPackage, 'lib');
     expect(findDartPackageRoot(appLibDir)).toBe(appPackage);
@@ -82,7 +85,10 @@ describe('isDartPackage', () => {
   });
 
   it('should detect packages in multi-package monorepo with DCM fixture', () => {
-    const dcmFixtureDir = resolve(__dirname, '../../../__fixtures__/dart-app-with-dcm');
+    const dcmFixtureDir = resolve(
+      __dirname,
+      '../../../__fixtures__/dart-app-with-dcm'
+    );
     const corePackage = join(dcmFixtureDir, 'packages/core');
     const appPackage = join(dcmFixtureDir, 'packages/app');
 
@@ -122,7 +128,10 @@ describe('extractImports', () => {
   });
 
   it('should handle monorepo with subpackage lib directories', () => {
-    const monorepoDir = resolve(__dirname, '../../../__fixtures__/dart-monorepo');
+    const monorepoDir = resolve(
+      __dirname,
+      '../../../__fixtures__/dart-monorepo'
+    );
     const mainFile = join(monorepoDir, 'lib', 'main.dart');
     const imports = extractImports(mainFile, monorepoDir);
 
@@ -143,17 +152,26 @@ describe('extractImports', () => {
   });
 
   it('should extract imports from multi-package monorepo with DCM fixture', () => {
-    const dcmFixtureDir = resolve(__dirname, '../../../__fixtures__/dart-app-with-dcm');
+    const dcmFixtureDir = resolve(
+      __dirname,
+      '../../../__fixtures__/dart-app-with-dcm'
+    );
     const coreUserFile = join(dcmFixtureDir, 'packages/core/lib/user.dart');
-    const imports = extractImports(coreUserFile, join(dcmFixtureDir, 'packages/core'));
+    const imports = extractImports(
+      coreUserFile,
+      join(dcmFixtureDir, 'packages/core')
+    );
 
     // The User file itself has no imports (simple model), but test that it works
     expect(imports).toEqual([]);
-    
+
     // Test that we can read from the core package
     const coreUtilsFile = join(dcmFixtureDir, 'packages/core/lib/utils.dart');
-    const utilsImports = extractImports(coreUtilsFile, join(dcmFixtureDir, 'packages/core'));
-    
+    const utilsImports = extractImports(
+      coreUtilsFile,
+      join(dcmFixtureDir, 'packages/core')
+    );
+
     // utils.dart also has no imports, but confirms file can be read
     expect(utilsImports).toEqual([]);
   });
@@ -194,7 +212,10 @@ describe('findAllDartFiles', () => {
   });
 
   it('should find dart files in multi-package monorepo with DCM fixture', () => {
-    const dcmFixtureDir = resolve(__dirname, '../../../__fixtures__/dart-app-with-dcm');
+    const dcmFixtureDir = resolve(
+      __dirname,
+      '../../../__fixtures__/dart-app-with-dcm'
+    );
     const corePackage = join(dcmFixtureDir, 'packages/core');
     const files = findAllDartFiles(corePackage);
 
@@ -440,12 +461,12 @@ describe('readPackageIndex and findAffectedPackages', () => {
 
   it('should find affected packages in multi-package monorepo using DCM fixture', async () => {
     const { findAffectedPackages } = await import('./dart.js');
-    const dcmFixtureDir = resolve(__dirname, '../../../__fixtures__/dart-app-with-dcm');
-    
-    const files = [
-      'packages/app/lib/main.dart',
-      'packages/core/lib/user.dart',
-    ];
+    const dcmFixtureDir = resolve(
+      __dirname,
+      '../../../__fixtures__/dart-app-with-dcm'
+    );
+
+    const files = ['packages/app/lib/main.dart', 'packages/core/lib/user.dart'];
     const result = findAffectedPackages(files, dcmFixtureDir);
 
     // Should find both packages

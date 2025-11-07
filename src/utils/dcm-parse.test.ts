@@ -30,8 +30,7 @@ describe('parseDcmAnalyzeOutput', () => {
                 startLine: 55,
                 startOffset: 2303,
               },
-              message:
-                'final-nullable-fields should be before constructors.',
+              message: 'final-nullable-fields should be before constructors.',
               effortInMinutes: 5,
               documentation:
                 'https://dcm.dev/docs/rules/common/member-ordering',
@@ -171,7 +170,10 @@ describe('dcmAnalyze', () => {
     const result = dcmAnalyze({ cwd: '/test' }, mockRunner);
 
     expect(result.success).toBe(false);
-    expect(result.filesWithIssues).toEqual(['lib/file1.dart', 'lib/file2.dart']);
+    expect(result.filesWithIssues).toEqual([
+      'lib/file1.dart',
+      'lib/file2.dart',
+    ]);
     expect(result.rawOutput).toBe(mockOutput);
   });
 

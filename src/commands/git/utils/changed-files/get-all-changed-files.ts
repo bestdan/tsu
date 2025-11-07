@@ -4,7 +4,7 @@ import type { ChangedFilesOptions } from '../../../../types/command-options.js';
 /**
  * Gets changed files based on options, similar to the 'git changed' command.
  * Supports filtering by type (committed, staged, unstaged) or getting all changed files.
- * 
+ *
  * @param options - Configuration options
  * @param options.staged - Get only staged changes
  * @param options.unstaged - Get only unstaged changes
@@ -14,15 +14,15 @@ import type { ChangedFilesOptions } from '../../../../types/command-options.js';
  * @param options.push - Not supported by this function (used only in displayChangedFiles)
  * @param cwd - The directory to run git commands in. Defaults to process.cwd()
  * @returns Array of unique file paths
- * 
+ *
  * @example
  * // Get all changed files (default behavior)
  * const allFiles = getAllChangedFiles();
- * 
+ *
  * @example
  * // Get only staged files
  * const stagedFiles = getAllChangedFiles({ staged: true });
- * 
+ *
  * @example
  * // Get committed changes compared to 'develop' branch
  * const committedFiles = getAllChangedFiles({ baseBranch: 'develop' });
@@ -35,7 +35,8 @@ export function getAllChangedFiles(
 
   // If --all is specified or no specific type is requested, get all changes
   if (options.all || (!options.staged && !options.unstaged)) {
-    const committedFiles = getChangedFiles({ type: 'committed', baseBranch, cwd }) || [];
+    const committedFiles =
+      getChangedFiles({ type: 'committed', baseBranch, cwd }) || [];
     const stagedFiles = getChangedFiles({ type: 'staged', cwd }) || [];
     const unstagedFiles = getChangedFiles({ type: 'unstaged', cwd }) || [];
 

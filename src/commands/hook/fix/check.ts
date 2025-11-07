@@ -32,9 +32,7 @@ export interface DartHookFixCheckOptions extends ChangedFilesOptions {
  * 3. Checks if fixes created any changes
  * 4. Exits with error if files were modified
  */
-export function dartHookFixCheck(
-  options: DartHookFixCheckOptions = {}
-): void {
+export function dartHookFixCheck(options: DartHookFixCheckOptions = {}): void {
   const verbose = options.verbose || false;
   const excludeSuffixes = options.excludeSuffixes || [
     ...COMMON_DART_CODEGEN_SUFFIXES,

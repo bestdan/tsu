@@ -115,17 +115,20 @@ describe('dartHookFormatCheck', () => {
     isDartPackageSpy.mockReturnValue(true);
     getAllChangedFilesSpy.mockReturnValue(['lib/main.dart']);
 
-    const hasUnstagedChangesSpy = vi.spyOn(gitUtils, 'hasUnstagedChanges').mockReturnValue(false);
+    const hasUnstagedChangesSpy = vi
+      .spyOn(gitUtils, 'hasUnstagedChanges')
+      .mockReturnValue(false);
 
     expect(() => {
       dartHookFormatCheck({ verbose: true });
     }).toThrow('process.exit(0)');
 
     // Should display the file list
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Running dart format on 1 file(s):');
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      'Running dart format on 1 file(s):'
+    );
     expect(consoleErrorSpy).toHaveBeenCalledWith('  lib/main.dart');
 
     hasUnstagedChangesSpy.mockRestore();
   });
-
 });

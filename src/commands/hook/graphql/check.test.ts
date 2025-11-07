@@ -110,7 +110,9 @@ describe('dartHookGraphqlCheck', () => {
     }).rejects.toThrow('process.exit(0)');
 
     // Should display the file list
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Running GraphQL codegen on 1 file(s):');
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      'Running GraphQL codegen on 1 file(s):'
+    );
     expect(consoleErrorSpy).toHaveBeenCalledWith('  lib/query.graphql');
   });
 
@@ -124,7 +126,9 @@ describe('dartHookGraphqlCheck', () => {
       await dartHookGraphqlCheck({ verbose: true });
     }).rejects.toThrow('process.exit(0)');
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith('⚠️  Warning: Melos not installed, skipping');
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      '⚠️  Warning: Melos not installed, skipping'
+    );
     expect(processExitSpy).toHaveBeenCalledWith(0);
   });
 
@@ -152,5 +156,4 @@ describe('dartHookGraphqlCheck', () => {
 
     expect(processExitSpy).toHaveBeenCalledWith(0);
   });
-
 });

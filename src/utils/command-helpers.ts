@@ -122,7 +122,9 @@ export function displayChangedFiles(options: DisplayChangedFilesOptions): void {
     const pushFiles = getFilesToPush();
 
     if (pushFiles === null) {
-      console.error('Error: Remote branch not found or not in a git repository');
+      console.error(
+        'Error: Remote branch not found or not in a git repository'
+      );
       process.exit(1);
     }
 
@@ -189,9 +191,7 @@ export function displayChangedFiles(options: DisplayChangedFilesOptions): void {
         );
       }
       if (stagedFiles.length > 0) {
-        console.error(
-          `Staged ${typePrefix}changes (${stagedFiles.length}):`
-        );
+        console.error(`Staged ${typePrefix}changes (${stagedFiles.length}):`);
       }
       if (unstagedFiles.length > 0) {
         console.error(

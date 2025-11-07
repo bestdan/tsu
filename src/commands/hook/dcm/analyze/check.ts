@@ -1,7 +1,4 @@
-import {
-  isGitRepo,
-  getAllChangedFiles,
-} from '../../../git/utils/git.js';
+import { isGitRepo, getAllChangedFiles } from '../../../git/utils/git.js';
 import {
   isDartPackage,
   COMMON_DART_CODEGEN_SUFFIXES,
@@ -78,7 +75,9 @@ export function dartHookDcmAnalyzeCheck(
     const filesWithIssues = result.filesWithIssues;
 
     console.error('');
-    console.error('❌ Push blocked: DCM analyze found issues in the following file(s):');
+    console.error(
+      '❌ Push blocked: DCM analyze found issues in the following file(s):'
+    );
     filesWithIssues.forEach((file) => {
       console.error(`  ${file}`);
     });
