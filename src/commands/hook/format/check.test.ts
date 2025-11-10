@@ -11,6 +11,7 @@ vi.mock('node:child_process', () => ({
 
 describe('dartHookFormatCheck', () => {
   let consoleErrorSpy: any;
+  let consoleLogSpy: any;
   let processExitSpy: any;
   let isGitRepoSpy: any;
   let isDartPackageSpy: any;
@@ -21,6 +22,7 @@ describe('dartHookFormatCheck', () => {
     resetVerbose();
 
     consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     processExitSpy = vi.spyOn(process, 'exit').mockImplementation((code) => {
       throw new Error(`process.exit(${code})`);
     });
@@ -34,11 +36,13 @@ describe('dartHookFormatCheck', () => {
 
   afterEach(() => {
     consoleErrorSpy.mockRestore();
+    consoleLogSpy.mockRestore();
     processExitSpy.mockRestore();
     isGitRepoSpy.mockRestore();
     isDartPackageSpy.mockRestore();
     getAllChangedFilesSpy.mockRestore();
-    vi.clearAllMocks();
+    // Don't clear all mocks - it interferes with vi.mock() at module level
+    // vi.clearAllMocks();
   });
 
   it('should exit with error if not in a git repository', () => {
@@ -106,21 +110,34 @@ describe('dartHookFormatCheck', () => {
     expect(getAllChangedFilesSpy).toHaveBeenCalled();
   });
 
-  it('should display file list in verbose mode when running dart format', () => {
+  it('should display file list in verbose mode when files need formatting', () => {
     isGitRepoSpy.mockReturnValue(true);
     isDartPackageSpy.mockReturnValue(true);
     getAllChangedFilesSpy.mockReturnValue(['lib/main.dart']);
-
-    const hasUnstagedChangesSpy = vi.spyOn(gitUtils, 'hasUnstagedChanges').mockReturnValue(false);
+    
+    // Mock execSync to throw with status 1 (files need formatting)
+    vi.mocked(execSync).mockImplementationOnce(() => {
+      const error: any = new Error('Command failed');
+      error.status = 1;
+      error.stdout = Buffer.from('lib/main.dart');
+      throw error;
+    });
 
     expect(() => {
       dartHookFormatCheck({ verbose: true });
-    }).toThrow('process.exit(0)');
+    }).toThrow('process.exit(1)');
 
     // Should display the file list
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Running dart format on 1 file(s):');
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Checking dart format on 1 file(s):');
     expect(consoleErrorSpy).toHaveBeenCalledWith('  lib/main.dart');
-
-    hasUnstagedChangesSpy.mockRestore();
+    
+    // Should output exit code for piping
+    expect(consoleLogSpy).toHaveBeenCalledWith(1);
+    
+    // Should show error message in verbose mode
+    expect(consoleErrorSpy).toHaveBeenCalledWith('');
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      '❌ Files would be reformatted. Please run dart format and commit these changes:'
+    );
   });
 });
