@@ -41,11 +41,7 @@ export { escapeShellArg, isCommandInstalled } from './utils/shell.js';
 export { filterFilesBySuffix } from './commands/files/utils/files.js';
 
 // Verbose state utilities
-export {
-  setVerbose,
-  isVerbose,
-  resetVerbose,
-} from './utils/verbose-state.js';
+export { setVerbose, isVerbose, resetVerbose } from './utils/verbose-state.js';
 
 // Command helper utilities
 export {

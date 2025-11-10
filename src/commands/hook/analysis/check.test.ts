@@ -15,7 +15,7 @@ describe('dartHookAnalysisCheck', () => {
   beforeEach(() => {
     // Reset verbose state before each test
     resetVerbose();
-    
+
     consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     processExitSpy = vi.spyOn(process, 'exit').mockImplementation((code) => {
       throw new Error(`process.exit(${code})`);

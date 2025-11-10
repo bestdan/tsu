@@ -21,7 +21,7 @@ pre-push:
       glob: "*.{ts,js}"
       run: |
         if [ -n "{push_files}" ]; then
-          echo "{push_files}" | xargs pnpm eslint
+          echo "{push_files}" | xargs pnpm lint
         elif [ "${LEFTHOOK_VERBOSE}" = "1" ]; then
           echo "No files matching glob, skipping lint"
         fi

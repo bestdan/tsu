@@ -40,10 +40,7 @@ import { isVerbose } from './verbose-state.js';
  * logIfVerbose(undefined, '✓ Show if global verbose is enabled');
  */
 /* v8 ignore next -- @preserve */
-export function logIfVerbose(
-  verbose: boolean | undefined,
-  message: string
-): void {
+export function logIfVerbose(verbose: boolean | undefined, message: string): void {
   const shouldLog = verbose !== undefined ? verbose : isVerbose();
   if (shouldLog) {
     console.error(message);
