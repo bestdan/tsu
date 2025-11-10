@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { setVerbose, isVerbose, resetVerbose } from './verbose-state.js';
+import { setVerbose, resetVerbose } from './verbose-state.js';
 import { logIfVerbose } from './logger.js';
 import { displayFileList } from './command-helpers.js';
 
