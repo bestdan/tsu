@@ -5,6 +5,7 @@ import { ensureCondition, displayFileList } from '../../../utils/command-helpers
 import { logIfVerbose } from '../../../utils/logger.js';
 import { dartAnalyze } from '../../../utils/dart-analyze-parse.js';
 import type { ChangedFilesOptions } from '../../../types/command-options.js';
+import { setVerbose } from '../../../utils/verbose-state.js';
 
 export interface DartHookAnalysisCheckOptions extends ChangedFilesOptions {
   /** Suffixes to exclude from analysis. Defaults to COMMON_DART_CODEGEN_SUFFIXES */
@@ -24,6 +25,9 @@ export interface DartHookAnalysisCheckOptions extends ChangedFilesOptions {
 export function dartHookAnalysisCheck(options: DartHookAnalysisCheckOptions = {}): void {
   const verbose = options.verbose || false;
   const excludeSuffixes = options.excludeSuffixes || [...COMMON_DART_CODEGEN_SUFFIXES];
+
+  // Set global verbose state for downstream functions
+  setVerbose(verbose);
 
   logIfVerbose(verbose, '🔍 Running dart analyze on modified files...');
 

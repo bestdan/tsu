@@ -3,6 +3,7 @@ import { dartHookAnalysisCheck } from './check.js';
 import * as gitUtils from '../../git/utils/git.js';
 import * as dartUtils from '../../dart/utils/dart.js';
 import * as dartAnalyzeParse from '../../../utils/dart-analyze-parse.js';
+import { resetVerbose } from '../../../utils/verbose-state.js';
 
 describe('dartHookAnalysisCheck', () => {
   let consoleErrorSpy: any;
@@ -12,6 +13,9 @@ describe('dartHookAnalysisCheck', () => {
   let getAllChangedFilesSpy: any;
 
   beforeEach(() => {
+    // Reset verbose state before each test
+    resetVerbose();
+
     consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     processExitSpy = vi.spyOn(process, 'exit').mockImplementation((code) => {
       throw new Error(`process.exit(${code})`);

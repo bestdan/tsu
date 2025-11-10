@@ -3,6 +3,7 @@ import { dartHookFormatCheck } from './check.js';
 import * as gitUtils from '../../git/utils/git.js';
 import * as dartUtils from '../../dart/utils/dart.js';
 import { execSync } from 'node:child_process';
+import { resetVerbose } from '../../../utils/verbose-state.js';
 
 vi.mock('node:child_process', () => ({
   execSync: vi.fn(),
@@ -16,6 +17,9 @@ describe('dartHookFormatCheck', () => {
   let getAllChangedFilesSpy: any;
 
   beforeEach(() => {
+    // Reset verbose state before each test
+    resetVerbose();
+
     consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     processExitSpy = vi.spyOn(process, 'exit').mockImplementation((code) => {
       throw new Error(`process.exit(${code})`);

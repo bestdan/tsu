@@ -10,6 +10,7 @@ import {
 } from '../../../../utils/command-helpers.js';
 import { logIfVerbose } from '../../../../utils/logger.js';
 import type { ChangedFilesOptions } from '../../../../types/command-options.js';
+import { setVerbose } from '../../../../utils/verbose-state.js';
 
 export interface DartHookDcmCheckOptions extends ChangedFilesOptions {
   /** Suffixes to exclude from DCM checks. Defaults to COMMON_DART_CODEGEN_SUFFIXES */
@@ -30,6 +31,9 @@ export interface DartHookDcmCheckOptions extends ChangedFilesOptions {
 export function dartHookDcmCheck(options: DartHookDcmCheckOptions = {}): void {
   const verbose = options.verbose || false;
   const excludeSuffixes = options.excludeSuffixes || [...COMMON_DART_CODEGEN_SUFFIXES];
+
+  // Set global verbose state for downstream functions
+  setVerbose(verbose);
 
   // Check if DCM is installed
   ensureDCMInstalled(verbose);

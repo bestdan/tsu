@@ -4,6 +4,7 @@ import * as gitUtils from '../../../git/utils/git.js';
 import * as dartUtils from '../../../dart/utils/dart.js';
 import * as shellUtils from '../../../../utils/shell.js';
 import * as dcmParse from '../../../../utils/dcm-parse.js';
+import { resetVerbose } from '../../../../utils/verbose-state.js';
 
 describe('dartHookDcmAnalyzeCheck', () => {
   let consoleErrorSpy: any;
@@ -14,6 +15,9 @@ describe('dartHookDcmAnalyzeCheck', () => {
   let isCommandInstalledSpy: any;
 
   beforeEach(() => {
+    // Reset verbose state before each test
+    resetVerbose();
+
     consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     processExitSpy = vi.spyOn(process, 'exit').mockImplementation((code) => {
       throw new Error(`process.exit(${code})`);
