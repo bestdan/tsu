@@ -12,6 +12,7 @@ import {
 import { isCommandInstalled } from '../../../utils/shell.js';
 import { logIfVerbose } from '../../../utils/logger.js';
 import type { ChangedFilesOptions } from '../../../types/command-options.js';
+import { setVerbose } from '../../../utils/verbose-state.js';
 
 export type DartHookGraphqlCheckOptions = ChangedFilesOptions;
 
@@ -35,6 +36,9 @@ export async function dartHookGraphqlCheck(
     'melos run codegen:graphql',
     'melos run codegen:graphql:test',
   ];
+
+  // Set global verbose state for downstream functions
+  setVerbose(verbose);
 
   logIfVerbose(verbose, '🧪 Checking for modified GraphQL files...');
 
