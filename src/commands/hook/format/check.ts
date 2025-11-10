@@ -7,11 +7,9 @@ import {
 import { filterFilesBySuffix } from '../../files/utils/files.js';
 import { escapeShellArg } from '../../../utils/shell.js';
 import { logIfVerbose } from '../../../utils/logger.js';
-import {
-  ensureCondition,
-  displayFileList,
-} from '../../../utils/command-helpers.js';
+import { ensureCondition, displayFileList } from '../../../utils/command-helpers.js';
 import type { ChangedFilesOptions } from '../../../types/command-options.js';
+import { setVerbose } from '../../../utils/verbose-state.js';
 
 export interface DartHookFormatCheckOptions extends ChangedFilesOptions {
   /** Suffixes to exclude from formatting. Defaults to COMMON_DART_CODEGEN_SUFFIXES */
@@ -28,13 +26,12 @@ export interface DartHookFormatCheckOptions extends ChangedFilesOptions {
  * 3. Exits with code 0 if files are properly formatted, 1 if they would be reformatted
  * 4. Lists files that would be reformatted in verbose mode
  */
-export function dartHookFormatCheck(
-  options: DartHookFormatCheckOptions = {}
-): void {
+export function dartHookFormatCheck(options: DartHookFormatCheckOptions = {}): void {
   const verbose = options.verbose || false;
-  const excludeSuffixes = options.excludeSuffixes || [
-    ...COMMON_DART_CODEGEN_SUFFIXES,
-  ];
+  const excludeSuffixes = options.excludeSuffixes || [...COMMON_DART_CODEGEN_SUFFIXES];
+
+  // Set global verbose state for downstream functions
+  setVerbose(verbose);
 
   logIfVerbose(verbose, '🎨 Checking dart format on modified files...');
 

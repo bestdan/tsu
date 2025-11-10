@@ -6,9 +6,7 @@ import { dirname, resolve, join } from 'node:path';
  * @param startPath - Path to start searching from (defaults to current directory)
  * @returns Path to the directory containing pubspec.yaml, or null if not found
  */
-export function findDartPackageRoot(
-  startPath: string = process.cwd()
-): string | null {
+export function findDartPackageRoot(startPath: string = process.cwd()): string | null {
   let currentPath = resolve(startPath);
   const root = resolve('/');
 

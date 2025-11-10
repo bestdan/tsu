@@ -19,14 +19,8 @@ export interface GetChangedFilesOptions {
  * @param options - Configuration options
  * @returns Array of file paths, or null if not in a git repo or on error
  */
-export function getChangedFiles(
-  options: GetChangedFilesOptions = {}
-): string[] | null {
-  const {
-    type = 'committed',
-    baseBranch = 'main',
-    cwd = process.cwd(),
-  } = options;
+export function getChangedFiles(options: GetChangedFilesOptions = {}): string[] | null {
+  const { type = 'committed', baseBranch = 'main', cwd = process.cwd() } = options;
 
   try {
     if (!isGitRepo(cwd)) {

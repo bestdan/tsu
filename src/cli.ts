@@ -29,25 +29,15 @@ import { pipeUpdateExitCode } from './commands/pipe/update-exit-code.js';
 
 const program = new Command();
 
-program
-  .name('tsutils')
-  .description('TypeScript command line utilities')
-  .version('0.1.0');
+program.name('tsutils').description('TypeScript command line utilities').version('0.1.0');
 
 // Check subcommand namespace
-const check = program
-  .command('check')
-  .description('Check system dependencies and environment');
+const check = program.command('check').description('Check system dependencies and environment');
 
 check
   .command('externals')
-  .description(
-    'Check if external dependencies (dart, dcm, melos, claude) are installed'
-  )
-  .option(
-    '-v, --verbose',
-    'show human-readable status messages (output to stderr)'
-  )
+  .description('Check if external dependencies (dart, dcm, melos, claude) are installed')
+  .option('-v, --verbose', 'show human-readable status messages (output to stderr)')
   .action((options: { verbose?: boolean }) => {
     checkExternals(options);
   });
@@ -57,14 +47,9 @@ const git = program.command('git').description('Git repository utilities');
 
 git
   .command('check')
-  .description(
-    'Check if current directory is in a git repository (exit code only)'
-  )
+  .description('Check if current directory is in a git repository (exit code only)')
   .argument('[path]', 'path to check (defaults to current directory)')
-  .option(
-    '-v, --verbose',
-    'show human-readable status messages (output to stderr)'
-  )
+  .option('-v, --verbose', 'show human-readable status messages (output to stderr)')
   .action((path: string | undefined, options: { verbose?: boolean }) => {
     gitCheck(path, options);
   });
@@ -84,15 +69,8 @@ git
   .option('-s, --staged', 'show staged changes only')
   .option('-u, --unstaged', 'show unstaged changes only')
   .option('-a, --all', 'show all changes (committed, staged, and unstaged)')
-  .option(
-    '-p, --push',
-    'show files in commits that would be pushed to upstream'
-  )
-  .option(
-    '-b, --base-branch <branch>',
-    'base branch to compare against',
-    'main'
-  )
+  .option('-p, --push', 'show files in commits that would be pushed to upstream')
+  .option('-b, --base-branch <branch>', 'base branch to compare against', 'main')
   .option('-v, --verbose', 'show headers and counts (output to stderr)')
   .action(
     (options: {
@@ -121,26 +99,15 @@ git
   .description('Check if current branch is main (exit code only)')
   .argument('[path]', 'path to check (defaults to current directory)')
   .option('-b, --branch <name>', 'main branch name to check against', 'main')
-  .option(
-    '-v, --verbose',
-    'show human-readable status messages (output to stderr)'
-  )
-  .action(
-    (
-      path: string | undefined,
-      options: { verbose?: boolean; branch?: string }
-    ) => {
-      gitIsMain(path, options);
-    }
-  );
+  .option('-v, --verbose', 'show human-readable status messages (output to stderr)')
+  .action((path: string | undefined, options: { verbose?: boolean; branch?: string }) => {
+    gitIsMain(path, options);
+  });
 
 git
   .command('commit-msg')
   .description('Generate a commit message from staged changes using Claude')
-  .option(
-    '-c, --commit',
-    'automatically create the commit with generated message'
-  )
+  .option('-c, --commit', 'automatically create the commit with generated message')
   .option('-v, --verbose', 'show progress messages (output to stderr)')
   .action((options: { commit?: boolean; verbose?: boolean }) => {
     gitCommitMsg(options);
@@ -148,35 +115,22 @@ git
 
 git
   .command('pr-description')
-  .description(
-    'Generate a GitHub PR description from branch changes using Claude'
-  )
-  .option(
-    '-b, --base-branch <branch>',
-    'base branch to compare against',
-    'main'
-  )
+  .description('Generate a GitHub PR description from branch changes using Claude')
+  .option('-b, --base-branch <branch>', 'base branch to compare against', 'main')
   .option('-v, --verbose', 'show progress messages (output to stderr)')
   .action((options: { baseBranch?: string; verbose?: boolean }) => {
     gitPRDescription(options);
   });
 
 // Files subcommand namespace
-const files = program
-  .command('files')
-  .description('File manipulation utilities');
+const files = program.command('files').description('File manipulation utilities');
 
-const filesFilterCmd = files
-  .command('filter')
-  .description('Filter files from stdin');
+const filesFilterCmd = files.command('filter').description('Filter files from stdin');
 
 filesFilterCmd
   .command('suffix')
   .description('Filter files by removing those matching suffix patterns')
-  .argument(
-    '<suffixes...>',
-    'suffix patterns to filter out (e.g., .g.dart .gql.dart)'
-  )
+  .argument('<suffixes...>', 'suffix patterns to filter out (e.g., .g.dart .gql.dart)')
   .option('-v, --verbose', 'show filter statistics (output to stderr)')
   .action((suffixes: string[], options: { verbose?: boolean }) => {
     filesFilter(suffixes, options);
@@ -187,14 +141,9 @@ const dart = program.command('dart').description('Dart package utilities');
 
 dart
   .command('check')
-  .description(
-    'Check if current directory is in a Dart package (exit code only)'
-  )
+  .description('Check if current directory is in a Dart package (exit code only)')
   .argument('[path]', 'path to check (defaults to current directory)')
-  .option(
-    '-v, --verbose',
-    'show human-readable status messages (output to stderr)'
-  )
+  .option('-v, --verbose', 'show human-readable status messages (output to stderr)')
   .action((path: string | undefined, options: { verbose?: boolean }) => {
     dartCheck(path, options);
   });
@@ -210,9 +159,7 @@ dart
 
 dart
   .command('package')
-  .description(
-    'Get the package root containing a specific file (useful in mono-repos)'
-  )
+  .description('Get the package root containing a specific file (useful in mono-repos)')
   .argument('<file>', 'path to the file')
   .option('-v, --verbose', 'show human-readable label (output to stderr)')
   .action((file: string, options: { verbose?: boolean }) => {
@@ -220,20 +167,14 @@ dart
   });
 
 // Dart changed subcommand
-const dartChangedCmd = dart
-  .command('changed')
-  .description('Show Dart files that have changed');
+const dartChangedCmd = dart.command('changed').description('Show Dart files that have changed');
 
 dartChangedCmd
   .description('Show Dart files that have changed compared to main branch')
   .option('-s, --staged', 'show staged changes only')
   .option('-u, --unstaged', 'show unstaged changes only')
   .option('-a, --all', 'show all changes (committed, staged, and unstaged)')
-  .option(
-    '-b, --base-branch <branch>',
-    'base branch to compare against',
-    'main'
-  )
+  .option('-b, --base-branch <branch>', 'base branch to compare against', 'main')
   .option('-v, --verbose', 'show headers and counts (output to stderr)')
   .action(
     (options: {
@@ -253,16 +194,9 @@ dartChangedCmd
   .option('-s, --staged', 'analyze staged changes only')
   .option('-u, --unstaged', 'analyze unstaged changes only')
   .option('-a, --all', 'analyze all changes (committed, staged, and unstaged)')
-  .option(
-    '-b, --base-branch <branch>',
-    'base branch to compare against',
-    'main'
-  )
+  .option('-b, --base-branch <branch>', 'base branch to compare against', 'main')
   .option('--relative', 'output relative paths instead of absolute paths')
-  .option(
-    '-v, --verbose',
-    'show detailed progress information (output to stderr)'
-  )
+  .option('-v, --verbose', 'show detailed progress information (output to stderr)')
   .action(
     (options: {
       staged?: boolean;
@@ -284,12 +218,7 @@ dart
   .option('--apply', 'apply fixes automatically (default is dry-run)')
   .option('--packages', 'run on affected packages instead of individual files')
   .action(
-    (options: {
-      verbose?: boolean;
-      files?: string[];
-      apply?: boolean;
-      packages?: boolean;
-    }) => {
+    (options: { verbose?: boolean; files?: string[]; apply?: boolean; packages?: boolean }) => {
       dartFix(options);
     }
   );
@@ -315,21 +244,12 @@ const hook = program.command('hook').description('Git hook utilities for Dart');
 hook
   .command('format')
   .command('check')
-  .description(
-    'Check if Dart files are properly formatted (suitable for pre-push hooks)'
-  )
+  .description('Check if Dart files are properly formatted (suitable for pre-push hooks)')
   .option('-s, --staged', 'check staged changes only')
   .option('-u, --unstaged', 'check unstaged changes only')
   .option('-a, --all', 'check all changes (committed, staged, and unstaged)')
-  .option(
-    '-b, --base-branch <branch>',
-    'base branch to compare against',
-    'main'
-  )
-  .option(
-    '-v, --verbose',
-    'show human-readable status messages (output to stderr)'
-  )
+  .option('-b, --base-branch <branch>', 'base branch to compare against', 'main')
+  .option('-v, --verbose', 'show human-readable status messages (output to stderr)')
   .action(
     (options: {
       staged?: boolean;
@@ -345,21 +265,12 @@ hook
 hook
   .command('analysis')
   .command('check')
-  .description(
-    'Check if Dart files pass dart analyze (suitable for pre-push hooks)'
-  )
+  .description('Check if Dart files pass dart analyze (suitable for pre-push hooks)')
   .option('-s, --staged', 'check staged changes only')
   .option('-u, --unstaged', 'check unstaged changes only')
   .option('-a, --all', 'check all changes (committed, staged, and unstaged)')
-  .option(
-    '-b, --base-branch <branch>',
-    'base branch to compare against',
-    'main'
-  )
-  .option(
-    '-v, --verbose',
-    'show human-readable status messages (output to stderr)'
-  )
+  .option('-b, --base-branch <branch>', 'base branch to compare against', 'main')
+  .option('-v, --verbose', 'show human-readable status messages (output to stderr)')
   .action(
     (options: {
       staged?: boolean;
@@ -375,21 +286,12 @@ hook
 hook
   .command('fix')
   .command('check')
-  .description(
-    'Check if Dart files pass dart fix and apply fixes (suitable for pre-push hooks)'
-  )
+  .description('Check if Dart files pass dart fix and apply fixes (suitable for pre-push hooks)')
   .option('-s, --staged', 'check staged changes only')
   .option('-u, --unstaged', 'check unstaged changes only')
   .option('-a, --all', 'check all changes (committed, staged, and unstaged)')
-  .option(
-    '-b, --base-branch <branch>',
-    'base branch to compare against',
-    'main'
-  )
-  .option(
-    '-v, --verbose',
-    'show human-readable status messages (output to stderr)'
-  )
+  .option('-b, --base-branch <branch>', 'base branch to compare against', 'main')
+  .option('-v, --verbose', 'show human-readable status messages (output to stderr)')
   .action(
     (options: {
       staged?: boolean;
@@ -403,28 +305,17 @@ hook
   );
 
 // Hook DCM subcommand namespace
-const hookDcm = hook
-  .command('dcm')
-  .description('DCM utilities for Dart code quality');
+const hookDcm = hook.command('dcm').description('DCM utilities for Dart code quality');
 
 hookDcm
   .command('fix')
   .command('check')
-  .description(
-    'Check if Dart files pass DCM fix checks (suitable for pre-push hooks)'
-  )
+  .description('Check if Dart files pass DCM fix checks (suitable for pre-push hooks)')
   .option('-s, --staged', 'check staged changes only')
   .option('-u, --unstaged', 'check unstaged changes only')
   .option('-a, --all', 'check all changes (committed, staged, and unstaged)')
-  .option(
-    '-b, --base-branch <branch>',
-    'base branch to compare against',
-    'main'
-  )
-  .option(
-    '-v, --verbose',
-    'show human-readable status messages (output to stderr)'
-  )
+  .option('-b, --base-branch <branch>', 'base branch to compare against', 'main')
+  .option('-v, --verbose', 'show human-readable status messages (output to stderr)')
   .action(
     (options: {
       staged?: boolean;
@@ -440,21 +331,12 @@ hookDcm
 hookDcm
   .command('analyze')
   .command('check')
-  .description(
-    'Check if Dart files pass DCM analyze checks (suitable for pre-push hooks)'
-  )
+  .description('Check if Dart files pass DCM analyze checks (suitable for pre-push hooks)')
   .option('-s, --staged', 'check staged changes only')
   .option('-u, --unstaged', 'check unstaged changes only')
   .option('-a, --all', 'check all changes (committed, staged, and unstaged)')
-  .option(
-    '-b, --base-branch <branch>',
-    'base branch to compare against',
-    'main'
-  )
-  .option(
-    '-v, --verbose',
-    'show human-readable status messages (output to stderr)'
-  )
+  .option('-b, --base-branch <branch>', 'base branch to compare against', 'main')
+  .option('-v, --verbose', 'show human-readable status messages (output to stderr)')
   .action(
     (options: {
       staged?: boolean;
@@ -470,21 +352,12 @@ hookDcm
 hook
   .command('graphql')
   .command('check')
-  .description(
-    'Check if GraphQL fakes are up to date (suitable for pre-push hooks)'
-  )
+  .description('Check if GraphQL fakes are up to date (suitable for pre-push hooks)')
   .option('-s, --staged', 'check staged changes only')
   .option('-u, --unstaged', 'check unstaged changes only')
   .option('-a, --all', 'check all changes (committed, staged, and unstaged)')
-  .option(
-    '-b, --base-branch <branch>',
-    'base branch to compare against',
-    'main'
-  )
-  .option(
-    '-v, --verbose',
-    'show human-readable status messages (output to stderr)'
-  )
+  .option('-b, --base-branch <branch>', 'base branch to compare against', 'main')
+  .option('-v, --verbose', 'show human-readable status messages (output to stderr)')
   .action(
     async (options: {
       staged?: boolean;

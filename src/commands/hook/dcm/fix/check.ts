@@ -1,13 +1,6 @@
 import { execSync } from 'node:child_process';
-import {
-  isGitRepo,
-  hasUnstagedChanges,
-  getAllChangedFiles,
-} from '../../../git/utils/git.js';
-import {
-  isDartPackage,
-  COMMON_DART_CODEGEN_SUFFIXES,
-} from '../../../dart/utils/dart.js';
+import { isGitRepo, hasUnstagedChanges, getAllChangedFiles } from '../../../git/utils/git.js';
+import { isDartPackage, COMMON_DART_CODEGEN_SUFFIXES } from '../../../dart/utils/dart.js';
 import { filterFilesBySuffix } from '../../../files/utils/files.js';
 import { escapeShellArg } from '../../../../utils/shell.js';
 import {
@@ -17,6 +10,7 @@ import {
 } from '../../../../utils/command-helpers.js';
 import { logIfVerbose } from '../../../../utils/logger.js';
 import type { ChangedFilesOptions } from '../../../../types/command-options.js';
+import { setVerbose } from '../../../../utils/verbose-state.js';
 
 export interface DartHookDcmCheckOptions extends ChangedFilesOptions {
   /** Suffixes to exclude from DCM checks. Defaults to COMMON_DART_CODEGEN_SUFFIXES */
@@ -36,9 +30,10 @@ export interface DartHookDcmCheckOptions extends ChangedFilesOptions {
  */
 export function dartHookDcmCheck(options: DartHookDcmCheckOptions = {}): void {
   const verbose = options.verbose || false;
-  const excludeSuffixes = options.excludeSuffixes || [
-    ...COMMON_DART_CODEGEN_SUFFIXES,
-  ];
+  const excludeSuffixes = options.excludeSuffixes || [...COMMON_DART_CODEGEN_SUFFIXES];
+
+  // Set global verbose state for downstream functions
+  setVerbose(verbose);
 
   // Check if DCM is installed
   ensureDCMInstalled(verbose);
@@ -90,9 +85,7 @@ export function dartHookDcmCheck(options: DartHookDcmCheckOptions = {}): void {
 
   // Check if DCM fixes created changes in the files we fixed
   /* v8 ignore next -- @preserve */
-  const filesWithChanges = modifiedFiles.filter((file) =>
-    hasUnstagedChanges(file, cwd)
-  );
+  const filesWithChanges = modifiedFiles.filter((file) => hasUnstagedChanges(file, cwd));
 
   /* v8 ignore next -- @preserve */
   if (filesWithChanges.length > 0) {

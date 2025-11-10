@@ -4,6 +4,7 @@ import * as gitUtils from '../../git/utils/git.js';
 import * as dartUtils from '../../dart/utils/dart.js';
 import * as shellUtils from '../../../utils/shell.js';
 import { execSync } from 'node:child_process';
+import { resetVerbose } from '../../../utils/verbose-state.js';
 
 vi.mock('node:child_process', () => ({
   execSync: vi.fn(),
@@ -19,6 +20,9 @@ describe('dartHookGraphqlCheck', () => {
   let getGitStatusSpy: any;
 
   beforeEach(() => {
+    // Reset verbose state before each test
+    resetVerbose();
+
     consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     processExitSpy = vi.spyOn(process, 'exit').mockImplementation((code) => {
       throw new Error(`process.exit(${code})`);
@@ -51,9 +55,7 @@ describe('dartHookGraphqlCheck', () => {
       await dartHookGraphqlCheck({ verbose: false });
     }).rejects.toThrow('process.exit(1)');
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      'Error: Not in a git repository'
-    );
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Error: Not in a git repository');
     expect(processExitSpy).toHaveBeenCalledWith(1);
   });
 
@@ -65,9 +67,7 @@ describe('dartHookGraphqlCheck', () => {
       await dartHookGraphqlCheck({ verbose: false });
     }).rejects.toThrow('process.exit(1)');
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      'Error: Not in a Dart package'
-    );
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Error: Not in a Dart package');
     expect(processExitSpy).toHaveBeenCalledWith(1);
   });
 
@@ -80,9 +80,7 @@ describe('dartHookGraphqlCheck', () => {
       await dartHookGraphqlCheck({ verbose: true });
     }).rejects.toThrow('process.exit(0)');
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      '✓ No GraphQL files modified (skipping)'
-    );
+    expect(consoleErrorSpy).toHaveBeenCalledWith('✓ No GraphQL files modified (skipping)');
     expect(processExitSpy).toHaveBeenCalledWith(0);
   });
 
@@ -110,9 +108,7 @@ describe('dartHookGraphqlCheck', () => {
     }).rejects.toThrow('process.exit(0)');
 
     // Should display the file list
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      'Running GraphQL codegen on 1 file(s):'
-    );
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Running GraphQL codegen on 1 file(s):');
     expect(consoleErrorSpy).toHaveBeenCalledWith('  lib/query.graphql');
   });
 
@@ -126,9 +122,7 @@ describe('dartHookGraphqlCheck', () => {
       await dartHookGraphqlCheck({ verbose: true });
     }).rejects.toThrow('process.exit(0)');
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      '⚠️  Warning: Melos not installed, skipping'
-    );
+    expect(consoleErrorSpy).toHaveBeenCalledWith('⚠️  Warning: Melos not installed, skipping');
     expect(processExitSpy).toHaveBeenCalledWith(0);
   });
 

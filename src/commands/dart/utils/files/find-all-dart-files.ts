@@ -6,9 +6,7 @@ import { resolve } from 'node:path';
  * @param rootDir - Root directory to search (defaults to current directory)
  * @returns Array of absolute paths to Dart files, or null on error
  */
-export function findAllDartFiles(
-  rootDir: string = process.cwd()
-): string[] | null {
+export function findAllDartFiles(rootDir: string = process.cwd()): string[] | null {
   try {
     // Find all .dart files, excluding common directories like .dart_tool, build, .symlinks
     const output = execSync(

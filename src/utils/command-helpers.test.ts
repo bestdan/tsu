@@ -43,9 +43,7 @@ describe('ensureCondition', () => {
         ensureCondition(false, 'Error: Something went wrong');
       }).toThrow('process.exit(1)');
 
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Error: Something went wrong'
-      );
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Error: Something went wrong');
       expect(processExitSpy).toHaveBeenCalledWith(1);
     });
 
@@ -198,9 +196,7 @@ describe('ensureDartInstalled', () => {
     }).toThrow('process.exit(0)');
 
     expect(isCommandInstalledSpy).toHaveBeenCalledWith('dart');
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      '⚠️  Warning: dart not installed, skipping'
-    );
+    expect(consoleErrorSpy).toHaveBeenCalledWith('⚠️  Warning: dart not installed, skipping');
     expect(processExitSpy).toHaveBeenCalledWith(0);
   });
 });
@@ -257,9 +253,7 @@ describe('ensureDCMInstalled', () => {
     }).toThrow('process.exit(0)');
 
     expect(isCommandInstalledSpy).toHaveBeenCalledWith('dcm');
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      '⚠️  Warning: DCM not installed, skipping'
-    );
+    expect(consoleErrorSpy).toHaveBeenCalledWith('⚠️  Warning: DCM not installed, skipping');
     expect(processExitSpy).toHaveBeenCalledWith(0);
   });
 });
@@ -390,9 +384,7 @@ describe('displayChangedFiles', () => {
         displayChangedFiles({});
       }).toThrow('process.exit(1)');
 
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Error: Failed to get changed files'
-      );
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Error: Failed to get changed files');
     });
   });
 
@@ -411,11 +403,7 @@ describe('displayChangedFiles', () => {
 
   describe('with filter function', () => {
     it('should filter files based on provided filter function', () => {
-      getChangedFilesMock.mockReturnValue([
-        'file1.ts',
-        'file2.dart',
-        'file3.ts',
-      ]);
+      getChangedFilesMock.mockReturnValue(['file1.ts', 'file2.dart', 'file3.ts']);
 
       const filter = (file: string) => file.endsWith('.dart');
       displayChangedFiles({ filter });
@@ -440,9 +428,7 @@ describe('displayChangedFiles', () => {
 
       displayChangedFiles({ verbose: true });
 
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Changed files compared to main (2):'
-      );
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Changed files compared to main (2):');
       expect(consoleLogSpy).toHaveBeenCalledWith('file1.ts');
       expect(consoleLogSpy).toHaveBeenCalledWith('file2.ts');
     });
@@ -468,9 +454,7 @@ describe('displayChangedFiles', () => {
 
       displayChangedFiles({ verbose: true, typePrefix: 'Dart' });
 
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Changed Dart files compared to main (1):'
-      );
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Changed Dart files compared to main (1):');
     });
   });
 
@@ -490,10 +474,7 @@ describe('displayChangedFiles', () => {
     });
 
     it('should exit silently when no files in any category with --all', () => {
-      getChangedFilesMock
-        .mockReturnValueOnce([])
-        .mockReturnValueOnce([])
-        .mockReturnValueOnce([]);
+      getChangedFilesMock.mockReturnValueOnce([]).mockReturnValueOnce([]).mockReturnValueOnce([]);
 
       displayChangedFiles({ all: true });
 
@@ -509,9 +490,7 @@ describe('displayChangedFiles', () => {
 
       displayChangedFiles({ all: true, verbose: true });
 
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Committed changes (compared to main) (1):'
-      );
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Committed changes (compared to main) (1):');
       expect(consoleErrorSpy).toHaveBeenCalledWith('Staged changes (1):');
       expect(consoleErrorSpy).toHaveBeenCalledWith('Unstaged changes (1):');
     });
@@ -542,9 +521,7 @@ describe('displayChangedFiles', () => {
       displayChangedFiles({ all: true, verbose: true });
 
       expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Committed changes (compared to main) (1):'
-      );
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Committed changes (compared to main) (1):');
     });
 
     it('should exit with error when any category returns null with --all', () => {
@@ -557,9 +534,7 @@ describe('displayChangedFiles', () => {
         displayChangedFiles({ all: true });
       }).toThrow('process.exit(1)');
 
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Error: Failed to get changed files'
-      );
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Error: Failed to get changed files');
     });
 
     it('should apply filter to all categories with --all', () => {
@@ -706,9 +681,7 @@ describe('getChangedFilesWithOptions', () => {
         getChangedFilesWithOptions({});
       }).toThrow('process.exit(1)');
 
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Error: Failed to get changed files'
-      );
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Error: Failed to get changed files');
     });
   });
 
@@ -728,11 +701,7 @@ describe('getChangedFilesWithOptions', () => {
 
   describe('with filter function', () => {
     it('should filter files based on provided filter function', () => {
-      getChangedFilesMock.mockReturnValue([
-        'file1.ts',
-        'file2.dart',
-        'file3.ts',
-      ]);
+      getChangedFilesMock.mockReturnValue(['file1.ts', 'file2.dart', 'file3.ts']);
 
       const filter = (file: string) => file.endsWith('.dart');
       const files = getChangedFilesWithOptions({ filter });
@@ -779,10 +748,7 @@ describe('getChangedFilesWithOptions', () => {
     });
 
     it('should return empty array when no files in any category with --all', () => {
-      getChangedFilesMock
-        .mockReturnValueOnce([])
-        .mockReturnValueOnce([])
-        .mockReturnValueOnce([]);
+      getChangedFilesMock.mockReturnValueOnce([]).mockReturnValueOnce([]).mockReturnValueOnce([]);
 
       const files = getChangedFilesWithOptions({ all: true });
 
@@ -799,9 +765,7 @@ describe('getChangedFilesWithOptions', () => {
         getChangedFilesWithOptions({ all: true });
       }).toThrow('process.exit(1)');
 
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Error: Failed to get changed files'
-      );
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Error: Failed to get changed files');
     });
 
     it('should apply filter to all categories with --all', () => {
@@ -839,9 +803,7 @@ describe('displayFileList', () => {
       message: 'Running DCM analyze on',
     });
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      'Running DCM analyze on 2 file(s):'
-    );
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Running DCM analyze on 2 file(s):');
     expect(consoleErrorSpy).toHaveBeenCalledWith('  file1.dart');
     expect(consoleErrorSpy).toHaveBeenCalledWith('  file2.dart');
   });

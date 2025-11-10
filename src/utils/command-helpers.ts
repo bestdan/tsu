@@ -6,6 +6,7 @@ import {
 } from '../commands/git/utils/git.js';
 import type { ChangedFilesOptions } from '../types/command-options.js';
 import { isCommandInstalled } from './shell.js';
+import { isVerbose } from './verbose-state.js';
 
 /**
  * Checks a condition and exits with an error if the condition is false.
@@ -122,9 +123,7 @@ export function displayChangedFiles(options: DisplayChangedFilesOptions): void {
     const pushFiles = getFilesToPush();
 
     if (pushFiles === null) {
-      console.error(
-        'Error: Remote branch not found or not in a git repository'
-      );
+      console.error('Error: Remote branch not found or not in a git repository');
       process.exit(1);
     }
 
@@ -154,29 +153,16 @@ export function displayChangedFiles(options: DisplayChangedFilesOptions): void {
 
   // Handle --all option
   if (options.all) {
-    const committedFiles = getFilteredChangedFiles(
-      'committed',
-      baseBranch,
-      filter
-    );
+    const committedFiles = getFilteredChangedFiles('committed', baseBranch, filter);
     const stagedFiles = getFilteredChangedFiles('staged', baseBranch, filter);
-    const unstagedFiles = getFilteredChangedFiles(
-      'unstaged',
-      baseBranch,
-      filter
-    );
+    const unstagedFiles = getFilteredChangedFiles('unstaged', baseBranch, filter);
 
-    if (
-      committedFiles === null ||
-      stagedFiles === null ||
-      unstagedFiles === null
-    ) {
+    if (committedFiles === null || stagedFiles === null || unstagedFiles === null) {
       console.error('Error: Failed to get changed files');
       process.exit(1);
     }
 
-    const totalChanges =
-      committedFiles.length + stagedFiles.length + unstagedFiles.length;
+    const totalChanges = committedFiles.length + stagedFiles.length + unstagedFiles.length;
 
     if (totalChanges === 0) {
       // Exit silently for pipe-friendliness
@@ -194,9 +180,7 @@ export function displayChangedFiles(options: DisplayChangedFilesOptions): void {
         console.error(`Staged ${typePrefix}changes (${stagedFiles.length}):`);
       }
       if (unstagedFiles.length > 0) {
-        console.error(
-          `Unstaged ${typePrefix}changes (${unstagedFiles.length}):`
-        );
+        console.error(`Unstaged ${typePrefix}changes (${unstagedFiles.length}):`);
       }
     }
 
@@ -257,30 +241,16 @@ export function displayChangedFiles(options: DisplayChangedFilesOptions): void {
  * Gets changed files based on options and optional filter, without displaying them.
  * Useful for commands that need to process changed files further.
  */
-export function getChangedFilesWithOptions(
-  options: DisplayChangedFilesOptions
-): string[] {
+export function getChangedFilesWithOptions(options: DisplayChangedFilesOptions): string[] {
   const baseBranch = options.baseBranch || 'main';
   const filter = options.filter;
 
   if (options.all) {
-    const committedFiles = getFilteredChangedFiles(
-      'committed',
-      baseBranch,
-      filter
-    );
+    const committedFiles = getFilteredChangedFiles('committed', baseBranch, filter);
     const stagedFiles = getFilteredChangedFiles('staged', baseBranch, filter);
-    const unstagedFiles = getFilteredChangedFiles(
-      'unstaged',
-      baseBranch,
-      filter
-    );
+    const unstagedFiles = getFilteredChangedFiles('unstaged', baseBranch, filter);
 
-    if (
-      committedFiles === null ||
-      stagedFiles === null ||
-      unstagedFiles === null
-    ) {
+    if (committedFiles === null || stagedFiles === null || unstagedFiles === null) {
       console.error('Error: Failed to get changed files');
       process.exit(1);
     }
@@ -313,7 +283,7 @@ export function getChangedFilesWithOptions(
 export interface DisplayFileListOptions {
   /** Files to display */
   files: string[];
-  /** Verbose mode flag */
+  /** Verbose mode flag (optional, uses global verbose state if not provided) */
   verbose?: boolean;
   /** Message to display before the file list (e.g., "Running DCM analyze on") */
   message?: string;
@@ -322,6 +292,7 @@ export interface DisplayFileListOptions {
 /**
  * Displays a list of files in verbose mode with consistent formatting.
  * This centralizes the common pattern of displaying file lists across hook commands.
+ * If verbose is not provided, uses the global verbose state.
  *
  * Format: "{message} {count} file(s):\n  {file1}\n  {file2}\n..."
  *
@@ -332,11 +303,18 @@ export interface DisplayFileListOptions {
  *   verbose,
  *   message: 'Running DCM analyze on'
  * });
+ * @example
+ * // Uses global verbose state
+ * displayFileList({
+ *   files: modifiedFiles,
+ *   message: 'Running DCM analyze on'
+ * });
  */
 export function displayFileList(options: DisplayFileListOptions): void {
-  const { files, verbose = false, message } = options;
+  const { files, verbose, message } = options;
+  const shouldDisplay = verbose !== undefined ? verbose : isVerbose();
 
-  if (!verbose || files.length === 0) {
+  if (!shouldDisplay || files.length === 0) {
     return;
   }
 

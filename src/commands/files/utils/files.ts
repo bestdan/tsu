@@ -11,10 +11,7 @@
  * const filtered = filterFilesBySuffix(files, ['.g.dart', '.gql.dart']);
  * // Returns: ['lib/user.dart']
  */
-export function filterFilesBySuffix(
-  files: string[],
-  suffixPatterns: string[]
-): string[] {
+export function filterFilesBySuffix(files: string[], suffixPatterns: string[]): string[] {
   if (suffixPatterns.length === 0) {
     return files;
   }

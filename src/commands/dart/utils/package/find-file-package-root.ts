@@ -8,10 +8,7 @@ import { dirname, resolve, join } from 'node:path';
  * @param workspaceRoot - Root of the workspace to search within
  * @returns Path to the package containing the file
  */
-export function findFilePackageRoot(
-  filePath: string,
-  workspaceRoot: string
-): string {
+export function findFilePackageRoot(filePath: string, workspaceRoot: string): string {
   let currentPath = dirname(filePath);
   const root = resolve('/');
 
