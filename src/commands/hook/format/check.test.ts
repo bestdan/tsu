@@ -114,7 +114,7 @@ describe('dartHookFormatCheck', () => {
     isGitRepoSpy.mockReturnValue(true);
     isDartPackageSpy.mockReturnValue(true);
     getAllChangedFilesSpy.mockReturnValue(['lib/main.dart']);
-    
+
     // Mock execSync to throw with status 1 (files need formatting)
     vi.mocked(execSync).mockImplementationOnce(() => {
       const error: any = new Error('Command failed');
@@ -130,10 +130,10 @@ describe('dartHookFormatCheck', () => {
     // Should display the file list
     expect(consoleErrorSpy).toHaveBeenCalledWith('Checking dart format on 1 file(s):');
     expect(consoleErrorSpy).toHaveBeenCalledWith('  lib/main.dart');
-    
+
     // Should output exit code for piping
     expect(consoleLogSpy).toHaveBeenCalledWith(1);
-    
+
     // Should show error message in verbose mode
     expect(consoleErrorSpy).toHaveBeenCalledWith('');
     expect(consoleErrorSpy).toHaveBeenCalledWith(
