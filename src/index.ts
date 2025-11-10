@@ -106,10 +106,7 @@ export {
 export { dartDcmAnalyze, type DartDcmAnalyzeOptions } from './commands/dart/dcm/analyze.js';
 
 // Check utilities
-export {
-  checkExternals,
-  type CheckExternalsOptions,
-} from './commands/check/externals.js';
+export { checkExternals, type CheckExternalsOptions } from './commands/check/externals.js';
 
 // Pipe utilities
 export { pipeCheck, type PipeCheckOptions } from './commands/pipe/check.js';
@@ -121,10 +118,7 @@ export {
   type CheckCommand,
 } from './commands/pipe/series.js';
 
-export {
-  pipeEchoOutcome,
-  type PipeEchoOutcomeOptions,
-} from './commands/pipe/echo-outcome.js';
+export { pipeEchoOutcome, type PipeEchoOutcomeOptions } from './commands/pipe/echo-outcome.js';
 
 export {
   pipeUpdateExitCode,

@@ -386,10 +386,7 @@ pipe
 pipe
   .command('series')
   .description('Run multiple checks in series and fail if any check fails')
-  .argument(
-    '<commands...>',
-    'pairs of command and label (e.g., "cmd1" "label1" "cmd2" "label2")'
-  )
+  .argument('<commands...>', 'pairs of command and label (e.g., "cmd1" "label1" "cmd2" "label2")')
   .option('-v, --verbose', 'show detailed information (output to stderr)')
   .action((commands: string[], options: { verbose?: boolean }) => {
     const checks = pipeSeriesFromArgs(commands);
@@ -398,9 +395,7 @@ pipe
 
 pipe
   .command('echoOutcome')
-  .description(
-    'Read exit code from stdin, display outcome message, and propagate exit code'
-  )
+  .description('Read exit code from stdin, display outcome message, and propagate exit code')
   .argument('<label>', 'label for the check (e.g., "format", "analysis")')
   .option('-v, --verbose', 'show detailed information (output to stderr)')
   .action((label: string, options: { verbose?: boolean }) => {
@@ -409,9 +404,7 @@ pipe
 
 pipe
   .command('updateExitCode')
-  .description(
-    'Read exit code from stdin, accumulate failures, and output accumulated exit code'
-  )
+  .description('Read exit code from stdin, accumulate failures, and output accumulated exit code')
   .option('-v, --verbose', 'show accumulated exit code (output to stderr)')
   .option('--reset', 'reset the accumulated exit code')
   .action((options: { verbose?: boolean; reset?: boolean }) => {

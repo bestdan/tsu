@@ -28,9 +28,7 @@ export interface PipeUpdateExitCodeOptions {
  *
  * @param options - Options for the command
  */
-export function pipeUpdateExitCode(
-  options: PipeUpdateExitCodeOptions = {}
-): void {
+export function pipeUpdateExitCode(options: PipeUpdateExitCodeOptions = {}): void {
   const verbose = options.verbose || false;
   const reset = options.reset || false;
 

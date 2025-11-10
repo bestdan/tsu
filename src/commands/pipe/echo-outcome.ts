@@ -22,10 +22,7 @@ export interface PipeEchoOutcomeOptions {
  * @param label - Label to display (e.g., 'format', 'analysis')
  * @param options - Options for the command
  */
-export function pipeEchoOutcome(
-  label: string,
-  options: PipeEchoOutcomeOptions = {}
-): void {
+export function pipeEchoOutcome(label: string, options: PipeEchoOutcomeOptions = {}): void {
   const verbose = options.verbose || false;
 
   // Read exit code from stdin

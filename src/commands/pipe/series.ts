@@ -25,10 +25,7 @@ export interface CheckCommand {
  * ]);
  * ```
  */
-export function pipeSeries(
-  checks: CheckCommand[],
-  options: PipeSeriesOptions = {}
-): void {
+export function pipeSeries(checks: CheckCommand[], options: PipeSeriesOptions = {}): void {
   const verbose = options.verbose || false;
   let anyFailed = false;
 
@@ -46,9 +43,7 @@ export function pipeSeries(
     } catch (error) {
       anyFailed = true;
       const exitCode =
-        error && typeof error === 'object' && 'status' in error
-          ? (error.status as number)
-          : 1;
+        error && typeof error === 'object' && 'status' in error ? (error.status as number) : 1;
 
       console.log(`❌ ${check.label} failed`);
 

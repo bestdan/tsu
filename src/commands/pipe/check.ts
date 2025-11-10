@@ -24,11 +24,7 @@ export interface PipeCheckOptions {
  * # Output: ❌ analysis failed (exit code: 1)
  * ```
  */
-export function pipeCheck(
-  command: string,
-  label: string,
-  options: PipeCheckOptions = {}
-): void {
+export function pipeCheck(command: string, label: string, options: PipeCheckOptions = {}): void {
   const verbose = options.verbose || false;
 
   if (verbose) {
@@ -47,9 +43,7 @@ export function pipeCheck(
   } catch (error) {
     // Command failed
     const exitCode =
-      error && typeof error === 'object' && 'status' in error
-        ? (error.status as number)
-        : 1;
+      error && typeof error === 'object' && 'status' in error ? (error.status as number) : 1;
 
     console.log(`❌ ${label} failed`);
 

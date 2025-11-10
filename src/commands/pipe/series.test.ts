@@ -162,9 +162,7 @@ describe('pipeSeriesFromArgs', () => {
         pipeSeriesFromArgs(['cmd1', 'label1', 'cmd2']);
       }).toThrow('process.exit called');
 
-      expect(mockError).toHaveBeenCalledWith(
-        'Error: Arguments must be pairs of [command, label]'
-      );
+      expect(mockError).toHaveBeenCalledWith('Error: Arguments must be pairs of [command, label]');
       expect(mockExit).toHaveBeenCalledWith(1);
     });
 
@@ -173,9 +171,7 @@ describe('pipeSeriesFromArgs', () => {
         pipeSeriesFromArgs(['cmd1']);
       }).toThrow('process.exit called');
 
-      expect(mockError).toHaveBeenCalledWith(
-        'Error: Arguments must be pairs of [command, label]'
-      );
+      expect(mockError).toHaveBeenCalledWith('Error: Arguments must be pairs of [command, label]');
       expect(mockExit).toHaveBeenCalledWith(1);
     });
   });

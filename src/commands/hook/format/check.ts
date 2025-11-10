@@ -1,9 +1,6 @@
 import { execSync } from 'node:child_process';
 import { isGitRepo, getAllChangedFiles } from '../../git/utils/git.js';
-import {
-  isDartPackage,
-  COMMON_DART_CODEGEN_SUFFIXES,
-} from '../../dart/utils/dart.js';
+import { isDartPackage, COMMON_DART_CODEGEN_SUFFIXES } from '../../dart/utils/dart.js';
 import { filterFilesBySuffix } from '../../files/utils/files.js';
 import { escapeShellArg } from '../../../utils/shell.js';
 import { logIfVerbose } from '../../../utils/logger.js';
@@ -79,15 +76,8 @@ export function dartHookFormatCheck(options: DartHookFormatCheckOptions = {}): v
     process.exit(0);
   } catch (error: unknown) {
     // Exit code 1 means files would be reformatted
-    if (
-      error instanceof Error &&
-      'status' in error &&
-      (error as { status: number }).status === 1
-    ) {
-      const output =
-        'stdout' in error
-          ? (error as { stdout: Buffer }).stdout.toString()
-          : '';
+    if (error instanceof Error && 'status' in error && (error as { status: number }).status === 1) {
+      const output = 'stdout' in error ? (error as { stdout: Buffer }).stdout.toString() : '';
 
       if (verbose) {
         console.error('');
