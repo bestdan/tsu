@@ -4,10 +4,7 @@ import type { GetValueCommandOptions } from '../../types/command-options.js';
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface GitBranchOptions extends GetValueCommandOptions {}
 
-export function gitBranch(
-  path: string | undefined,
-  options: GitBranchOptions = {}
-): void {
+export function gitBranch(path: string | undefined, options: GitBranchOptions = {}): void {
   const cwd = path || process.cwd();
 
   if (!isGitRepo(cwd)) {

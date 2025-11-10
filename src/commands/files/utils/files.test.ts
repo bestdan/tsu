@@ -3,12 +3,7 @@ import { filterFilesBySuffix } from './files.js';
 
 describe('filterFilesBySuffix', () => {
   it('should filter out files with matching suffix patterns', () => {
-    const files = [
-      'lib/user.dart',
-      'lib/user.g.dart',
-      'lib/query.gql.dart',
-      'lib/model.dart',
-    ];
+    const files = ['lib/user.dart', 'lib/user.g.dart', 'lib/query.gql.dart', 'lib/model.dart'];
     const filtered = filterFilesBySuffix(files, ['.g.dart', '.gql.dart']);
     expect(filtered).toEqual(['lib/user.dart', 'lib/model.dart']);
   });
@@ -40,24 +35,12 @@ describe('filterFilesBySuffix', () => {
       'dist/bundle.js',
       'dist/bundle.min.js',
     ];
-    const filtered = filterFilesBySuffix(files, [
-      '.test.tsx',
-      '.module.css',
-      '.min.js',
-    ]);
-    expect(filtered).toEqual([
-      'src/component.tsx',
-      'src/styles.css',
-      'dist/bundle.js',
-    ]);
+    const filtered = filterFilesBySuffix(files, ['.test.tsx', '.module.css', '.min.js']);
+    expect(filtered).toEqual(['src/component.tsx', 'src/styles.css', 'dist/bundle.js']);
   });
 
   it('should handle files with multiple dots', () => {
-    const files = [
-      'file.name.with.dots.txt',
-      'file.name.with.dots.backup.txt',
-      'simple.txt',
-    ];
+    const files = ['file.name.with.dots.txt', 'file.name.with.dots.backup.txt', 'simple.txt'];
     const filtered = filterFilesBySuffix(files, ['.backup.txt']);
     expect(filtered).toEqual(['file.name.with.dots.txt', 'simple.txt']);
   });
@@ -81,11 +64,7 @@ describe('filterFilesBySuffix', () => {
       'lib/user.g.dart.backup', // should not be filtered
     ];
     const filtered = filterFilesBySuffix(files, ['.g.dart']);
-    expect(filtered).toEqual([
-      'lib/user.dart',
-      'lib/userg.dart',
-      'lib/user.g.dart.backup',
-    ]);
+    expect(filtered).toEqual(['lib/user.dart', 'lib/userg.dart', 'lib/user.g.dart.backup']);
   });
 
   it('should handle overlapping patterns', () => {

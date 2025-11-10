@@ -1,0 +1,20 @@
+# Dependencies
+node_modules/
+pnpm-lock.yaml
+
+# Build output
+dist/
+*.tsbuildinfo
+
+# Testing
+coverage/
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+.cache/
+
+# Test fixtures
+**/__fixtures__/**

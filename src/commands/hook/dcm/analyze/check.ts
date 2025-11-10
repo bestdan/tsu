@@ -1,8 +1,5 @@
 import { isGitRepo, getAllChangedFiles } from '../../../git/utils/git.js';
-import {
-  isDartPackage,
-  COMMON_DART_CODEGEN_SUFFIXES,
-} from '../../../dart/utils/dart.js';
+import { isDartPackage, COMMON_DART_CODEGEN_SUFFIXES } from '../../../dart/utils/dart.js';
 import { filterFilesBySuffix } from '../../../files/utils/files.js';
 import {
   ensureCondition,
@@ -29,13 +26,9 @@ export interface DartHookDcmAnalyzeCheckOptions extends ChangedFilesOptions {
  * 3. Runs dcm analyze on them
  * 4. Exits with error if DCM analyze reports any issues
  */
-export function dartHookDcmAnalyzeCheck(
-  options: DartHookDcmAnalyzeCheckOptions = {}
-): void {
+export function dartHookDcmAnalyzeCheck(options: DartHookDcmAnalyzeCheckOptions = {}): void {
   const verbose = options.verbose || false;
-  const excludeSuffixes = options.excludeSuffixes || [
-    ...COMMON_DART_CODEGEN_SUFFIXES,
-  ];
+  const excludeSuffixes = options.excludeSuffixes || [...COMMON_DART_CODEGEN_SUFFIXES];
 
   // Set global verbose state for downstream functions
   setVerbose(verbose);
@@ -79,9 +72,7 @@ export function dartHookDcmAnalyzeCheck(
     const filesWithIssues = result.filesWithIssues;
 
     console.error('');
-    console.error(
-      '❌ Push blocked: DCM analyze found issues in the following file(s):'
-    );
+    console.error('❌ Push blocked: DCM analyze found issues in the following file(s):');
     filesWithIssues.forEach((file) => {
       console.error(`  ${file}`);
     });

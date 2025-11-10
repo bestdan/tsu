@@ -1,13 +1,7 @@
 import { isGitRepo, getAllChangedFiles } from '../../git/utils/git.js';
-import {
-  isDartPackage,
-  COMMON_DART_CODEGEN_SUFFIXES,
-} from '../../dart/utils/dart.js';
+import { isDartPackage, COMMON_DART_CODEGEN_SUFFIXES } from '../../dart/utils/dart.js';
 import { filterFilesBySuffix } from '../../files/utils/files.js';
-import {
-  ensureCondition,
-  displayFileList,
-} from '../../../utils/command-helpers.js';
+import { ensureCondition, displayFileList } from '../../../utils/command-helpers.js';
 import { logIfVerbose } from '../../../utils/logger.js';
 import { dartAnalyze } from '../../../utils/dart-analyze-parse.js';
 import type { ChangedFilesOptions } from '../../../types/command-options.js';
@@ -28,13 +22,9 @@ export interface DartHookAnalysisCheckOptions extends ChangedFilesOptions {
  * 3. Runs dart analyze on each unique package
  * 4. Exits with error if dart analyze reports any issues
  */
-export function dartHookAnalysisCheck(
-  options: DartHookAnalysisCheckOptions = {}
-): void {
+export function dartHookAnalysisCheck(options: DartHookAnalysisCheckOptions = {}): void {
   const verbose = options.verbose || false;
-  const excludeSuffixes = options.excludeSuffixes || [
-    ...COMMON_DART_CODEGEN_SUFFIXES,
-  ];
+  const excludeSuffixes = options.excludeSuffixes || [...COMMON_DART_CODEGEN_SUFFIXES];
 
   // Set global verbose state for downstream functions
   setVerbose(verbose);
@@ -75,9 +65,7 @@ export function dartHookAnalysisCheck(
     const filesWithIssues = result.filesWithIssues;
 
     console.error('');
-    console.error(
-      '❌ Push blocked: dart analyze found issues in the following file(s):'
-    );
+    console.error('❌ Push blocked: dart analyze found issues in the following file(s):');
     filesWithIssues.forEach((file) => {
       console.error(`  ${file}`);
     });

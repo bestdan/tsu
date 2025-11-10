@@ -85,11 +85,7 @@ interface DcmRunResult {
  * Processes error from DCM execution and extracts results.
  * Distinguishes between timeout/execution errors and DCM finding issues.
  */
-function processDcmError(
-  error: unknown,
-  packageRoot: string,
-  timeout: number
-): DcmRunResult {
+function processDcmError(error: unknown, packageRoot: string, timeout: number): DcmRunResult {
   const err = error as {
     code?: string;
     signal?: string;
@@ -99,9 +95,7 @@ function processDcmError(
 
   // Distinguish between timeout/execution errors and DCM finding issues
   if (err.code === 'ETIMEDOUT' || err.signal === 'SIGTERM') {
-    throw new Error(
-      `DCM analyze timed out in ${packageRoot} after ${timeout}ms`
-    );
+    throw new Error(`DCM analyze timed out in ${packageRoot} after ${timeout}ms`);
   }
 
   // If DCM ran but found issues, stdout will have the JSON report

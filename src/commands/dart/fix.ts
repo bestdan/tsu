@@ -1,10 +1,7 @@
 import { execSync } from 'node:child_process';
 import { resolve, join } from 'node:path';
 import { existsSync, statSync } from 'node:fs';
-import {
-  ensureCondition,
-  ensureDartInstalled,
-} from '../../utils/command-helpers.js';
+import { ensureCondition, ensureDartInstalled } from '../../utils/command-helpers.js';
 import { escapeShellArg } from '../../utils/shell.js';
 import { findAffectedPackages, readPackageName } from './utils/dart.js';
 import { logIfVerbose } from '../../utils/logger.js';
@@ -64,10 +61,7 @@ export function dartFix(options: DartFixOptions = {}): void {
   const hasPackageDirs = packageDirs.length > 0;
   const hasRegularFiles = regularFiles.length > 0;
 
-  logIfVerbose(
-    verbose,
-    `🔧 Running dart fix ${apply ? '(applying fixes)' : '(dry-run)'}...`
-  );
+  logIfVerbose(verbose, `🔧 Running dart fix ${apply ? '(applying fixes)' : '(dry-run)'}...`);
 
   // Mode 1: User provided package directories
   if (hasPackageDirs) {
@@ -77,14 +71,10 @@ export function dartFix(options: DartFixOptions = {}): void {
       const packageName = readPackageName(pkgDir);
       if (packageName) {
         // Convert to relative path for consistency
-        const relativePath = pkgDir.startsWith(cwd)
-          ? pkgDir.substring(cwd.length + 1)
-          : pkgDir;
+        const relativePath = pkgDir.startsWith(cwd) ? pkgDir.substring(cwd.length + 1) : pkgDir;
         packages.set(relativePath, packageName);
       } else {
-        console.error(
-          `⚠️  Warning: Could not read package name from ${pkgDir}`
-        );
+        console.error(`⚠️  Warning: Could not read package name from ${pkgDir}`);
       }
     }
 
@@ -135,12 +125,7 @@ export function dartFix(options: DartFixOptions = {}): void {
 /**
  * Runs dart fix on individual files
  */
-function runFixOnFiles(
-  files: string[],
-  cwd: string,
-  verbose: boolean,
-  apply: boolean
-): void {
+function runFixOnFiles(files: string[], cwd: string, verbose: boolean, apply: boolean): void {
   logIfVerbose(verbose, `Running dart fix on ${files.length} file(s)...`);
 
   try {

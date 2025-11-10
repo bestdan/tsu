@@ -1,19 +1,9 @@
 import { execSync } from 'node:child_process';
-import {
-  isGitRepo,
-  hasUnstagedChanges,
-  getAllChangedFiles,
-} from '../../git/utils/git.js';
-import {
-  isDartPackage,
-  COMMON_DART_CODEGEN_SUFFIXES,
-} from '../../dart/utils/dart.js';
+import { isGitRepo, hasUnstagedChanges, getAllChangedFiles } from '../../git/utils/git.js';
+import { isDartPackage, COMMON_DART_CODEGEN_SUFFIXES } from '../../dart/utils/dart.js';
 import { filterFilesBySuffix } from '../../files/utils/files.js';
 import { escapeShellArg } from '../../../utils/shell.js';
-import {
-  ensureCondition,
-  displayFileList,
-} from '../../../utils/command-helpers.js';
+import { ensureCondition, displayFileList } from '../../../utils/command-helpers.js';
 import { logIfVerbose } from '../../../utils/logger.js';
 import type { ChangedFilesOptions } from '../../../types/command-options.js';
 import { setVerbose } from '../../../utils/verbose-state.js';
@@ -35,9 +25,7 @@ export interface DartHookFixCheckOptions extends ChangedFilesOptions {
  */
 export function dartHookFixCheck(options: DartHookFixCheckOptions = {}): void {
   const verbose = options.verbose || false;
-  const excludeSuffixes = options.excludeSuffixes || [
-    ...COMMON_DART_CODEGEN_SUFFIXES,
-  ];
+  const excludeSuffixes = options.excludeSuffixes || [...COMMON_DART_CODEGEN_SUFFIXES];
 
   // Set global verbose state for downstream functions
   setVerbose(verbose);
@@ -92,9 +80,7 @@ export function dartHookFixCheck(options: DartHookFixCheckOptions = {}): void {
 
   // Check if fixes created changes in the files we analyzed
   /* v8 ignore next -- @preserve */
-  const filesWithChanges = modifiedFiles.filter((file) =>
-    hasUnstagedChanges(file, cwd)
-  );
+  const filesWithChanges = modifiedFiles.filter((file) => hasUnstagedChanges(file, cwd));
 
   /* v8 ignore next -- @preserve */
   if (filesWithChanges.length > 0) {

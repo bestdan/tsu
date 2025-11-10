@@ -6,10 +6,7 @@ export interface GitIsMainOptions extends CheckCommandOptions {
   branch?: string;
 }
 
-export function gitIsMain(
-  path: string | undefined,
-  options: GitIsMainOptions = {}
-): void {
+export function gitIsMain(path: string | undefined, options: GitIsMainOptions = {}): void {
   const cwd = path || process.cwd();
   const mainBranch = options.branch || 'main';
 

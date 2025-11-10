@@ -1,14 +1,7 @@
 import { execSync } from 'node:child_process';
-import {
-  isGitRepo,
-  getGitStatus,
-  getAllChangedFiles,
-} from '../../git/utils/git.js';
+import { isGitRepo, getGitStatus, getAllChangedFiles } from '../../git/utils/git.js';
 import { isDartPackage } from '../../dart/utils/dart.js';
-import {
-  ensureCondition,
-  displayFileList,
-} from '../../../utils/command-helpers.js';
+import { ensureCondition, displayFileList } from '../../../utils/command-helpers.js';
 import { isCommandInstalled } from '../../../utils/shell.js';
 import { logIfVerbose } from '../../../utils/logger.js';
 import type { ChangedFilesOptions } from '../../../types/command-options.js';
@@ -32,10 +25,7 @@ export async function dartHookGraphqlCheck(
   options: DartHookGraphqlCheckOptions = {}
 ): Promise<void> {
   const verbose = options.verbose || false;
-  const codegenCommands = [
-    'melos run codegen:graphql',
-    'melos run codegen:graphql:test',
-  ];
+  const codegenCommands = ['melos run codegen:graphql', 'melos run codegen:graphql:test'];
 
   // Set global verbose state for downstream functions
   setVerbose(verbose);
@@ -118,12 +108,8 @@ export async function dartHookGraphqlCheck(
     /* v8 ignore next -- @preserve */
     try {
       // Parse the status outputs to show what changed
-      const beforeLines = new Set(
-        gitStatusBefore.split('\n').filter((line) => line.length > 0)
-      );
-      const afterLines = gitStatusAfter
-        .split('\n')
-        .filter((line) => line.length > 0);
+      const beforeLines = new Set(gitStatusBefore.split('\n').filter((line) => line.length > 0));
+      const afterLines = gitStatusAfter.split('\n').filter((line) => line.length > 0);
 
       // Find files that are new or have different status
       const changedFiles = afterLines.filter((line) => !beforeLines.has(line));

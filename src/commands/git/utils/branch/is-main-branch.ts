@@ -6,10 +6,7 @@ import { getCurrentBranch } from '../repo/get-current-branch.js';
  * @param cwd - The directory to check. Defaults to process.cwd()
  * @returns true if on main branch, false otherwise
  */
-export function isMainBranch(
-  mainBranch = 'main',
-  cwd: string = process.cwd()
-): boolean {
+export function isMainBranch(mainBranch = 'main', cwd: string = process.cwd()): boolean {
   const currentBranch = getCurrentBranch(cwd);
   return currentBranch === mainBranch;
 }

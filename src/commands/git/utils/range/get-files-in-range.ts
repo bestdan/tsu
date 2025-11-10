@@ -18,9 +18,7 @@ export interface GetFilesInRangeOptions {
  * @param options - Configuration options
  * @returns Array of file paths, or null if not in a git repo or on error
  */
-export function getFilesInRange(
-  options: GetFilesInRangeOptions
-): string[] | null {
+export function getFilesInRange(options: GetFilesInRangeOptions): string[] | null {
   const { range, cwd = process.cwd(), filter } = options;
 
   try {
