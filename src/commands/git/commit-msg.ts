@@ -1,9 +1,4 @@
-import {
-  isGitRepo,
-  getStagedDiff,
-  generateCommitMessage,
-  createCommit,
-} from './utils/git.js';
+import { isGitRepo, getStagedDiff, generateCommitMessage, createCommit } from './utils/git.js';
 
 import { ensureClaudeInstalled } from '../../utils/command-helpers.js';
 import type { BaseCommandOptions } from '../../types/command-options.js';

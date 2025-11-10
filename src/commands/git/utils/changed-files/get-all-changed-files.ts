@@ -36,10 +36,7 @@ export function getAllChangedFiles(
 
   // Default to --push if no specific type is requested
   const shouldUsePush =
-    options.push !== false &&
-    !options.all &&
-    !options.staged &&
-    !options.unstaged;
+    options.push !== false && !options.all && !options.staged && !options.unstaged;
 
   // Handle --push option (default behavior)
   if (shouldUsePush || options.push) {
@@ -49,15 +46,12 @@ export function getAllChangedFiles(
 
   // If --all is specified, get all changes
   if (options.all) {
-    const committedFiles =
-      getChangedFiles({ type: 'committed', baseBranch, cwd }) || [];
+    const committedFiles = getChangedFiles({ type: 'committed', baseBranch, cwd }) || [];
     const stagedFiles = getChangedFiles({ type: 'staged', cwd }) || [];
     const unstagedFiles = getChangedFiles({ type: 'unstaged', cwd }) || [];
 
     // Combine all changed files and remove duplicates
-    return Array.from(
-      new Set([...committedFiles, ...stagedFiles, ...unstagedFiles])
-    );
+    return Array.from(new Set([...committedFiles, ...stagedFiles, ...unstagedFiles]));
   }
 
   // Determine which type of changes to get

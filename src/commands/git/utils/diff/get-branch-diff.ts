@@ -9,10 +9,7 @@ import { isGitRepo } from '../repo/is-git-repo.js';
  * @param cwd - The directory to check. Defaults to process.cwd()
  * @returns The diff as a string, or null if not in a git repo or on error
  */
-export function getBranchDiff(
-  baseBranch = 'main',
-  cwd: string = process.cwd()
-): string | null {
+export function getBranchDiff(baseBranch = 'main', cwd: string = process.cwd()): string | null {
   try {
     if (!isGitRepo(cwd)) {
       return null;

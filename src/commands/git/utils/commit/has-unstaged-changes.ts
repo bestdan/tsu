@@ -9,18 +9,13 @@ import { isGitRepo } from '../repo/is-git-repo.js';
  * @param cwd - The directory to run git commands in. Defaults to process.cwd()
  * @returns true if the file (or repository) has unstaged changes, false otherwise
  */
-export function hasUnstagedChanges(
-  file?: string,
-  cwd: string = process.cwd()
-): boolean {
+export function hasUnstagedChanges(file?: string, cwd: string = process.cwd()): boolean {
   try {
     if (!isGitRepo(cwd)) {
       return false;
     }
 
-    const command = file
-      ? `git diff --quiet -- ${escapeShellArg(file)}`
-      : 'git diff --quiet';
+    const command = file ? `git diff --quiet -- ${escapeShellArg(file)}` : 'git diff --quiet';
 
     execSync(command, {
       cwd: resolve(cwd),

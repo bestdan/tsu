@@ -1204,9 +1204,7 @@ describe('getFilesToPush', () => {
       execSync('git commit -m "initial"', { cwd: tempDir, stdio: 'pipe' });
 
       // Create a bare remote and push
-      const remoteDir = realpathSync(
-        mkdtempSync(join(tmpdir(), 'git-remote-'))
-      );
+      const remoteDir = realpathSync(mkdtempSync(join(tmpdir(), 'git-remote-')));
       execSync('git init --bare', { cwd: remoteDir, stdio: 'pipe' });
       execSync(`git remote add origin "${remoteDir}"`, {
         cwd: tempDir,

@@ -10,10 +10,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // Path to our DCM test fixture
-const dcmFixtureDir = resolve(
-  __dirname,
-  '../../../__fixtures__/dart-app-with-dcm'
-);
+const dcmFixtureDir = resolve(__dirname, '../../../__fixtures__/dart-app-with-dcm');
 
 describe('DCM integration tests with analysis_options.yaml', () => {
   let tempDir: string;
@@ -67,9 +64,7 @@ describe('DCM integration tests with analysis_options.yaml', () => {
     if (analyzeError) {
       const output = analyzeError.stdout || analyzeError.stderr || '';
       // DCM should report prefer-trailing-comma violations
-      expect(output.toLowerCase()).toMatch(
-        /trailing.?comma|prefer-trailing-comma/
-      );
+      expect(output.toLowerCase()).toMatch(/trailing.?comma|prefer-trailing-comma/);
     }
   });
 
@@ -101,9 +96,7 @@ describe('DCM integration tests with analysis_options.yaml', () => {
     // - The constructor is collapsed to a single line (no trailing comma needed for single-line)
     // - The toMap return is collapsed to a single line (no trailing comma needed for single-line)
     // - The factory constructor keeps multi-line format and adds trailing comma
-    expect(fixedContent).toContain(
-      'const Config(this.appName, this.version, this.debugMode);'
-    );
+    expect(fixedContent).toContain('const Config(this.appName, this.version, this.debugMode);');
     expect(fixedContent).toContain(
       "return {'appName': appName, 'version': version, 'debugMode': debugMode};"
     );
@@ -132,19 +125,12 @@ describe('DCM integration tests with analysis_options.yaml', () => {
     }
 
     // Verify that analysis_options.yaml exists at package level
-    const packageAnalysisOptions = join(
-      corePackageDir,
-      'analysis_options.yaml'
-    );
+    const packageAnalysisOptions = join(corePackageDir, 'analysis_options.yaml');
     const packageOptions = readFileSync(packageAnalysisOptions, 'utf-8');
     expect(packageOptions).toContain('include: ../../analysis_options.yaml');
 
     // Verify root analysis_options.yaml has the prefer-trailing-comma rule
-    const rootAnalysisOptions = join(
-      tempDir,
-      'dart-app-with-dcm',
-      'analysis_options.yaml'
-    );
+    const rootAnalysisOptions = join(tempDir, 'dart-app-with-dcm', 'analysis_options.yaml');
     const rootOptions = readFileSync(rootAnalysisOptions, 'utf-8');
     expect(rootOptions).toContain('prefer-trailing-comma');
 

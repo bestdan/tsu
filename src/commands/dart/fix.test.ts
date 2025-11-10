@@ -57,9 +57,7 @@ describe('dartFix', () => {
       dartFix({ verbose: true, files: ['test.dart'] });
     }).toThrow('process.exit(0)');
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      '⚠️  Warning: dart not installed, skipping'
-    );
+    expect(consoleErrorSpy).toHaveBeenCalledWith('⚠️  Warning: dart not installed, skipping');
     expect(processExitSpy).toHaveBeenCalledWith(0);
   });
 
@@ -90,9 +88,7 @@ describe('dartFix', () => {
     }).toThrow('process.exit(0)');
 
     expect(execSync).toHaveBeenCalledWith(
-      expect.stringMatching(
-        /^dart fix --dry-run.*lib\/main\.dart.*lib\/utils\.dart$/
-      ),
+      expect.stringMatching(/^dart fix --dry-run.*lib\/main\.dart.*lib\/utils\.dart$/),
       expect.objectContaining({ cwd: expect.any(String) })
     );
     expect(processExitSpy).toHaveBeenCalledWith(0);
@@ -154,9 +150,7 @@ describe('dartFix', () => {
       dartFix({ verbose: true, files: ['lib/main.dart'] });
     }).toThrow('process.exit(1)');
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      '⚠️  Suggested fixes available'
-    );
+    expect(consoleErrorSpy).toHaveBeenCalledWith('⚠️  Suggested fixes available');
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       '💡 Run with --apply to automatically apply fixes'
     );
@@ -225,9 +219,7 @@ describe('dartFix', () => {
       dartFix({ verbose: true, files: ['README.md'], packages: true });
     }).toThrow('process.exit(0)');
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      '✓ No Dart packages to check with dart fix'
-    );
+    expect(consoleErrorSpy).toHaveBeenCalledWith('✓ No Dart packages to check with dart fix');
     expect(processExitSpy).toHaveBeenCalledWith(0);
   });
 
@@ -288,9 +280,7 @@ describe('dartFix', () => {
       .mockReturnValue({ isDirectory: () => false } as any);
     existsSyncSpy.mockReturnValue(true);
     readPackageNameSpy.mockReturnValue('my_package');
-    findAffectedPackagesSpy.mockReturnValue(
-      new Map([['packages/other', 'other']])
-    );
+    findAffectedPackagesSpy.mockReturnValue(new Map([['packages/other', 'other']]));
     vi.mocked(execSync).mockReturnValue('No issues found');
 
     expect(() => {
@@ -360,9 +350,7 @@ describe('dartFix', () => {
       });
     }).toThrow('process.exit(1)');
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      '⚠️  app has suggested fixes available'
-    );
+    expect(consoleErrorSpy).toHaveBeenCalledWith('⚠️  app has suggested fixes available');
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       '💡 Run with --apply to automatically apply fixes'
     );
@@ -429,9 +417,7 @@ describe('dartFix', () => {
       });
     }).toThrow('process.exit(0)');
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      '✓ All dart fix checks passed'
-    );
+    expect(consoleErrorSpy).toHaveBeenCalledWith('✓ All dart fix checks passed');
     expect(consoleErrorSpy).toHaveBeenCalledWith('Analyzing lib/main.dart\n');
     expect(processExitSpy).toHaveBeenCalledWith(0);
   });
@@ -452,9 +438,7 @@ describe('dartFix', () => {
 
     expect(consoleErrorSpy).toHaveBeenCalledWith('✓ app dart fix passed');
     expect(consoleErrorSpy).toHaveBeenCalledWith('Analyzing package\n');
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      '✓ All dart fix checks passed'
-    );
+    expect(consoleErrorSpy).toHaveBeenCalledWith('✓ All dart fix checks passed');
     expect(processExitSpy).toHaveBeenCalledWith(0);
   });
 

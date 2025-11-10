@@ -19,9 +19,7 @@ export interface DartChangedDownstreamOptions extends ChangedFilesOptions {
 /**
  * Find all Dart files that depend on changed Dart files (downstream dependencies)
  */
-export function dartChangedDownstream(
-  options: DartChangedDownstreamOptions = {}
-): void {
+export function dartChangedDownstream(options: DartChangedDownstreamOptions = {}): void {
   // Check we're in both a git repo and a Dart package
   if (!isGitRepo()) {
     console.error('Error: Not in a git repository');
@@ -51,9 +49,7 @@ export function dartChangedDownstream(
 
   // Resolve to absolute paths
   const cwd = process.cwd();
-  const absoluteChangedFiles = changedDartFiles.map((file) =>
-    resolve(cwd, file)
-  );
+  const absoluteChangedFiles = changedDartFiles.map((file) => resolve(cwd, file));
 
   if (verbose) {
     console.error(`Found ${changedDartFiles.length} changed Dart file(s)`);
@@ -85,9 +81,7 @@ export function dartChangedDownstream(
   }
 
   // Filter to only files in the same package
-  const packageFiles = allDartFiles.filter((file) =>
-    file.startsWith(targetPackageRoot)
-  );
+  const packageFiles = allDartFiles.filter((file) => file.startsWith(targetPackageRoot));
 
   if (verbose) {
     console.error(`Found ${packageFiles.length} Dart files in target package`);
@@ -103,10 +97,7 @@ export function dartChangedDownstream(
   }
 
   // Find downstream dependencies
-  const downstream = findDownstreamDependencies(
-    absoluteChangedFiles,
-    reverseGraph
-  );
+  const downstream = findDownstreamDependencies(absoluteChangedFiles, reverseGraph);
 
   if (downstream.size === 0) {
     if (verbose) {

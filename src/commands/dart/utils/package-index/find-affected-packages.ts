@@ -23,9 +23,7 @@ export function findAffectedPackages(
   // If PACKAGE_INDEX exists, use it for efficient lookup
   if (packages) {
     // Sort packages by location length (longest first) to match most specific packages first
-    const sortedPackages = [...packages].sort(
-      (a, b) => b.location.length - a.location.length
-    );
+    const sortedPackages = [...packages].sort((a, b) => b.location.length - a.location.length);
 
     const affectedPackages = new Map<string, string>();
 
@@ -38,10 +36,7 @@ export function findAffectedPackages(
       // Find the package that contains this file
       for (const pkg of sortedPackages) {
         const location = pkg.location;
-        if (
-          relativePath === location ||
-          relativePath.startsWith(location + '/')
-        ) {
+        if (relativePath === location || relativePath.startsWith(location + '/')) {
           affectedPackages.set(location, pkg.name);
           break;
         }

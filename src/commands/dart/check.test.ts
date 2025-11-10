@@ -8,10 +8,7 @@ const __dirname = dirname(__filename);
 
 // Path to our test fixture
 const fixtureDir = resolve(__dirname, '../../__fixtures__/dart-package');
-const dcmFixtureDir = resolve(
-  __dirname,
-  '../../__fixtures__/dart-app-with-dcm'
-);
+const dcmFixtureDir = resolve(__dirname, '../../__fixtures__/dart-app-with-dcm');
 
 describe('dartCheck', () => {
   let consoleErrorSpy: any;

@@ -19,10 +19,7 @@ export { buildReverseDependencyGraph } from './dependency-graph/build-reverse-de
 export { findDownstreamDependencies } from './dependency-graph/find-downstream-dependencies.js';
 
 // Package index
-export {
-  TSU_PACKAGE_INDEX,
-  type PackageIndexEntry,
-} from './package-index/types.js';
+export { TSU_PACKAGE_INDEX, type PackageIndexEntry } from './package-index/types.js';
 export { readPackageIndex } from './package-index/read-package-index.js';
 export { readPackageName } from './package-index/read-package-name.js';
 export { findAffectedPackages } from './package-index/find-affected-packages.js';
