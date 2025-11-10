@@ -19,9 +19,7 @@ export function gitPRDescription(options: GitPRDescriptionOptions = {}): void {
   const verbose = options.verbose || false;
 
   if (verbose) {
-    console.error(
-      `Generating PR description comparing to ${baseBranch} branch...`
-    );
+    console.error(`Generating PR description comparing to ${baseBranch} branch...`);
   }
 
   // Generate PR description

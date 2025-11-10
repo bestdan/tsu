@@ -239,11 +239,7 @@ describe('dartAnalyze', () => {
 
   it('should group files by package root and pass them to dart analyze', () => {
     const callsMade: Array<{ packageRoot: string; files?: string[] }> = [];
-    const mockRunner = (
-      packageRoot: string,
-      _timeout: number,
-      files?: string[]
-    ) => {
+    const mockRunner = (packageRoot: string, _timeout: number, files?: string[]) => {
       callsMade.push({ packageRoot, files });
       return 'No issues found!';
     };
@@ -266,11 +262,7 @@ describe('dartAnalyze', () => {
 
   it('should analyze all files when no specific files provided', () => {
     let filesReceived: string[] | undefined;
-    const mockRunner = (
-      _packageRoot: string,
-      _timeout: number,
-      files?: string[]
-    ) => {
+    const mockRunner = (_packageRoot: string, _timeout: number, files?: string[]) => {
       filesReceived = files;
       return 'No issues found!';
     };
@@ -281,11 +273,7 @@ describe('dartAnalyze', () => {
   });
 
   it('should handle dash-separated output format when analyzing specific files', () => {
-    const mockRunner = (
-      _packageRoot: string,
-      _timeout: number,
-      _files?: string[]
-    ) => {
+    const mockRunner = (_packageRoot: string, _timeout: number, _files?: string[]) => {
       const error: any = new Error('dart analyze failed');
       error.stdout = `Analyzing main.dart...
 
@@ -312,11 +300,7 @@ describe('dartAnalyze', () => {
 
   it('should combine results from multiple packages when files span multiple packages', () => {
     const callsMade: Array<{ packageRoot: string; files?: string[] }> = [];
-    const mockRunner = (
-      _packageRoot: string,
-      _timeout: number,
-      files?: string[]
-    ) => {
+    const mockRunner = (_packageRoot: string, _timeout: number, files?: string[]) => {
       callsMade.push({ packageRoot: _packageRoot, files });
       return 'No issues found!';
     };
@@ -337,11 +321,7 @@ describe('dartAnalyze', () => {
 
   it('should properly pass relative paths to dart analyze runner', () => {
     let receivedFiles: string[] | undefined;
-    const mockRunner = (
-      _packageRoot: string,
-      _timeout: number,
-      files?: string[]
-    ) => {
+    const mockRunner = (_packageRoot: string, _timeout: number, files?: string[]) => {
       receivedFiles = files;
       return 'No issues found!';
     };
@@ -374,10 +354,7 @@ describe('dartAnalyze', () => {
       throw error;
     };
 
-    const result = dartAnalyze(
-      { cwd: '/test/path', files: ['lib/main.dart'] },
-      mockRunner
-    );
+    const result = dartAnalyze({ cwd: '/test/path', files: ['lib/main.dart'] }, mockRunner);
 
     expect(result.issues).toHaveLength(2);
     expect(result.filesWithIssues).toHaveLength(1);
@@ -388,11 +365,7 @@ describe('dartAnalyze', () => {
     const packageRootsUsed: string[] = [];
     const relativePathsUsed: string[][] = [];
 
-    const mockRunner = (
-      packageRoot: string,
-      _timeout: number,
-      files?: string[]
-    ) => {
+    const mockRunner = (packageRoot: string, _timeout: number, files?: string[]) => {
       packageRootsUsed.push(packageRoot);
       if (files) {
         relativePathsUsed.push(files);
@@ -401,10 +374,7 @@ describe('dartAnalyze', () => {
     };
 
     // Use actual fixture path so findDartPackageRoot can find pubspec.yaml
-    const fixturesPath = new URL(
-      '../__fixtures__/dart-package',
-      import.meta.url
-    ).pathname;
+    const fixturesPath = new URL('../__fixtures__/dart-package', import.meta.url).pathname;
 
     const result = dartAnalyze(
       {
@@ -420,29 +390,19 @@ describe('dartAnalyze', () => {
     expect(packageRootsUsed[0]).toBe(fixturesPath);
     // Files should be passed as relative paths
     expect(relativePathsUsed.length).toBe(1);
-    expect(relativePathsUsed[0]).toEqual([
-      'lib/main.dart',
-      'lib/models/user.dart',
-    ]);
+    expect(relativePathsUsed[0]).toEqual(['lib/main.dart', 'lib/models/user.dart']);
   });
 
   it('should handle multiple files in different packages', () => {
     const packageRootsUsed: string[] = [];
 
-    const mockRunner = (
-      packageRoot: string,
-      _timeout: number,
-      _files?: string[]
-    ) => {
+    const mockRunner = (packageRoot: string, _timeout: number, _files?: string[]) => {
       packageRootsUsed.push(packageRoot);
       return 'No issues found!';
     };
 
     // Use monorepo fixture with multiple packages
-    const monorepoPath = new URL(
-      '../__fixtures__/dart-monorepo',
-      import.meta.url
-    ).pathname;
+    const monorepoPath = new URL('../__fixtures__/dart-monorepo', import.meta.url).pathname;
 
     const result = dartAnalyze(
       {

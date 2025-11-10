@@ -65,13 +65,8 @@ export interface CallAndParseDartAnalyzeResult {
  * Separated for easier testing and to avoid scattering v8 ignore comments.
  */
 /* v8 ignore next -- @preserve */
-function runDartAnalyzeForPackage(
-  packageRoot: string,
-  timeout: number,
-  files?: string[]
-): string {
-  const fileArgs =
-    files && files.length > 0 ? files.map((f) => `"${f}"`).join(' ') : '.';
+function runDartAnalyzeForPackage(packageRoot: string, timeout: number, files?: string[]): string {
+  const fileArgs = files && files.length > 0 ? files.map((f) => `"${f}"`).join(' ') : '.';
 
   return execSync(`dart analyze ${fileArgs} --fatal-infos --fatal-warnings`, {
     cwd: packageRoot,
@@ -105,9 +100,7 @@ function processDartAnalyzeError(
 
   // Distinguish between timeout/execution errors and dart analyze finding issues
   if (err.code === 'ETIMEDOUT' || err.signal === 'SIGTERM') {
-    throw new Error(
-      `dart analyze timed out in ${packageRoot} after ${timeout}ms`
-    );
+    throw new Error(`dart analyze timed out in ${packageRoot} after ${timeout}ms`);
   }
 
   // If dart analyze ran but found issues, stdout will have the report
@@ -183,9 +176,7 @@ export function dartAnalyze(
   }
 
   // Extract unique file paths with issues
-  const filesWithIssues = [
-    ...new Set(allIssues.map((issue) => issue.filePath)),
-  ];
+  const filesWithIssues = [...new Set(allIssues.map((issue) => issue.filePath))];
 
   return {
     success: allSuccess,

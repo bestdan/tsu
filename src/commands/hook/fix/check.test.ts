@@ -44,9 +44,7 @@ describe('dartHookFixCheck', () => {
       dartHookFixCheck({ verbose: false });
     }).toThrow('process.exit(1)');
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      'Error: Not in a git repository'
-    );
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Error: Not in a git repository');
     expect(processExitSpy).toHaveBeenCalledWith(1);
   });
 
@@ -58,9 +56,7 @@ describe('dartHookFixCheck', () => {
       dartHookFixCheck({ verbose: false });
     }).toThrow('process.exit(1)');
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      'Error: Not in a Dart package'
-    );
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Error: Not in a Dart package');
     expect(processExitSpy).toHaveBeenCalledWith(1);
   });
 
@@ -73,9 +69,7 @@ describe('dartHookFixCheck', () => {
       dartHookFixCheck({ verbose: true });
     }).toThrow('process.exit(0)');
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      '✓ No Dart source files modified'
-    );
+    expect(consoleErrorSpy).toHaveBeenCalledWith('✓ No Dart source files modified');
     expect(processExitSpy).toHaveBeenCalledWith(0);
   });
 
@@ -92,9 +86,7 @@ describe('dartHookFixCheck', () => {
       dartHookFixCheck({ verbose: true });
     }).toThrow('process.exit(0)');
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      '✓ No Dart source files modified'
-    );
+    expect(consoleErrorSpy).toHaveBeenCalledWith('✓ No Dart source files modified');
     expect(processExitSpy).toHaveBeenCalledWith(0);
   });
 
@@ -115,18 +107,14 @@ describe('dartHookFixCheck', () => {
     isDartPackageSpy.mockReturnValue(true);
     getAllChangedFilesSpy.mockReturnValue(['lib/main.dart']);
 
-    const hasUnstagedChangesSpy = vi
-      .spyOn(gitUtils, 'hasUnstagedChanges')
-      .mockReturnValue(false);
+    const hasUnstagedChangesSpy = vi.spyOn(gitUtils, 'hasUnstagedChanges').mockReturnValue(false);
 
     expect(() => {
       dartHookFixCheck({ verbose: true });
     }).toThrow('process.exit(0)');
 
     // Should display the file list
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      'Running dart fix on 1 file(s):'
-    );
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Running dart fix on 1 file(s):');
     expect(consoleErrorSpy).toHaveBeenCalledWith('  lib/main.dart');
 
     hasUnstagedChangesSpy.mockRestore();

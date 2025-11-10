@@ -32,19 +32,10 @@ export {
 } from './claude/generate-pr-description.js';
 
 // Commit operations
-export {
-  createCommit,
-  type CreateCommitOptions,
-} from './commit/create-commit.js';
+export { createCommit, type CreateCommitOptions } from './commit/create-commit.js';
 export { hasUnstagedChanges } from './commit/has-unstaged-changes.js';
 export { getGitStatus } from './commit/get-git-status.js';
 
 // Range/push operations
-export {
-  getFilesInRange,
-  type GetFilesInRangeOptions,
-} from './range/get-files-in-range.js';
-export {
-  getFilesToPush,
-  type GetFilesToPushOptions,
-} from './range/get-files-to-push.js';
+export { getFilesInRange, type GetFilesInRangeOptions } from './range/get-files-in-range.js';
+export { getFilesToPush, type GetFilesToPushOptions } from './range/get-files-to-push.js';

@@ -8,10 +8,7 @@ export interface FilesFilterOptions extends BaseCommandOptions {}
  * Filters stdin file list by removing files that match the specified suffix patterns.
  * Reads from stdin, filters, and outputs to stdout.
  */
-export function filesFilter(
-  suffixPatterns: string[],
-  options: FilesFilterOptions = {}
-): void {
+export function filesFilter(suffixPatterns: string[], options: FilesFilterOptions = {}): void {
   const verbose = options.verbose || false;
 
   if (suffixPatterns.length === 0) {
@@ -60,9 +57,7 @@ export function filesFilter(
   // Handle case where stdin is not piped (TTY)
   if (stdin.isTTY) {
     console.error('Error: This command expects input from stdin (pipe)');
-    console.error(
-      'Usage: tsutils git changed | tsutils files filter suffix .g.dart'
-    );
+    console.error('Usage: tsutils git changed | tsutils files filter suffix .g.dart');
     process.exit(1);
   }
 }

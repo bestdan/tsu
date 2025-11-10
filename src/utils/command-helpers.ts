@@ -122,9 +122,7 @@ export function displayChangedFiles(options: DisplayChangedFilesOptions): void {
     const pushFiles = getFilesToPush();
 
     if (pushFiles === null) {
-      console.error(
-        'Error: Remote branch not found or not in a git repository'
-      );
+      console.error('Error: Remote branch not found or not in a git repository');
       process.exit(1);
     }
 
@@ -154,29 +152,16 @@ export function displayChangedFiles(options: DisplayChangedFilesOptions): void {
 
   // Handle --all option
   if (options.all) {
-    const committedFiles = getFilteredChangedFiles(
-      'committed',
-      baseBranch,
-      filter
-    );
+    const committedFiles = getFilteredChangedFiles('committed', baseBranch, filter);
     const stagedFiles = getFilteredChangedFiles('staged', baseBranch, filter);
-    const unstagedFiles = getFilteredChangedFiles(
-      'unstaged',
-      baseBranch,
-      filter
-    );
+    const unstagedFiles = getFilteredChangedFiles('unstaged', baseBranch, filter);
 
-    if (
-      committedFiles === null ||
-      stagedFiles === null ||
-      unstagedFiles === null
-    ) {
+    if (committedFiles === null || stagedFiles === null || unstagedFiles === null) {
       console.error('Error: Failed to get changed files');
       process.exit(1);
     }
 
-    const totalChanges =
-      committedFiles.length + stagedFiles.length + unstagedFiles.length;
+    const totalChanges = committedFiles.length + stagedFiles.length + unstagedFiles.length;
 
     if (totalChanges === 0) {
       // Exit silently for pipe-friendliness
@@ -194,9 +179,7 @@ export function displayChangedFiles(options: DisplayChangedFilesOptions): void {
         console.error(`Staged ${typePrefix}changes (${stagedFiles.length}):`);
       }
       if (unstagedFiles.length > 0) {
-        console.error(
-          `Unstaged ${typePrefix}changes (${unstagedFiles.length}):`
-        );
+        console.error(`Unstaged ${typePrefix}changes (${unstagedFiles.length}):`);
       }
     }
 
@@ -257,30 +240,16 @@ export function displayChangedFiles(options: DisplayChangedFilesOptions): void {
  * Gets changed files based on options and optional filter, without displaying them.
  * Useful for commands that need to process changed files further.
  */
-export function getChangedFilesWithOptions(
-  options: DisplayChangedFilesOptions
-): string[] {
+export function getChangedFilesWithOptions(options: DisplayChangedFilesOptions): string[] {
   const baseBranch = options.baseBranch || 'main';
   const filter = options.filter;
 
   if (options.all) {
-    const committedFiles = getFilteredChangedFiles(
-      'committed',
-      baseBranch,
-      filter
-    );
+    const committedFiles = getFilteredChangedFiles('committed', baseBranch, filter);
     const stagedFiles = getFilteredChangedFiles('staged', baseBranch, filter);
-    const unstagedFiles = getFilteredChangedFiles(
-      'unstaged',
-      baseBranch,
-      filter
-    );
+    const unstagedFiles = getFilteredChangedFiles('unstaged', baseBranch, filter);
 
-    if (
-      committedFiles === null ||
-      stagedFiles === null ||
-      unstagedFiles === null
-    ) {
+    if (committedFiles === null || stagedFiles === null || unstagedFiles === null) {
       console.error('Error: Failed to get changed files');
       process.exit(1);
     }

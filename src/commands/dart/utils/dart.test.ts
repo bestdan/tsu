@@ -41,10 +41,7 @@ describe('findDartPackageRoot', () => {
   });
 
   it('should find package roots in multi-package monorepo with DCM fixture', () => {
-    const dcmFixtureDir = resolve(
-      __dirname,
-      '../../../__fixtures__/dart-app-with-dcm'
-    );
+    const dcmFixtureDir = resolve(__dirname, '../../../__fixtures__/dart-app-with-dcm');
     const corePackage = join(dcmFixtureDir, 'packages/core');
     const appPackage = join(dcmFixtureDir, 'packages/app');
 
@@ -85,10 +82,7 @@ describe('isDartPackage', () => {
   });
 
   it('should detect packages in multi-package monorepo with DCM fixture', () => {
-    const dcmFixtureDir = resolve(
-      __dirname,
-      '../../../__fixtures__/dart-app-with-dcm'
-    );
+    const dcmFixtureDir = resolve(__dirname, '../../../__fixtures__/dart-app-with-dcm');
     const corePackage = join(dcmFixtureDir, 'packages/core');
     const appPackage = join(dcmFixtureDir, 'packages/app');
 
@@ -128,10 +122,7 @@ describe('extractImports', () => {
   });
 
   it('should handle monorepo with subpackage lib directories', () => {
-    const monorepoDir = resolve(
-      __dirname,
-      '../../../__fixtures__/dart-monorepo'
-    );
+    const monorepoDir = resolve(__dirname, '../../../__fixtures__/dart-monorepo');
     const mainFile = join(monorepoDir, 'lib', 'main.dart');
     const imports = extractImports(mainFile, monorepoDir);
 
@@ -140,10 +131,7 @@ describe('extractImports', () => {
   });
 
   it('should handle non-standard package structures', () => {
-    const nonstandardDir = resolve(
-      __dirname,
-      '../../../__fixtures__/dart-nonstandard'
-    );
+    const nonstandardDir = resolve(__dirname, '../../../__fixtures__/dart-nonstandard');
     const mainFile = join(nonstandardDir, 'main.dart');
     const imports = extractImports(mainFile, nonstandardDir);
 
@@ -152,25 +140,16 @@ describe('extractImports', () => {
   });
 
   it('should extract imports from multi-package monorepo with DCM fixture', () => {
-    const dcmFixtureDir = resolve(
-      __dirname,
-      '../../../__fixtures__/dart-app-with-dcm'
-    );
+    const dcmFixtureDir = resolve(__dirname, '../../../__fixtures__/dart-app-with-dcm');
     const coreUserFile = join(dcmFixtureDir, 'packages/core/lib/user.dart');
-    const imports = extractImports(
-      coreUserFile,
-      join(dcmFixtureDir, 'packages/core')
-    );
+    const imports = extractImports(coreUserFile, join(dcmFixtureDir, 'packages/core'));
 
     // The User file itself has no imports (simple model), but test that it works
     expect(imports).toEqual([]);
 
     // Test that we can read from the core package
     const coreUtilsFile = join(dcmFixtureDir, 'packages/core/lib/utils.dart');
-    const utilsImports = extractImports(
-      coreUtilsFile,
-      join(dcmFixtureDir, 'packages/core')
-    );
+    const utilsImports = extractImports(coreUtilsFile, join(dcmFixtureDir, 'packages/core'));
 
     // utils.dart also has no imports, but confirms file can be read
     expect(utilsImports).toEqual([]);
@@ -212,10 +191,7 @@ describe('findAllDartFiles', () => {
   });
 
   it('should find dart files in multi-package monorepo with DCM fixture', () => {
-    const dcmFixtureDir = resolve(
-      __dirname,
-      '../../../__fixtures__/dart-app-with-dcm'
-    );
+    const dcmFixtureDir = resolve(__dirname, '../../../__fixtures__/dart-app-with-dcm');
     const corePackage = join(dcmFixtureDir, 'packages/core');
     const files = findAllDartFiles(corePackage);
 
@@ -231,9 +207,7 @@ describe('findAllDartFiles', () => {
 
   it('should return null for errors', () => {
     // This might not error on all systems, but if it does, should return null
-    const files = findAllDartFiles(
-      '/this/path/definitely/does/not/exist/12345'
-    );
+    const files = findAllDartFiles('/this/path/definitely/does/not/exist/12345');
     expect(files === null || Array.isArray(files)).toBe(true);
   });
 
@@ -324,9 +298,7 @@ describe('findDownstreamDependencies', () => {
 
     const downstreamArray = Array.from(downstream);
     const hasMain = downstreamArray.some((f) => f.endsWith('lib/main.dart'));
-    const hasAuth = downstreamArray.some((f) =>
-      f.endsWith('services/auth.dart')
-    );
+    const hasAuth = downstreamArray.some((f) => f.endsWith('services/auth.dart'));
 
     expect(hasMain || hasAuth).toBe(true);
   });
@@ -418,9 +390,7 @@ describe('readPackageIndex and findAffectedPackages', () => {
 
   it('should fall back to pubspec.yaml when PACKAGE_INDEX does not exist', async () => {
     const { findAffectedPackages } = await import('./dart.js');
-    const { writeFileSync, mkdtempSync, rmSync, mkdirSync } = await import(
-      'node:fs'
-    );
+    const { writeFileSync, mkdtempSync, rmSync, mkdirSync } = await import('node:fs');
     const { join } = await import('node:path');
     const { tmpdir } = await import('node:os');
 
@@ -429,10 +399,7 @@ describe('readPackageIndex and findAffectedPackages', () => {
     // Create a package structure with pubspec.yaml
     const packageDir = join(tempDir, 'packages', 'app');
     mkdirSync(join(packageDir, 'lib'), { recursive: true });
-    writeFileSync(
-      join(packageDir, 'pubspec.yaml'),
-      'name: test_app\nversion: 1.0.0\n'
-    );
+    writeFileSync(join(packageDir, 'pubspec.yaml'), 'name: test_app\nversion: 1.0.0\n');
     writeFileSync(join(packageDir, 'lib', 'main.dart'), '// test');
 
     const files = ['packages/app/lib/main.dart'];
@@ -461,10 +428,7 @@ describe('readPackageIndex and findAffectedPackages', () => {
 
   it('should find affected packages in multi-package monorepo using DCM fixture', async () => {
     const { findAffectedPackages } = await import('./dart.js');
-    const dcmFixtureDir = resolve(
-      __dirname,
-      '../../../__fixtures__/dart-app-with-dcm'
-    );
+    const dcmFixtureDir = resolve(__dirname, '../../../__fixtures__/dart-app-with-dcm');
 
     const files = ['packages/app/lib/main.dart', 'packages/core/lib/user.dart'];
     const result = findAffectedPackages(files, dcmFixtureDir);

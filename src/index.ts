@@ -76,15 +76,9 @@ export {
   type DartHookAnalysisCheckOptions,
 } from './commands/hook/analysis/check.js';
 
-export {
-  dartHookFixCheck,
-  type DartHookFixCheckOptions,
-} from './commands/hook/fix/check.js';
+export { dartHookFixCheck, type DartHookFixCheckOptions } from './commands/hook/fix/check.js';
 
-export {
-  dartHookDcmCheck,
-  type DartHookDcmCheckOptions,
-} from './commands/hook/dcm/fix/check.js';
+export { dartHookDcmCheck, type DartHookDcmCheckOptions } from './commands/hook/dcm/fix/check.js';
 
 export {
   dartHookDcmAnalyzeCheck,
@@ -106,13 +100,7 @@ export {
   type CallAndParseDcmResult,
 } from './utils/dcm-parse.js';
 
-export {
-  dartDcmAnalyze,
-  type DartDcmAnalyzeOptions,
-} from './commands/dart/dcm/analyze.js';
+export { dartDcmAnalyze, type DartDcmAnalyzeOptions } from './commands/dart/dcm/analyze.js';
 
 // Check utilities
-export {
-  checkExternals,
-  type CheckExternalsOptions,
-} from './commands/check/externals.js';
+export { checkExternals, type CheckExternalsOptions } from './commands/check/externals.js';

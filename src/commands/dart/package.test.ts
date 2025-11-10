@@ -8,10 +8,7 @@ const __dirname = dirname(__filename);
 
 // Path to our test fixture
 const fixtureDir = resolve(__dirname, '../../__fixtures__/dart-package');
-const dcmFixtureDir = resolve(
-  __dirname,
-  '../../__fixtures__/dart-app-with-dcm'
-);
+const dcmFixtureDir = resolve(__dirname, '../../__fixtures__/dart-app-with-dcm');
 
 describe('dartPackage', () => {
   let consoleLogSpy: any;
@@ -70,9 +67,7 @@ describe('dartPackage', () => {
       dartPackage(filePath, { verbose: true });
     }).toThrow('process.exit(0)');
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      expect.stringContaining('Package root for')
-    );
+    expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Package root for'));
     expect(consoleLogSpy).toHaveBeenCalledWith(fixtureDir);
   });
 
@@ -81,9 +76,7 @@ describe('dartPackage', () => {
       dartPackage('/fake/path/file.dart', { verbose: true });
     }).toThrow('process.exit(1)');
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      expect.stringContaining('File not found')
-    );
+    expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('File not found'));
     expect(processExitSpy).toHaveBeenCalledWith(1);
   });
 

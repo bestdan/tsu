@@ -1,7 +1,4 @@
-import {
-  ensureCondition,
-  ensureDCMInstalled,
-} from '../../../utils/command-helpers.js';
+import { ensureCondition, ensureDCMInstalled } from '../../../utils/command-helpers.js';
 import { isDartPackage } from '../utils/dart.js';
 import { logIfVerbose } from '../../../utils/logger.js';
 import { dcmAnalyze } from '../../../utils/dcm-parse.js';

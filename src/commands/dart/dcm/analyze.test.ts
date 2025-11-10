@@ -5,9 +5,7 @@ import * as dartUtils from '../utils/dart.js';
 import * as dcmParse from '../../../utils/dcm-parse.js';
 
 vi.mock('../../../utils/command-helpers.js', async () => {
-  const actual = await vi.importActual<typeof commandHelpers>(
-    '../../../utils/command-helpers.js'
-  );
+  const actual = await vi.importActual<typeof commandHelpers>('../../../utils/command-helpers.js');
   return {
     ...actual,
     ensureDCMInstalled: vi.fn(),
@@ -24,9 +22,7 @@ vi.mock('../utils/dart.js', async () => {
 });
 
 vi.mock('../../../utils/dcm-parse.js', async () => {
-  const actual = await vi.importActual<typeof dcmParse>(
-    '../../../utils/dcm-parse.js'
-  );
+  const actual = await vi.importActual<typeof dcmParse>('../../../utils/dcm-parse.js');
   return {
     ...actual,
     dcmAnalyze: vi.fn(),
@@ -34,9 +30,7 @@ vi.mock('../../../utils/dcm-parse.js', async () => {
 });
 
 describe('dartDcmAnalyze', () => {
-  const mockExit = vi
-    .spyOn(process, 'exit')
-    .mockImplementation((() => {}) as never);
+  const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {}) as never);
   const mockConsoleLog = vi.spyOn(console, 'log').mockImplementation(() => {});
 
   beforeEach(() => {

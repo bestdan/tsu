@@ -20,9 +20,7 @@ export interface GetFilesToPushOptions {
  * @param options - Configuration options or just the cwd string (for backwards compatibility)
  * @returns Array of file paths, or null if not in a git repo
  */
-export function getFilesToPush(
-  options: GetFilesToPushOptions | string = {}
-): string[] | null {
+export function getFilesToPush(options: GetFilesToPushOptions | string = {}): string[] | null {
   // Support legacy string parameter for backwards compatibility
   const { cwd = process.cwd(), baseBranch = 'main' } =
     typeof options === 'string' ? { cwd: options } : options;

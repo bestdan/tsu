@@ -7,10 +7,7 @@ import { resolve } from 'node:path';
  * @param packageRoot - Root directory of the Dart package
  * @returns Array of imported file paths (resolved where possible)
  */
-export function extractImports(
-  filePath: string,
-  packageRoot: string
-): string[] {
+export function extractImports(filePath: string, packageRoot: string): string[] {
   if (!existsSync(filePath)) {
     return [];
   }
@@ -48,12 +45,7 @@ export function extractImports(
         // package:features/account/foo.dart -> features/lib/account/foo.dart
 
         // 1. Try subdirectory package with lib (like features/lib/)
-        const subPackageWithLib = resolve(
-          packageRoot,
-          packageName,
-          'lib',
-          packagePath
-        );
+        const subPackageWithLib = resolve(packageRoot, packageName, 'lib', packagePath);
         if (existsSync(subPackageWithLib)) {
           imports.push(`${packageName}/lib/${packagePath}`);
           continue;

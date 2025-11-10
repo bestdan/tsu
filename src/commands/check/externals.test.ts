@@ -69,23 +69,13 @@ describe('checkExternals', () => {
 
     expect(() => checkExternals({ verbose: true })).toThrow('process.exit(1)');
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      '🔍 Checking external dependencies...'
-    );
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      '✓ Dart SDK (dart) - installed'
-    );
+    expect(consoleErrorSpy).toHaveBeenCalledWith('🔍 Checking external dependencies...');
+    expect(consoleErrorSpy).toHaveBeenCalledWith('✓ Dart SDK (dart) - installed');
     expect(consoleErrorSpy).toHaveBeenCalledWith('✗ DCM (dcm) - not installed');
     expect(consoleErrorSpy).toHaveBeenCalledWith('  Install: https://dcm.dev');
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      '✗ Melos (melos) - not installed'
-    );
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      '  Install: https://melos.invertase.dev'
-    );
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      '✓ Claude CLI (claude) - installed'
-    );
+    expect(consoleErrorSpy).toHaveBeenCalledWith('✗ Melos (melos) - not installed');
+    expect(consoleErrorSpy).toHaveBeenCalledWith('  Install: https://melos.invertase.dev');
+    expect(consoleErrorSpy).toHaveBeenCalledWith('✓ Claude CLI (claude) - installed');
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       '⚠️  Some external dependencies are not installed'
     );
@@ -96,9 +86,7 @@ describe('checkExternals', () => {
 
     expect(() => checkExternals({ verbose: true })).toThrow('process.exit(0)');
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      '✓ All external dependencies are installed'
-    );
+    expect(consoleErrorSpy).toHaveBeenCalledWith('✓ All external dependencies are installed');
   });
 
   it('should output parseable format to stdout for scripting', () => {

@@ -13,9 +13,7 @@ export interface GenerateCommitMessageOptions {
  * @throws Error if Claude CLI is not available or fails
  */
 /* v8 ignore next -- @preserve */
-export function generateCommitMessage(
-  options: GenerateCommitMessageOptions = {}
-): string | null {
+export function generateCommitMessage(options: GenerateCommitMessageOptions = {}): string | null {
   const { cwd = process.cwd() } = options;
 
   // Get staged diff
