@@ -19,6 +19,7 @@ import { dartHookFixCheck } from './commands/hook/fix/check.js';
 import { dartHookDcmCheck } from './commands/hook/dcm/fix/check.js';
 import { dartHookDcmAnalyzeCheck } from './commands/hook/dcm/analyze/check.js';
 import { dartHookGraphqlCheck } from './commands/hook/graphql/check.js';
+import { hookCollate } from './commands/hook/collate.js';
 import { dartFix } from './commands/dart/fix.js';
 import { dartDcmAnalyze } from './commands/dart/dcm/analyze.js';
 import { checkExternals } from './commands/check/externals.js';
@@ -363,6 +364,34 @@ hook
       verbose?: boolean;
     }) => {
       await dartHookGraphqlCheck(options);
+    }
+  );
+
+hook
+  .command('collate')
+  .description('Run multiple hook checks and track failures (suitable for pre-push hooks)')
+  .option('-s, --staged', 'check staged changes only')
+  .option('-u, --unstaged', 'check unstaged changes only')
+  .option('-a, --all', 'check all changes (committed, staged, and unstaged)')
+  .option('-b, --base-branch <branch>', 'base branch to compare against', 'main')
+  .option('--dart-format', 'run dart format check')
+  .option('--dart-analysis', 'run dart analysis check')
+  .option('--dcm-analyze', 'run DCM analyze check')
+  .option('--graphql', 'run GraphQL check')
+  .option('-v, --verbose', 'show human-readable status messages (output to stderr)')
+  .action(
+    (options: {
+      staged?: boolean;
+      unstaged?: boolean;
+      all?: boolean;
+      baseBranch?: string;
+      dartFormat?: boolean;
+      dartAnalysis?: boolean;
+      dcmAnalyze?: boolean;
+      graphql?: boolean;
+      verbose?: boolean;
+    }) => {
+      hookCollate(options);
     }
   );
 
