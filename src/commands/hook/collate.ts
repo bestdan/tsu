@@ -1,10 +1,15 @@
 import { execSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
 import { isGitRepo, getAllChangedFiles } from '../git/utils/git.js';
 import { isDartPackage } from '../dart/utils/dart.js';
 import { ensureCondition } from '../../utils/command-helpers.js';
 import { logIfVerbose } from '../../utils/logger.js';
 import type { ChangedFilesOptions } from '../../types/command-options.js';
 import { setVerbose } from '../../utils/verbose-state.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 export interface HookCollateOptions extends ChangedFilesOptions {
   /** Run dart format check */
@@ -105,8 +110,10 @@ export function hookCollate(options: HookCollateOptions = {}): void {
       execSync('which tsu', { stdio: 'pipe' });
       return 'tsu';
     } catch {
-      // Fallback to node execution of the built CLI
-      return 'node dist/cli.js';
+      // Fallback to node execution of the built CLI using absolute path
+      // __dirname is the dist/commands/hook directory, so we need to go up to dist
+      const cliPath = join(__dirname, '..', '..', 'cli.js');
+      return `node ${cliPath}`;
     }
   };
 
