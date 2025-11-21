@@ -45,14 +45,23 @@ TSU provides seamless integration with [HK](https://github.com/jdx/hk), a high-p
 **Prerequisites:** Install TSU and HK first (see [HK docs](docs/hk.md) for details)
 
 Quick setup:
+
 ```bash
 # Download and run the setup script
 curl -fsSL https://raw.githubusercontent.com/bestdan/tsu/main/scripts/setup-hk.sh | bash
 ```
 
+### Top-level Commands
+
+- **upgrade** - Upgrade tsutils to the latest version from GitHub ([documentation](docs/upgrade.md))
+
 ### Quick Examples
 
 ```bash
+# Check and upgrade tsutils
+tsutils check version --verbose
+tsutils upgrade --verbose
+
 # Check external dependencies
 tsutils check externals --verbose
 
@@ -125,4 +134,3 @@ src/
 ## License
 
 MIT
-
