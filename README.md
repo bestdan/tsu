@@ -42,9 +42,11 @@ tsu <namespace> <command> [options]
 
 TSU provides seamless integration with [HK](https://github.com/jdx/hk), a high-performance git hook manager that runs hooks in parallel. See the [HK integration guide](docs/hk.md) for setup instructions and benefits.
 
+**Prerequisites:** Install TSU and HK first (see [HK docs](docs/hk.md) for details)
+
 Quick setup:
 ```bash
-# Run the setup script (installs HK, TSU, and configures hooks)
+# Download and run the setup script
 curl -fsSL https://raw.githubusercontent.com/bestdan/tsu/main/scripts/setup-hk.sh | bash
 ```
 

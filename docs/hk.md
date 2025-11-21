@@ -11,26 +11,46 @@ TSU provides seamless integration with [HK](https://github.com/jdx/hk), a high-p
 
 ## Quick Setup
 
-Run the setup script from the TSU repository:
+### Prerequisites
+
+1. Install TSU globally:
+```bash
+# Using pnpm:
+pnpm add -g github:bestdan/tsu
+
+# Using npm:
+npm install -g github:bestdan/tsu
+
+# Or build from source:
+git clone https://github.com/bestdan/tsu.git
+cd tsu && pnpm install && pnpm build && pnpm link --global
+```
+
+2. Install HK (requires Rust/Cargo):
+```bash
+# Install Rust if you haven't already
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+# Install HK
+cargo install hk
+```
+
+### Run the Setup Script
 
 ```bash
-# Clone TSU repository or download the setup script
+# Download and run the setup script
 curl -fsSL https://raw.githubusercontent.com/bestdan/tsu/main/scripts/setup-hk.sh | bash
 ```
 
-Or manually:
+### Manual Setup
+
+If you prefer manual setup:
 
 ```bash
-# 1. Install HK (requires Rust/Cargo)
-cargo install hk
+# 1. Copy the template to your project
+curl -o hk.pkl https://raw.githubusercontent.com/bestdan/tsu/main/templates/hk.pkl
 
-# 2. Install TSU globally
-pnpm add -g github:bestdan/tsu
-
-# 3. Copy the template to your project
-cp /path/to/tsu/templates/hk.pkl ./hk.pkl
-
-# 4. Initialize HK in your repository
+# 2. Initialize HK in your repository
 hk init
 ```
 

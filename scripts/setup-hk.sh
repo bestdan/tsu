@@ -31,21 +31,23 @@ fi
 # Check if tsu is installed
 if ! command -v tsu &> /dev/null; then
     warn "TSU is not installed globally."
-    info "Installing TSU..."
-    
-    # Detect package manager
-    if command -v pnpm &> /dev/null; then
-        pnpm add -g github:bestdan/tsu
-    elif command -v npm &> /dev/null; then
-        npm install -g github:bestdan/tsu
-    elif command -v yarn &> /dev/null; then
-        yarn global add github:bestdan/tsu
-    else
-        error "No package manager (pnpm, npm, or yarn) found. Please install one first."
-        exit 1
-    fi
-    
-    info "TSU installed successfully!"
+    info "Please install TSU first using one of these methods:"
+    echo ""
+    echo "  # Using pnpm:"
+    echo "  pnpm add -g github:bestdan/tsu"
+    echo ""
+    echo "  # Using npm:"
+    echo "  npm install -g github:bestdan/tsu"
+    echo ""
+    echo "  # Using yarn:"
+    echo "  yarn global add github:bestdan/tsu"
+    echo ""
+    echo "  # Or build from source:"
+    echo "  git clone https://github.com/bestdan/tsu.git"
+    echo "  cd tsu && pnpm install && pnpm build && pnpm link --global"
+    echo ""
+    error "Please install TSU and run this script again."
+    exit 1
 else
     info "TSU is already installed: $(which tsu)"
 fi
