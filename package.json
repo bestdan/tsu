@@ -1,6 +1,6 @@
 {
   "name": "tsutils",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "TypeScript command line utilities",
   "type": "module",
   "main": "./dist/index.js",
