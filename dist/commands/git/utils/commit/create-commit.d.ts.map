@@ -1,1 +1,0 @@
-{"version":3,"file":"create-commit.d.ts","sourceRoot":"","sources":["../../../../../src/commands/git/utils/commit/create-commit.ts"],"names":[],"mappings":"AAIA,MAAM,WAAW,mBAAmB;IAElC,OAAO,EAAE,MAAM,CAAC;IAEhB,GAAG,CAAC,EAAE,MAAM,CAAC;CACd;AAOD,wBAAgB,YAAY,CAAC,OAAO,EAAE,mBAAmB,GAAG,OAAO,CAoBlE"}

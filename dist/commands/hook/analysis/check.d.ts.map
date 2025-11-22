@@ -1,1 +1,0 @@
-{"version":3,"file":"check.d.ts","sourceRoot":"","sources":["../../../../src/commands/hook/analysis/check.ts"],"names":[],"mappings":"AAMA,OAAO,KAAK,EAAE,mBAAmB,EAAE,MAAM,mCAAmC,CAAC;AAG7E,MAAM,WAAW,4BAA6B,SAAQ,mBAAmB;IAEvE,eAAe,CAAC,EAAE,MAAM,EAAE,CAAC;CAC5B;AAYD,wBAAgB,qBAAqB,CAAC,OAAO,GAAE,4BAAiC,GAAG,IAAI,CAsDtF"}

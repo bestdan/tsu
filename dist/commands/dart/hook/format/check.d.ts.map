@@ -1,1 +1,0 @@
-{"version":3,"file":"check.d.ts","sourceRoot":"","sources":["../../../../../src/commands/dart/hook/format/check.ts"],"names":[],"mappings":"AAkBA,MAAM,WAAW,0BAA0B;IACzC,OAAO,CAAC,EAAE,OAAO,CAAC;IAElB,eAAe,CAAC,EAAE,MAAM,EAAE,CAAC;IAC3B,KAAK,CAAC,EAAE,MAAM,EAAE,CAAC;CAClB;AAcD,wBAAgB,mBAAmB,CACjC,OAAO,GAAE,0BAA+B,GACvC,IAAI,CAuEN"}

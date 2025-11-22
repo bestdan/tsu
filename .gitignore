@@ -4,6 +4,7 @@ node_modules/
 # Build output
 *.tsbuildinfo
 dist/__fixtures__/
+dist/**/*.map
 
 # Testing
 coverage/

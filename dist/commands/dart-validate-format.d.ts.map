@@ -1,1 +1,0 @@
-{"version":3,"file":"dart-validate-format.d.ts","sourceRoot":"","sources":["../../src/commands/dart-validate-format.ts"],"names":[],"mappings":"AAYA,MAAM,WAAW,yBAAyB;IACxC,OAAO,CAAC,EAAE,OAAO,CAAC;IAElB,KAAK,CAAC,EAAE,MAAM,EAAE,CAAC;IAEjB,eAAe,CAAC,EAAE,MAAM,EAAE,CAAC;CAC5B;AAMD,wBAAgB,kBAAkB,CAChC,OAAO,GAAE,yBAA8B,GACtC,IAAI,CAwDN"}

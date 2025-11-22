@@ -1,1 +1,0 @@
-{"version":3,"file":"get-files-to-push.d.ts","sourceRoot":"","sources":["../../../../../src/commands/git/utils/range/get-files-to-push.ts"],"names":[],"mappings":"AAOA,MAAM,WAAW,qBAAqB;IAEpC,GAAG,CAAC,EAAE,MAAM,CAAC;IAEb,UAAU,CAAC,EAAE,MAAM,CAAC;CACrB;AAUD,wBAAgB,cAAc,CAAC,OAAO,GAAE,qBAAqB,GAAG,MAAW,GAAG,MAAM,EAAE,GAAG,IAAI,CA0D5F"}

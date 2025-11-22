@@ -1,1 +1,0 @@
-{"version":3,"file":"git-branch.d.ts","sourceRoot":"","sources":["../../src/commands/git-branch.ts"],"names":[],"mappings":"AACA,OAAO,KAAK,EAAE,sBAAsB,EAAE,MAAM,6BAA6B,CAAC;AAG1E,MAAM,WAAW,gBAAiB,SAAQ,sBAAsB;CAAG;AAEnE,wBAAgB,SAAS,CACvB,IAAI,EAAE,MAAM,GAAG,SAAS,EACxB,OAAO,GAAE,gBAAqB,GAC7B,IAAI,CAsBN"}

@@ -1,1 +1,0 @@
-{"version":3,"file":"update-exit-code.d.ts","sourceRoot":"","sources":["../../../src/commands/pipe/update-exit-code.ts"],"names":[],"mappings":"AAIA,MAAM,WAAW,yBAAyB;IACxC,OAAO,CAAC,EAAE,OAAO,CAAC;IAClB,KAAK,CAAC,EAAE,OAAO,CAAC;CACjB;AAuBD,wBAAgB,kBAAkB,CAAC,OAAO,GAAE,yBAA8B,GAAG,IAAI,CA8DhF"}

@@ -1,1 +1,0 @@
-{"version":3,"file":"check.d.ts","sourceRoot":"","sources":["../../../../src/commands/hook/graphql/check.ts"],"names":[],"mappings":"AAMA,OAAO,KAAK,EAAE,mBAAmB,EAAE,MAAM,mCAAmC,CAAC;AAG7E,MAAM,MAAM,2BAA2B,GAAG,mBAAmB,CAAC;AAc9D,wBAAsB,oBAAoB,CACxC,OAAO,GAAE,2BAAgC,GACxC,OAAO,CAAC,IAAI,CAAC,CAoHf"}

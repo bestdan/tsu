@@ -1,1 +1,0 @@
-{"version":3,"file":"is-main.d.ts","sourceRoot":"","sources":["../../../src/commands/git/is-main.ts"],"names":[],"mappings":"AACA,OAAO,KAAK,EAAE,mBAAmB,EAAE,MAAM,gCAAgC,CAAC;AAE1E,MAAM,WAAW,gBAAiB,SAAQ,mBAAmB;IAE3D,MAAM,CAAC,EAAE,MAAM,CAAC;CACjB;AAED,wBAAgB,SAAS,CAAC,IAAI,EAAE,MAAM,GAAG,SAAS,EAAE,OAAO,GAAE,gBAAqB,GAAG,IAAI,CAgCxF"}

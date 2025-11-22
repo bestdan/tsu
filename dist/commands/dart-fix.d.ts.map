@@ -1,1 +1,0 @@
-{"version":3,"file":"dart-fix.d.ts","sourceRoot":"","sources":["../../src/commands/dart-fix.ts"],"names":[],"mappings":"AAOA,MAAM,WAAW,cAAc;IAC7B,OAAO,CAAC,EAAE,OAAO,CAAC;IAElB,KAAK,CAAC,EAAE,MAAM,EAAE,CAAC;IAEjB,KAAK,CAAC,EAAE,OAAO,CAAC;IAEhB,QAAQ,CAAC,EAAE,OAAO,CAAC;CACpB;AAYD,wBAAgB,OAAO,CAAC,OAAO,GAAE,cAAmB,GAAG,IAAI,CAyG1D"}

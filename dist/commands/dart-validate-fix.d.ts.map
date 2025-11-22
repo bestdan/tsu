@@ -1,1 +1,0 @@
-{"version":3,"file":"dart-validate-fix.d.ts","sourceRoot":"","sources":["../../src/commands/dart-validate-fix.ts"],"names":[],"mappings":"AAQA,MAAM,WAAW,sBAAsB;IACrC,OAAO,CAAC,EAAE,OAAO,CAAC;IAElB,KAAK,CAAC,EAAE,MAAM,EAAE,CAAC;IAEjB,KAAK,CAAC,EAAE,OAAO,CAAC;CACjB;AAOD,wBAAgB,eAAe,CAAC,OAAO,GAAE,sBAA2B,GAAG,IAAI,CAgD1E"}
