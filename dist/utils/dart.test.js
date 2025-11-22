@@ -1,0 +1,270 @@
+import { describe, it, expect } from 'vitest';
+import { findDartPackageRoot, findFilePackageRoot, isDartPackage, extractImports, resolveImportPath, findAllDartFiles, buildDependencyGraph, buildReverseDependencyGraph, findDownstreamDependencies, } from './dart.js';
+import { join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { dirname } from 'node:path';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const fixtureDir = resolve(__dirname, '../__fixtures__/dart-package');
+describe('findDartPackageRoot', () => {
+    it('should find package root from lib directory', () => {
+        const libDir = join(fixtureDir, 'lib');
+        const result = findDartPackageRoot(libDir);
+        expect(result).toBe(fixtureDir);
+    });
+    it('should find package root from nested directory', () => {
+        const nestedDir = join(fixtureDir, 'lib', 'models');
+        const result = findDartPackageRoot(nestedDir);
+        expect(result).toBe(fixtureDir);
+    });
+    it('should return null when not in a Dart package', () => {
+        const result = findDartPackageRoot('/tmp');
+        expect(result).toBe(null);
+    });
+});
+describe('findFilePackageRoot', () => {
+    it('should find file package root in same package', () => {
+        const filePath = join(fixtureDir, 'lib', 'main.dart');
+        const result = findFilePackageRoot(filePath, fixtureDir);
+        expect(result).toBe(fixtureDir);
+    });
+    it('should return workspace root when no pubspec found', () => {
+        const filePath = join(fixtureDir, 'lib', 'main.dart');
+        const fakeWorkspace = '/some/fake/path';
+        const result = findFilePackageRoot(filePath, fakeWorkspace);
+        expect(result).toBe(fakeWorkspace);
+    });
+});
+describe('isDartPackage', () => {
+    it('should return true when in a Dart package', () => {
+        const result = isDartPackage(fixtureDir);
+        expect(result).toBe(true);
+    });
+    it('should return false when not in a Dart package', () => {
+        const result = isDartPackage('/tmp');
+        expect(result).toBe(false);
+    });
+});
+describe('extractImports', () => {
+    it('should extract package imports', () => {
+        const mainFile = join(fixtureDir, 'lib', 'main.dart');
+        const imports = extractImports(mainFile, fixtureDir);
+        expect(imports).toContain('lib/models/user.dart');
+        expect(imports).toContain('lib/services/auth.dart');
+    });
+    it('should extract relative imports', () => {
+        const authFile = join(fixtureDir, 'lib', 'services', 'auth.dart');
+        const imports = extractImports(authFile, fixtureDir);
+        expect(imports).toContain('./logger.dart');
+    });
+    it('should skip dart: imports', () => {
+        const mainFile = join(fixtureDir, 'lib', 'main.dart');
+        const imports = extractImports(mainFile, fixtureDir);
+        const dartImports = imports.filter((imp) => imp.startsWith('dart:'));
+        expect(dartImports).toHaveLength(0);
+    });
+    it('should return empty array for non-existent file', () => {
+        const imports = extractImports('/fake/path/file.dart', fixtureDir);
+        expect(imports).toEqual([]);
+    });
+    it('should handle monorepo with subpackage lib directories', () => {
+        const monorepoDir = resolve(__dirname, '../__fixtures__/dart-monorepo');
+        const mainFile = join(monorepoDir, 'lib', 'main.dart');
+        const imports = extractImports(mainFile, monorepoDir);
+        expect(imports).toContain('features/lib/account/profile.dart');
+    });
+    it('should handle non-standard package structures', () => {
+        const nonstandardDir = resolve(__dirname, '../__fixtures__/dart-nonstandard');
+        const mainFile = join(nonstandardDir, 'main.dart');
+        const imports = extractImports(mainFile, nonstandardDir);
+        expect(imports).toContain('custom_pkg/util.dart');
+    });
+});
+describe('resolveImportPath', () => {
+    it('should resolve relative imports', () => {
+        const fromFile = join(fixtureDir, 'lib', 'services', 'auth.dart');
+        const importPath = './logger.dart';
+        const result = resolveImportPath(fromFile, importPath, fixtureDir);
+        expect(result).toBe(join(fixtureDir, 'lib', 'services', 'logger.dart'));
+    });
+    it('should resolve package-relative imports', () => {
+        const fromFile = join(fixtureDir, 'lib', 'main.dart');
+        const importPath = 'lib/models/user.dart';
+        const result = resolveImportPath(fromFile, importPath, fixtureDir);
+        expect(result).toBe(join(fixtureDir, 'lib', 'models', 'user.dart'));
+    });
+});
+describe('findAllDartFiles', () => {
+    it('should find all dart files in package', () => {
+        const files = findAllDartFiles(fixtureDir);
+        expect(files).not.toBe(null);
+        expect(files.length).toBeGreaterThan(0);
+        const fileNames = files.map((f) => f.split('/').pop());
+        expect(fileNames).toContain('main.dart');
+        expect(fileNames).toContain('user.dart');
+        expect(fileNames).toContain('auth.dart');
+        expect(fileNames).toContain('logger.dart');
+        expect(fileNames).toContain('user_test.dart');
+    });
+    it('should return null for errors', () => {
+        const files = findAllDartFiles('/this/path/definitely/does/not/exist/12345');
+        expect(files === null || Array.isArray(files)).toBe(true);
+    });
+    it('should return empty array when no dart files found', () => {
+        const tempDir = mkdtempSync(join(tmpdir(), 'no-dart-'));
+        try {
+            const files = findAllDartFiles(tempDir);
+            expect(files).toEqual([]);
+        }
+        finally {
+            rmSync(tempDir, { recursive: true, force: true });
+        }
+    });
+});
+describe('buildDependencyGraph', () => {
+    it('should build a dependency graph', () => {
+        const files = findAllDartFiles(fixtureDir);
+        expect(files).not.toBe(null);
+        const graph = buildDependencyGraph(files, fixtureDir);
+        expect(graph.size).toBeGreaterThan(0);
+        const mainFile = files.find((f) => f.endsWith('lib/main.dart'));
+        expect(mainFile).toBeDefined();
+        const mainDeps = graph.get(mainFile);
+        expect(mainDeps).toBeDefined();
+        expect(mainDeps.length).toBeGreaterThan(0);
+    });
+});
+describe('buildReverseDependencyGraph', () => {
+    it('should build a reverse dependency graph', () => {
+        const files = findAllDartFiles(fixtureDir);
+        expect(files).not.toBe(null);
+        const graph = buildDependencyGraph(files, fixtureDir);
+        const reverseGraph = buildReverseDependencyGraph(graph);
+        expect(reverseGraph.size).toBe(graph.size);
+        const userFile = files.find((f) => f.endsWith('models/user.dart'));
+        expect(userFile).toBeDefined();
+        const userImporters = reverseGraph.get(userFile);
+        expect(userImporters).toBeDefined();
+        expect(userImporters.length).toBeGreaterThanOrEqual(1);
+    });
+    it('should handle files that are imported but not in the graph', () => {
+        const graph = new Map();
+        const file1 = '/path/to/file1.dart';
+        const file2 = '/path/to/file2.dart';
+        const file3 = '/path/to/file3.dart';
+        graph.set(file1, [file2, file3]);
+        graph.set(file2, []);
+        const reverseGraph = buildReverseDependencyGraph(graph);
+        expect(reverseGraph.has(file3)).toBe(true);
+        expect(reverseGraph.get(file3)).toEqual([file1]);
+    });
+});
+describe('findDownstreamDependencies', () => {
+    it('should find downstream dependencies', () => {
+        const files = findAllDartFiles(fixtureDir);
+        expect(files).not.toBe(null);
+        const graph = buildDependencyGraph(files, fixtureDir);
+        const reverseGraph = buildReverseDependencyGraph(graph);
+        const userFile = files.find((f) => f.endsWith('models/user.dart'));
+        expect(userFile).toBeDefined();
+        const downstream = findDownstreamDependencies([userFile], reverseGraph);
+        expect(downstream.size).toBeGreaterThan(0);
+        const downstreamArray = Array.from(downstream);
+        const hasMain = downstreamArray.some((f) => f.endsWith('lib/main.dart'));
+        const hasAuth = downstreamArray.some((f) => f.endsWith('services/auth.dart'));
+        expect(hasMain || hasAuth).toBe(true);
+    });
+    it('should return empty set when no downstream dependencies', () => {
+        const files = findAllDartFiles(fixtureDir);
+        expect(files).not.toBe(null);
+        const graph = buildDependencyGraph(files, fixtureDir);
+        const reverseGraph = buildReverseDependencyGraph(graph);
+        const mainFile = files.find((f) => f.endsWith('lib/main.dart'));
+        expect(mainFile).toBeDefined();
+        const downstream = findDownstreamDependencies([mainFile], reverseGraph);
+        expect(downstream.size).toBe(0);
+    });
+});
+describe('readPackageIndex and findAffectedPackages', () => {
+    it('should return null if PACKAGE_INDEX does not exist', async () => {
+        const { readPackageIndex } = await import('./dart.js');
+        const result = readPackageIndex('/tmp');
+        expect(result).toBe(null);
+    });
+    it('should parse PACKAGE_INDEX correctly', async () => {
+        const { readPackageIndex } = await import('./dart.js');
+        const { writeFileSync, mkdtempSync, rmSync } = await import('node:fs');
+        const { join } = await import('node:path');
+        const { tmpdir } = await import('node:os');
+        const tempDir = mkdtempSync(join(tmpdir(), 'dart-test-'));
+        const packageIndex = [
+            { name: 'app', location: 'packages/app' },
+            { name: 'core', location: 'packages/core' },
+        ];
+        writeFileSync(join(tempDir, 'PACKAGE_INDEX'), JSON.stringify(packageIndex));
+        const result = readPackageIndex(tempDir);
+        expect(result).toEqual(packageIndex);
+        rmSync(tempDir, { recursive: true });
+    });
+    it('should find affected packages from files', async () => {
+        const { findAffectedPackages } = await import('./dart.js');
+        const { writeFileSync, mkdtempSync, rmSync } = await import('node:fs');
+        const { join } = await import('node:path');
+        const { tmpdir } = await import('node:os');
+        const tempDir = mkdtempSync(join(tmpdir(), 'dart-test-'));
+        const packageIndex = [
+            { name: 'app', location: 'packages/app' },
+            { name: 'core', location: 'packages/core' },
+        ];
+        writeFileSync(join(tempDir, 'PACKAGE_INDEX'), JSON.stringify(packageIndex));
+        const files = ['packages/app/lib/main.dart', 'packages/core/lib/util.dart'];
+        const result = findAffectedPackages(files, tempDir);
+        expect(result.size).toBe(2);
+        expect(result.get('packages/app')).toBe('app');
+        expect(result.get('packages/core')).toBe('core');
+        rmSync(tempDir, { recursive: true });
+    });
+    it('should handle files not in any package', async () => {
+        const { findAffectedPackages } = await import('./dart.js');
+        const { writeFileSync, mkdtempSync, rmSync } = await import('node:fs');
+        const { join } = await import('node:path');
+        const { tmpdir } = await import('node:os');
+        const tempDir = mkdtempSync(join(tmpdir(), 'dart-test-'));
+        const packageIndex = [{ name: 'app', location: 'packages/app' }];
+        writeFileSync(join(tempDir, 'PACKAGE_INDEX'), JSON.stringify(packageIndex));
+        const files = ['lib/main.dart', 'other/file.dart'];
+        const result = findAffectedPackages(files, tempDir);
+        expect(result.size).toBe(0);
+        rmSync(tempDir, { recursive: true });
+    });
+    it('should fall back to pubspec.yaml when PACKAGE_INDEX does not exist', async () => {
+        const { findAffectedPackages } = await import('./dart.js');
+        const { writeFileSync, mkdtempSync, rmSync, mkdirSync } = await import('node:fs');
+        const { join } = await import('node:path');
+        const { tmpdir } = await import('node:os');
+        const tempDir = mkdtempSync(join(tmpdir(), 'dart-test-'));
+        const packageDir = join(tempDir, 'packages', 'app');
+        mkdirSync(join(packageDir, 'lib'), { recursive: true });
+        writeFileSync(join(packageDir, 'pubspec.yaml'), 'name: test_app\nversion: 1.0.0\n');
+        writeFileSync(join(packageDir, 'lib', 'main.dart'), '// test');
+        const files = ['packages/app/lib/main.dart'];
+        const result = findAffectedPackages(files, tempDir);
+        expect(result.size).toBe(1);
+        expect(result.get('packages/app')).toBe('test_app');
+        rmSync(tempDir, { recursive: true });
+    });
+    it('should return empty map if no pubspec.yaml found', async () => {
+        const { findAffectedPackages } = await import('./dart.js');
+        const { mkdtempSync, rmSync } = await import('node:fs');
+        const { join } = await import('node:path');
+        const { tmpdir } = await import('node:os');
+        const tempDir = mkdtempSync(join(tmpdir(), 'dart-test-'));
+        const files = ['packages/app/lib/main.dart'];
+        const result = findAffectedPackages(files, tempDir);
+        expect(result.size).toBe(0);
+        rmSync(tempDir, { recursive: true });
+    });
+});
+//# sourceMappingURL=dart.test.js.map

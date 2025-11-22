@@ -38,6 +38,18 @@ tsu <namespace> <command> [options]
 - **hook** - Git / Claude hook utilities for Dart ([documentation](docs/hook.md))
 - **files** - File filtering utilities ([documentation](docs/files.md))
 
+### HK Integration
+
+TSU provides seamless integration with [HK](https://github.com/jdx/hk), a high-performance git hook manager that runs hooks in parallel. See the [HK integration guide](docs/hk.md) for setup instructions and benefits.
+
+**Prerequisites:** Install TSU and HK first (see [HK docs](docs/hk.md) for details)
+
+Quick setup:
+```bash
+# Download and run the setup script
+curl -fsSL https://raw.githubusercontent.com/bestdan/tsu/main/scripts/setup-hk.sh | bash
+```
+
 ### Quick Examples
 
 ```bash
