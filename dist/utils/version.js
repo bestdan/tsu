@@ -97,4 +97,3 @@ export function upgradeFromGitHub(owner, repo, packageManager) {
         throw new Error(`Failed to upgrade using ${pm}: ${error}`);
     }
 }
-//# sourceMappingURL=version.js.map

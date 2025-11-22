@@ -8,4 +8,3 @@ export declare function checkForUpdate(owner: string, repo: string): Promise<{
 }>;
 export declare function detectPackageManager(): 'npm' | 'pnpm' | 'yarn' | null;
 export declare function upgradeFromGitHub(owner: string, repo: string, packageManager?: 'npm' | 'pnpm' | 'yarn'): void;
-//# sourceMappingURL=version.d.ts.map

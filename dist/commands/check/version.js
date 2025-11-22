@@ -33,4 +33,3 @@ export async function checkVersion(options = {}) {
         process.exit(1);
     }
 }
-//# sourceMappingURL=version.js.map

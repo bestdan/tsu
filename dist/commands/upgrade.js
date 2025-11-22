@@ -29,4 +29,3 @@ export async function upgrade(options = {}) {
         process.exit(1);
     }
 }
-//# sourceMappingURL=upgrade.js.map
