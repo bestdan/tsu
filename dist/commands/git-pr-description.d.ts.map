@@ -1,0 +1,1 @@
+{"version":3,"file":"git-pr-description.d.ts","sourceRoot":"","sources":["../../src/commands/git-pr-description.ts"],"names":[],"mappings":"AACA,OAAO,KAAK,EAAE,kBAAkB,EAAE,MAAM,6BAA6B,CAAC;AAEtE,MAAM,WAAW,uBAAwB,SAAQ,kBAAkB;IAEjE,UAAU,CAAC,EAAE,MAAM,CAAC;CACrB;AAED,wBAAgB,gBAAgB,CAAC,OAAO,GAAE,uBAA4B,GAAG,IAAI,CAmC5E"}

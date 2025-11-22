@@ -1,0 +1,1 @@
+{"version":3,"file":"echo-outcome.d.ts","sourceRoot":"","sources":["../../../src/commands/pipe/echo-outcome.ts"],"names":[],"mappings":"AAEA,MAAM,WAAW,sBAAsB;IACrC,OAAO,CAAC,EAAE,OAAO,CAAC;CACnB;AAoBD,wBAAgB,eAAe,CAAC,KAAK,EAAE,MAAM,EAAE,OAAO,GAAE,sBAA2B,GAAG,IAAI,CAkCzF"}

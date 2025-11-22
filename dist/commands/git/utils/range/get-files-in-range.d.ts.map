@@ -1,0 +1,1 @@
+{"version":3,"file":"get-files-in-range.d.ts","sourceRoot":"","sources":["../../../../../src/commands/git/utils/range/get-files-in-range.ts"],"names":[],"mappings":"AAKA,MAAM,WAAW,sBAAsB;IAErC,KAAK,EAAE,MAAM,CAAC;IAEd,GAAG,CAAC,EAAE,MAAM,CAAC;IAEb,MAAM,CAAC,EAAE,CAAC,IAAI,EAAE,MAAM,KAAK,OAAO,CAAC;CACpC;AAQD,wBAAgB,eAAe,CAAC,OAAO,EAAE,sBAAsB,GAAG,MAAM,EAAE,GAAG,IAAI,CA8BhF"}

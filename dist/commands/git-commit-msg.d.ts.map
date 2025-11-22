@@ -1,0 +1,1 @@
+{"version":3,"file":"git-commit-msg.d.ts","sourceRoot":"","sources":["../../src/commands/git-commit-msg.ts"],"names":[],"mappings":"AAMA,OAAO,KAAK,EAAE,kBAAkB,EAAE,MAAM,6BAA6B,CAAC;AAEtE,MAAM,WAAW,mBAAoB,SAAQ,kBAAkB;IAE7D,MAAM,CAAC,EAAE,OAAO,CAAC;CAClB;AAED,wBAAgB,YAAY,CAAC,OAAO,GAAE,mBAAwB,GAAG,IAAI,CA0DpE"}

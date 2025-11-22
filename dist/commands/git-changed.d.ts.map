@@ -1,0 +1,1 @@
+{"version":3,"file":"git-changed.d.ts","sourceRoot":"","sources":["../../src/commands/git-changed.ts"],"names":[],"mappings":"AAEA,OAAO,KAAK,EAAE,mBAAmB,EAAE,MAAM,6BAA6B,CAAC;AAGvE,MAAM,WAAW,iBAAkB,SAAQ,mBAAmB;CAAG;AAEjE,wBAAgB,UAAU,CAAC,OAAO,GAAE,iBAAsB,GAAG,IAAI,CAOhE"}

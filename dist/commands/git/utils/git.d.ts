@@ -1,0 +1,17 @@
+export { isGitRepo } from './repo/is-git-repo.js';
+export { getGitRoot } from './repo/get-git-root.js';
+export { getCurrentBranch } from './repo/get-current-branch.js';
+export { getChangedFiles, type ChangeType, type GetChangedFilesOptions, } from './changed-files/get-changed-files.js';
+export { getAllChangedFiles } from './changed-files/get-all-changed-files.js';
+export { getStagedDiff } from './diff/get-staged-diff.js';
+export { getBranchDiff } from './diff/get-branch-diff.js';
+export { isMainBranch } from './branch/is-main-branch.js';
+export { callClaude, type CallClaudeOptions } from './claude/call-claude.js';
+export { generateCommitMessage, type GenerateCommitMessageOptions, } from './claude/generate-commit-message.js';
+export { generatePRDescription, type GeneratePRDescriptionOptions, } from './claude/generate-pr-description.js';
+export { createCommit, type CreateCommitOptions } from './commit/create-commit.js';
+export { hasUnstagedChanges } from './commit/has-unstaged-changes.js';
+export { getGitStatus } from './commit/get-git-status.js';
+export { getFilesInRange, type GetFilesInRangeOptions } from './range/get-files-in-range.js';
+export { getFilesToPush, type GetFilesToPushOptions } from './range/get-files-to-push.js';
+//# sourceMappingURL=git.d.ts.map

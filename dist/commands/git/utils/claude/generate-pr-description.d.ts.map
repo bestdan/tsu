@@ -1,0 +1,1 @@
+{"version":3,"file":"generate-pr-description.d.ts","sourceRoot":"","sources":["../../../../../src/commands/git/utils/claude/generate-pr-description.ts"],"names":[],"mappings":"AAIA,MAAM,WAAW,4BAA4B;IAE3C,UAAU,CAAC,EAAE,MAAM,CAAC;IAEpB,GAAG,CAAC,EAAE,MAAM,CAAC;CACd;AASD,wBAAgB,qBAAqB,CAAC,OAAO,GAAE,4BAAiC,GAAG,MAAM,GAAG,IAAI,CAkC/F"}
