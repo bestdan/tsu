@@ -13,7 +13,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc && rm -rf dist/__fixtures__ && cp -r src/__fixtures__ dist/__fixtures__",
+    "build": "tsc",
     "dev": "tsc --watch",
     "test": "vitest",
     "test:run": "vitest run",
