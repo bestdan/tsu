@@ -21,6 +21,8 @@ export default [
         __dirname: 'readonly',
         __filename: 'readonly',
         URL: 'readonly',
+        fetch: 'readonly',
+        global: 'readonly',
       },
     },
     plugins: {

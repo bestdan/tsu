@@ -5,6 +5,7 @@ node_modules/
 *.tsbuildinfo
 dist/__fixtures__/
 dist/**/*.test.js
+dist/**/*.map
 dist/**/*.test.d.ts
 
 # Testing

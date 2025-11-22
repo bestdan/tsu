@@ -23,6 +23,8 @@ import { hookCollate } from './commands/hook/collate.js';
 import { dartFix } from './commands/dart/fix.js';
 import { dartDcmAnalyze } from './commands/dart/dcm/analyze.js';
 import { checkExternals } from './commands/check/externals.js';
+import { checkVersion } from './commands/check/version.js';
+import { upgrade } from './commands/upgrade.js';
 const program = new Command();
 program.name('tsutils').description('TypeScript command line utilities').version('0.1.0');
 const check = program.command('check').description('Check system dependencies and environment');
@@ -32,6 +34,21 @@ check
     .option('-v, --verbose', 'show human-readable status messages (output to stderr)')
     .action((options) => {
     checkExternals(options);
+});
+check
+    .command('version')
+    .description('Check if tsutils is on the most recent version')
+    .option('-v, --verbose', 'show human-readable status messages (output to stderr)')
+    .action(async (options) => {
+    await checkVersion(options);
+});
+program
+    .command('upgrade')
+    .description('Upgrade tsutils to the latest version from GitHub')
+    .option('-v, --verbose', 'show progress messages (output to stderr)')
+    .option('-p, --package-manager <manager>', 'package manager to use (npm, pnpm, or yarn)', 'npm')
+    .action(async (options) => {
+    await upgrade(options);
 });
 const git = program.command('git').description('Git repository utilities');
 git

@@ -23,6 +23,8 @@ import { hookCollate } from './commands/hook/collate.js';
 import { dartFix } from './commands/dart/fix.js';
 import { dartDcmAnalyze } from './commands/dart/dcm/analyze.js';
 import { checkExternals } from './commands/check/externals.js';
+import { checkVersion } from './commands/check/version.js';
+import { upgrade } from './commands/upgrade.js';
 
 const program = new Command();
 
@@ -37,6 +39,24 @@ check
   .option('-v, --verbose', 'show human-readable status messages (output to stderr)')
   .action((options: { verbose?: boolean }) => {
     checkExternals(options);
+  });
+
+check
+  .command('version')
+  .description('Check if tsutils is on the most recent version')
+  .option('-v, --verbose', 'show human-readable status messages (output to stderr)')
+  .action(async (options: { verbose?: boolean }) => {
+    await checkVersion(options);
+  });
+
+// Upgrade command
+program
+  .command('upgrade')
+  .description('Upgrade tsutils to the latest version from GitHub')
+  .option('-v, --verbose', 'show progress messages (output to stderr)')
+  .option('-p, --package-manager <manager>', 'package manager to use (npm, pnpm, or yarn)', 'npm')
+  .action(async (options: { verbose?: boolean; packageManager?: 'npm' | 'pnpm' | 'yarn' }) => {
+    await upgrade(options);
   });
 
 // Git subcommand namespace

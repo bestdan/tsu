@@ -82,3 +82,78 @@ Check and install missing dependencies:
 ```bash
 tsu check externals --verbose || echo "Please install missing dependencies"
 ```
+
+## check version
+
+Check if tsutils is on the most recent version by comparing against the latest GitHub release.
+
+**Usage:**
+
+```bash
+tsu check version [options]
+```
+
+**Options:**
+
+- `-v, --verbose` - Show human-readable status messages (output to stderr)
+
+**Exit codes:**
+
+- `0` - You are on the latest version
+- `1` - An update is available or an error occurred
+
+**Output format:**
+
+By default, outputs parseable status lines to stdout:
+
+```
+current: 0.6.0
+latest: 0.7.0
+update_available: true
+```
+
+With `--verbose`, also displays human-readable messages to stderr:
+
+When up-to-date:
+
+```
+🔍 Checking for updates...
+✓ You are on the latest version (0.6.0)
+```
+
+When update is available:
+
+```
+🔍 Checking for updates...
+📦 Current version: 0.6.0
+✨ Latest version: 0.7.0
+⚠️  Update available! Run 'tsu upgrade' to update.
+```
+
+**Examples:**
+
+Check version status:
+
+```bash
+tsu check version
+```
+
+Check with detailed output:
+
+```bash
+tsu check version --verbose
+```
+
+Use in scripts to detect updates:
+
+```bash
+if tsu check version | grep -q "update_available: true"; then
+  echo "Update available!"
+fi
+```
+
+Check version and upgrade if needed:
+
+```bash
+tsu check version --verbose || tsu upgrade --verbose
+```
