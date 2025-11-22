@@ -1,1 +1,0 @@
-{"version":3,"file":"is-main-branch.js","sourceRoot":"","sources":["../../../../../src/commands/git/utils/branch/is-main-branch.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,gBAAgB,EAAE,MAAM,+BAA+B,CAAC;AAQjE,MAAM,UAAU,YAAY,CAAC,UAAU,GAAG,MAAM,EAAE,MAAc,OAAO,CAAC,GAAG,EAAE;IAC3E,MAAM,aAAa,GAAG,gBAAgB,CAAC,GAAG,CAAC,CAAC;IAC5C,OAAO,aAAa,KAAK,UAAU,CAAC;AACtC,CAAC"}

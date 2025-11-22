@@ -1,1 +1,0 @@
-{"version":3,"file":"get-all-changed-files.d.ts","sourceRoot":"","sources":["../../../../../src/commands/git/utils/changed-files/get-all-changed-files.ts"],"names":[],"mappings":"AAEA,OAAO,KAAK,EAAE,mBAAmB,EAAE,MAAM,sCAAsC,CAAC;AA4BhF,wBAAgB,kBAAkB,CAChC,OAAO,GAAE,mBAAwB,EACjC,GAAG,GAAE,MAAsB,GAC1B,MAAM,EAAE,CAiCV"}
