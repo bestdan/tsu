@@ -17,4 +17,3 @@ export function readPackageName(packageRoot) {
         return null;
     }
 }
-//# sourceMappingURL=read-package-name.js.map

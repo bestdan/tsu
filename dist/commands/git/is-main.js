@@ -26,4 +26,3 @@ export function gitIsMain(path, options = {}) {
     }
     process.exit(isMain ? 0 : 1);
 }
-//# sourceMappingURL=is-main.js.map

@@ -18,4 +18,3 @@ export function getStagedDiff(cwd = process.cwd()) {
         return null;
     }
 }
-//# sourceMappingURL=get-staged-diff.js.map

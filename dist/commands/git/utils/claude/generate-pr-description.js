@@ -29,4 +29,3 @@ Brief notes on how to test these changes or what was tested
 IMPORTANT: Start immediately with the PR description. Do not ask questions. Do not add meta-commentary about the PR itself. Do not add any attribution text, signatures, or metadata. Do not add "Generated with" text or "Co-Authored-By" lines. Output ONLY the PR description content itself, nothing else.`;
     return callClaude({ prompt, input: diff, cwd });
 }
-//# sourceMappingURL=generate-pr-description.js.map

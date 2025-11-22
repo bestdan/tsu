@@ -17,4 +17,3 @@ export function getCurrentBranch(cwd = process.cwd()) {
         return null;
     }
 }
-//# sourceMappingURL=get-current-branch.js.map

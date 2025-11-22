@@ -20,4 +20,3 @@ export function dartDcmAnalyze(options = {}) {
     logIfVerbose(verbose, '✓ All files pass DCM analyze checks');
     process.exit(0);
 }
-//# sourceMappingURL=analyze.js.map

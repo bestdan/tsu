@@ -17,4 +17,3 @@ export function getGitRoot(cwd = process.cwd()) {
         return null;
     }
 }
-//# sourceMappingURL=get-git-root.js.map

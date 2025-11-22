@@ -53,4 +53,3 @@ export function dartHookDcmCheck(options = {}) {
     logIfVerbose(verbose, '✓ All files pass DCM checks');
     process.exit(0);
 }
-//# sourceMappingURL=check.js.map

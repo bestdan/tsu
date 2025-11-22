@@ -19,4 +19,3 @@ export interface DisplayFileListOptions {
     message?: string;
 }
 export declare function displayFileList(options: DisplayFileListOptions): void;
-//# sourceMappingURL=command-helpers.d.ts.map

@@ -144,4 +144,3 @@ describe('hookCollate', () => {
         mockExit.mockRestore();
     });
 });
-//# sourceMappingURL=collate.test.js.map

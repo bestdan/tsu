@@ -8,4 +8,3 @@ export declare function logError(message: string): void;
 export declare function logWarn(message: string): void;
 export declare function logInfo(message: string): void;
 export declare function logIfVerbose(verbose: boolean | undefined, message: string): void;
-//# sourceMappingURL=logger.d.ts.map

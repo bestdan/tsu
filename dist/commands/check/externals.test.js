@@ -78,4 +78,3 @@ describe('checkExternals', () => {
         expect(outputs).toContain('claude: not_installed');
     });
 });
-//# sourceMappingURL=externals.test.js.map

@@ -6,4 +6,3 @@ export function resolveImportPath(fromFile, importPath, packageRoot) {
     }
     return resolve(packageRoot, importPath);
 }
-//# sourceMappingURL=resolve-import-path.js.map

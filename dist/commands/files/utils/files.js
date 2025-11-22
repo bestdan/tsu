@@ -6,4 +6,3 @@ export function filterFilesBySuffix(files, suffixPatterns) {
         return !suffixPatterns.some((pattern) => file.endsWith(pattern));
     });
 }
-//# sourceMappingURL=files.js.map

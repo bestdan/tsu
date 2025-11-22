@@ -265,4 +265,3 @@ hook
     hookCollate(options);
 });
 program.parse();
-//# sourceMappingURL=cli.js.map

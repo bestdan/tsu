@@ -25,4 +25,3 @@ export function getFilesInRange(options) {
         return null;
     }
 }
-//# sourceMappingURL=get-files-in-range.js.map

@@ -5,4 +5,3 @@ export interface CallClaudeOptions {
     postProcess?: (output: string) => string;
 }
 export declare function callClaude(options: CallClaudeOptions): string;
-//# sourceMappingURL=call-claude.d.ts.map

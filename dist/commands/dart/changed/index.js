@@ -16,4 +16,3 @@ export function dartChanged(options = {}) {
         typePrefix: 'Dart',
     });
 }
-//# sourceMappingURL=index.js.map

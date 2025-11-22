@@ -45,4 +45,3 @@ export function getFilesToPush(options = {}) {
         return null;
     }
 }
-//# sourceMappingURL=get-files-to-push.js.map

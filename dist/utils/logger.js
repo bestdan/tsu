@@ -24,4 +24,3 @@ export function logIfVerbose(verbose, message) {
         console.error(message);
     }
 }
-//# sourceMappingURL=logger.js.map

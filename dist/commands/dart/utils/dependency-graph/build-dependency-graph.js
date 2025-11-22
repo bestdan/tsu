@@ -12,4 +12,3 @@ export function buildDependencyGraph(dartFiles, packageRoot) {
     }
     return graph;
 }
-//# sourceMappingURL=build-dependency-graph.js.map

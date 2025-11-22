@@ -347,4 +347,3 @@ describe('dartFix', () => {
         expect(processExitSpy).toHaveBeenCalledWith(0);
     });
 });
-//# sourceMappingURL=fix.test.js.map

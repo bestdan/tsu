@@ -98,4 +98,3 @@ export function hookCollate(options = {}) {
     logIfVerbose(verbose, '\n✅ All checks passed. Push allowed.');
     process.exit(0);
 }
-//# sourceMappingURL=collate.js.map

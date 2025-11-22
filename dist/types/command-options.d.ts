@@ -12,4 +12,3 @@ export interface ChangedFilesOptions extends BaseCommandOptions {
     push?: boolean;
     baseBranch?: string;
 }
-//# sourceMappingURL=command-options.d.ts.map

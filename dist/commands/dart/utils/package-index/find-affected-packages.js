@@ -44,4 +44,3 @@ export function findAffectedPackages(files, workspaceRoot = process.cwd()) {
     }
     return affectedPackages;
 }
-//# sourceMappingURL=find-affected-packages.js.map

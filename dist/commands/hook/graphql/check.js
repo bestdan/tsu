@@ -72,4 +72,3 @@ export async function dartHookGraphqlCheck(options = {}) {
     logIfVerbose(verbose, '✓ GraphQL fakes are up to date');
     process.exit(0);
 }
-//# sourceMappingURL=check.js.map

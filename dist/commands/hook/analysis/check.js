@@ -40,4 +40,3 @@ export function dartHookAnalysisCheck(options = {}) {
     logIfVerbose(verbose, '✓ All files pass dart analyze');
     process.exit(0);
 }
-//# sourceMappingURL=check.js.map

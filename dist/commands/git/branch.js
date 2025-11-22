@@ -15,4 +15,3 @@ export function gitBranch(path, options = {}) {
     }
     console.log(branch);
 }
-//# sourceMappingURL=branch.js.map

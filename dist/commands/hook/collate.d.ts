@@ -6,4 +6,3 @@ export interface HookCollateOptions extends ChangedFilesOptions {
     graphql?: boolean;
 }
 export declare function hookCollate(options?: HookCollateOptions): void;
-//# sourceMappingURL=collate.d.ts.map

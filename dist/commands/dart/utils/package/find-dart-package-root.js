@@ -12,4 +12,3 @@ export function findDartPackageRoot(startPath = process.cwd()) {
     }
     return null;
 }
-//# sourceMappingURL=find-dart-package-root.js.map

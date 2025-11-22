@@ -15,4 +15,3 @@ export { dartFix, type DartFixOptions } from './commands/dart/fix.js';
 export { parseDcmAnalyzeOutput, dcmAnalyze, type CallAndParseDcmOptions, type CallAndParseDcmResult, } from './utils/dcm-parse.js';
 export { dartDcmAnalyze, type DartDcmAnalyzeOptions } from './commands/dart/dcm/analyze.js';
 export { checkExternals, type CheckExternalsOptions } from './commands/check/externals.js';
-//# sourceMappingURL=index.d.ts.map

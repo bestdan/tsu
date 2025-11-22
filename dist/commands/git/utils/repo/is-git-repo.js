@@ -17,4 +17,3 @@ export function isGitRepo(cwd = process.cwd()) {
         return false;
     }
 }
-//# sourceMappingURL=is-git-repo.js.map

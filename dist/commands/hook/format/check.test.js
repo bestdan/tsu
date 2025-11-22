@@ -95,4 +95,3 @@ describe('dartHookFormatCheck', () => {
         hasUnstagedChangesSpy.mockRestore();
     });
 });
-//# sourceMappingURL=check.test.js.map

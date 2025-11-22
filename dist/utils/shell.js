@@ -13,4 +13,3 @@ export function isCommandInstalled(command) {
         return false;
     }
 }
-//# sourceMappingURL=shell.js.map

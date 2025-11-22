@@ -61,4 +61,3 @@ describe('dartRoot', () => {
         expect(processExitSpy).toHaveBeenCalledWith(1);
     });
 });
-//# sourceMappingURL=root.test.js.map

@@ -10,4 +10,3 @@ export interface CallAndParseDcmResult {
     rawOutput?: string;
 }
 export declare function dcmAnalyze(options: CallAndParseDcmOptions, dcmRunner?: (packageRoot: string, timeout: number) => string): CallAndParseDcmResult;
-//# sourceMappingURL=dcm-parse.d.ts.map

@@ -19,4 +19,3 @@ export interface CallAndParseDartAnalyzeResult {
     rawOutput?: string;
 }
 export declare function dartAnalyze(options: CallAndParseDartAnalyzeOptions, dartAnalyzeRunner?: (packageRoot: string, timeout: number, files?: string[]) => string): CallAndParseDartAnalyzeResult;
-//# sourceMappingURL=dart-analyze-parse.d.ts.map

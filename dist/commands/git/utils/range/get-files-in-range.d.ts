@@ -4,4 +4,3 @@ export interface GetFilesInRangeOptions {
     filter?: (file: string) => boolean;
 }
 export declare function getFilesInRange(options: GetFilesInRangeOptions): string[] | null;
-//# sourceMappingURL=get-files-in-range.d.ts.map

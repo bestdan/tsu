@@ -23,4 +23,3 @@ export function dartPackage(filePath, options) {
     console.log(packageRoot);
     process.exit(0);
 }
-//# sourceMappingURL=package.js.map

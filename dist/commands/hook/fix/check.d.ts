@@ -3,4 +3,3 @@ export interface DartHookFixCheckOptions extends ChangedFilesOptions {
     excludeSuffixes?: string[];
 }
 export declare function dartHookFixCheck(options?: DartHookFixCheckOptions): void;
-//# sourceMappingURL=check.d.ts.map

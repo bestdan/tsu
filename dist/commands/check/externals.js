@@ -57,4 +57,3 @@ export function checkExternals(options = {}) {
     }
     process.exit(allInstalled ? 0 : 1);
 }
-//# sourceMappingURL=externals.js.map

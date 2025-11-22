@@ -19,4 +19,3 @@ export function createCommit(options) {
         return false;
     }
 }
-//# sourceMappingURL=create-commit.js.map

@@ -53,4 +53,3 @@ export function getChangedFiles(options = {}) {
         return null;
     }
 }
-//# sourceMappingURL=get-changed-files.js.map

@@ -17,4 +17,3 @@ export function getGitStatus(cwd = process.cwd()) {
         return null;
     }
 }
-//# sourceMappingURL=get-git-status.js.map

@@ -52,4 +52,3 @@ export function dartHookFormatCheck(options = {}) {
     logIfVerbose(verbose, '✓ All files properly formatted');
     process.exit(0);
 }
-//# sourceMappingURL=check.js.map

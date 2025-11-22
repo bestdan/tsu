@@ -118,4 +118,3 @@ describe('dartHookGraphqlCheck', () => {
         expect(processExitSpy).toHaveBeenCalledWith(0);
     });
 });
-//# sourceMappingURL=check.test.js.map

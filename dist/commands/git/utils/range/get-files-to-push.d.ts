@@ -3,4 +3,3 @@ export interface GetFilesToPushOptions {
     baseBranch?: string;
 }
 export declare function getFilesToPush(options?: GetFilesToPushOptions | string): string[] | null;
-//# sourceMappingURL=get-files-to-push.d.ts.map

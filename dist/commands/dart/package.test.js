@@ -68,4 +68,3 @@ describe('dartPackage', () => {
         expect(processExitSpy).toHaveBeenCalledWith(1);
     });
 });
-//# sourceMappingURL=package.test.js.map

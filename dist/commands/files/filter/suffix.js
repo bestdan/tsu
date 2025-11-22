@@ -34,4 +34,3 @@ export function filesFilter(suffixPatterns, options = {}) {
         process.exit(1);
     }
 }
-//# sourceMappingURL=suffix.js.map

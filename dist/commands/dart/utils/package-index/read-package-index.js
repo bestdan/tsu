@@ -18,4 +18,3 @@ export function readPackageIndex(workspaceRoot = process.cwd()) {
         return null;
     }
 }
-//# sourceMappingURL=read-package-index.js.map

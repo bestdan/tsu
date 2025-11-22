@@ -100,4 +100,3 @@ describe('dartHookDcmCheck', () => {
         hasUnstagedChangesSpy.mockRestore();
     });
 });
-//# sourceMappingURL=check.test.js.map

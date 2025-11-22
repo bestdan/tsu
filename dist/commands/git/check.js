@@ -18,4 +18,3 @@ export function gitCheck(path, options = {}) {
         process.exit(1);
     }
 }
-//# sourceMappingURL=check.js.map

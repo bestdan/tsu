@@ -5,4 +5,3 @@ export interface GetChangedFilesOptions {
     cwd?: string;
 }
 export declare function getChangedFiles(options?: GetChangedFilesOptions): string[] | null;
-//# sourceMappingURL=get-changed-files.d.ts.map

@@ -23,4 +23,3 @@ export function getAllChangedFiles(options = {}, cwd = process.cwd()) {
     const files = getChangedFiles({ type, baseBranch, cwd });
     return files || [];
 }
-//# sourceMappingURL=get-all-changed-files.js.map

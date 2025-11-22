@@ -12,4 +12,3 @@ export function dartCheck(path, options) {
     }
     process.exit(isPackage ? 0 : 1);
 }
-//# sourceMappingURL=check.js.map

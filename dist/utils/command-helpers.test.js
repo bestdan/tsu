@@ -645,4 +645,3 @@ describe('displayFileList', () => {
         expect(consoleErrorSpy).toHaveBeenCalledWith('  single.dart');
     });
 });
-//# sourceMappingURL=command-helpers.test.js.map

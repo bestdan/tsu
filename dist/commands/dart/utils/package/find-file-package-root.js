@@ -12,4 +12,3 @@ export function findFilePackageRoot(filePath, workspaceRoot) {
     }
     return workspaceRoot;
 }
-//# sourceMappingURL=find-file-package-root.js.map

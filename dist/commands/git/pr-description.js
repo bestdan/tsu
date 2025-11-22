@@ -30,4 +30,3 @@ export function gitPRDescription(options = {}) {
     }
     console.log(description);
 }
-//# sourceMappingURL=pr-description.js.map

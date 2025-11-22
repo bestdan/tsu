@@ -14,4 +14,3 @@ export { hasUnstagedChanges } from './commit/has-unstaged-changes.js';
 export { getGitStatus } from './commit/get-git-status.js';
 export { getFilesInRange, type GetFilesInRangeOptions } from './range/get-files-in-range.js';
 export { getFilesToPush, type GetFilesToPushOptions } from './range/get-files-to-push.js';
-//# sourceMappingURL=git.d.ts.map

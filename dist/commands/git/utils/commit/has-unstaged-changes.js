@@ -18,4 +18,3 @@ export function hasUnstagedChanges(file, cwd = process.cwd()) {
         return true;
     }
 }
-//# sourceMappingURL=has-unstaged-changes.js.map

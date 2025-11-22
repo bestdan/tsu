@@ -197,4 +197,3 @@ function handleSuggestedFixes(apply, result, verbose, packageName) {
         throw new Error('FIXES_AVAILABLE');
     }
 }
-//# sourceMappingURL=fix.js.map

@@ -51,4 +51,3 @@ describe('dartCheck', () => {
         expect(consoleErrorSpy).toHaveBeenCalledWith('✗ Not inside a Dart package');
     });
 });
-//# sourceMappingURL=check.test.js.map

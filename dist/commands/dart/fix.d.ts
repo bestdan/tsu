@@ -5,4 +5,3 @@ export interface DartFixOptions {
     packages?: boolean;
 }
 export declare function dartFix(options?: DartFixOptions): void;
-//# sourceMappingURL=fix.d.ts.map

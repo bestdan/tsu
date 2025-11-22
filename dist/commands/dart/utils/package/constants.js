@@ -5,4 +5,3 @@ export const COMMON_DART_CODEGEN_SUFFIXES = [
     '.fakes.dart',
     '.golden.dart',
 ];
-//# sourceMappingURL=constants.js.map

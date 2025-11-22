@@ -45,4 +45,3 @@ export function gitCommitMsg(options = {}) {
         console.log(message);
     }
 }
-//# sourceMappingURL=commit-msg.js.map

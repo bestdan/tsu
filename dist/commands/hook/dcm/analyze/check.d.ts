@@ -3,4 +3,3 @@ export interface DartHookDcmAnalyzeCheckOptions extends ChangedFilesOptions {
     excludeSuffixes?: string[];
 }
 export declare function dartHookDcmAnalyzeCheck(options?: DartHookDcmAnalyzeCheckOptions): void;
-//# sourceMappingURL=check.d.ts.map

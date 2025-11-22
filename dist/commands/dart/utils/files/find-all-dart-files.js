@@ -23,4 +23,3 @@ export function findAllDartFiles(rootDir = process.cwd()) {
         return null;
     }
 }
-//# sourceMappingURL=find-all-dart-files.js.map

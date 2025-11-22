@@ -64,4 +64,3 @@ describe('filterFilesBySuffix', () => {
         expect(filtered).toEqual(['file.js']);
     });
 });
-//# sourceMappingURL=files.test.js.map

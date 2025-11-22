@@ -16,4 +16,3 @@ export function dartRoot(path, options) {
         process.exit(1);
     }
 }
-//# sourceMappingURL=root.js.map

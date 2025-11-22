@@ -3,4 +3,3 @@ export interface GeneratePRDescriptionOptions {
     cwd?: string;
 }
 export declare function generatePRDescription(options?: GeneratePRDescriptionOptions): string | null;
-//# sourceMappingURL=generate-pr-description.d.ts.map

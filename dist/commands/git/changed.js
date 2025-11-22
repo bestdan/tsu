@@ -7,4 +7,3 @@ export function gitChanged(options = {}) {
     }
     displayChangedFiles(options);
 }
-//# sourceMappingURL=changed.js.map

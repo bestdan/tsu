@@ -28,4 +28,3 @@ IMPORTANT: Do not ask questions. Do not add commentary. Do not add any attributi
     };
     return callClaude({ prompt, input: diff, cwd, postProcess });
 }
-//# sourceMappingURL=generate-commit-message.js.map

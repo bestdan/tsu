@@ -54,4 +54,3 @@ export function dartHookFixCheck(options = {}) {
     logIfVerbose(verbose, '✓ All files pass dart fix');
     process.exit(0);
 }
-//# sourceMappingURL=check.js.map

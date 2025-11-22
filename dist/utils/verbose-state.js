@@ -8,4 +8,3 @@ export function isVerbose() {
 export function resetVerbose() {
     verboseMode = false;
 }
-//# sourceMappingURL=verbose-state.js.map

@@ -18,4 +18,3 @@ export function gitRoot(path, options = {}) {
     }
     console.log(root);
 }
-//# sourceMappingURL=root.js.map

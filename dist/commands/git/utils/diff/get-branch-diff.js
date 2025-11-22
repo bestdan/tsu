@@ -29,4 +29,3 @@ export function getBranchDiff(baseBranch = 'main', cwd = process.cwd()) {
         return null;
     }
 }
-//# sourceMappingURL=get-branch-diff.js.map
