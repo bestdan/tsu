@@ -1,4 +1,4 @@
-import { checkForUpdate, upgradeFromGitHub } from '../utils/version.js';
+import { checkForUpdate, upgradeFromGitHub, detectPackageManager } from '../utils/version.js';
 import { logIfVerbose } from '../utils/logger.js';
 
 export interface UpgradeOptions {
@@ -19,7 +19,7 @@ const GITHUB_REPO = 'tsu';
 /* v8 ignore next -- @preserve */
 export async function upgrade(options: UpgradeOptions = {}): Promise<void> {
   const verbose = options.verbose || false;
-  const packageManager = options.packageManager || 'npm';
+  const packageManager = options.packageManager || detectPackageManager() || 'pnpm';
 
   logIfVerbose(verbose, '🔍 Checking for updates...');
 
@@ -32,7 +32,6 @@ export async function upgrade(options: UpgradeOptions = {}): Promise<void> {
     if (!updateAvailable) {
       logIfVerbose(verbose, `✓ Already on the latest version (${currentVersion})`);
       process.exit(0);
-      return;
     }
 
     logIfVerbose(verbose, `📦 Current version: ${currentVersion}`);

@@ -6,6 +6,7 @@ import * as versionUtils from '../utils/version.js';
 vi.mock('../utils/version.js', () => ({
   checkForUpdate: vi.fn(),
   upgradeFromGitHub: vi.fn(),
+  detectPackageManager: vi.fn(),
 }));
 
 describe('upgrade', () => {
@@ -17,6 +18,8 @@ describe('upgrade', () => {
     exitSpy = vi.spyOn(process, 'exit').mockImplementation((code) => {
       throw new Error(`process.exit(${code})`);
     });
+    // Mock detectPackageManager to return null so it falls back to pnpm default
+    vi.mocked(versionUtils.detectPackageManager).mockReturnValue(null);
   });
 
   afterEach(() => {
@@ -46,7 +49,7 @@ describe('upgrade', () => {
 
     await expect(upgrade()).rejects.toThrow('process.exit(0)');
 
-    expect(versionUtils.upgradeFromGitHub).toHaveBeenCalledWith('bestdan', 'tsu', 'npm');
+    expect(versionUtils.upgradeFromGitHub).toHaveBeenCalledWith('bestdan', 'tsu', 'pnpm');
     expect(exitSpy).toHaveBeenCalledWith(0);
   });
 
@@ -89,7 +92,7 @@ describe('upgrade', () => {
     expect(consoleErrorSpy).toHaveBeenCalledWith('🔍 Checking for updates...');
     expect(consoleErrorSpy).toHaveBeenCalledWith('📦 Current version: 0.6.0');
     expect(consoleErrorSpy).toHaveBeenCalledWith('✨ Latest version: 0.7.0');
-    expect(consoleErrorSpy).toHaveBeenCalledWith('📥 Upgrading using npm...');
+    expect(consoleErrorSpy).toHaveBeenCalledWith('📥 Upgrading using pnpm...');
     expect(consoleErrorSpy).toHaveBeenCalledWith('✓ Successfully upgraded to version 0.7.0');
   });
 

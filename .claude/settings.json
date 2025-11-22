@@ -27,7 +27,9 @@
       "Bash(which:*)",
       "Bash(head:*)",
       "Bash(tail:*)",
-      "Read(//private/tmp/**)"
+      "Read(//private/tmp/**)",
+      "Bash(pnpm test)",
+      "Bash(pnpm test:coverage)"
     ],
     "deny": [
       "Bash(rm -rf:*)",

@@ -97,21 +97,49 @@ export async function checkForUpdate(
 }
 
 /**
+ * Detect which package manager was used to install tsutils globally
+ * @returns The detected package manager or null if not found
+ */
+/* v8 ignore next -- @preserve */
+export function detectPackageManager(): 'npm' | 'pnpm' | 'yarn' | null {
+  try {
+    // Check which package manager has tsutils installed
+    const whichTsu = execSync('which tsu', { encoding: 'utf-8' }).trim();
+
+    if (whichTsu.includes('/Library/pnpm/') || whichTsu.includes('/.local/share/pnpm/')) {
+      return 'pnpm';
+    }
+    if (whichTsu.includes('/.yarn/') || whichTsu.includes('/Yarn/')) {
+      return 'yarn';
+    }
+    if (whichTsu.includes('/lib/node_modules/') || whichTsu.includes('/.npm/')) {
+      return 'npm';
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Upgrade tsutils by installing from GitHub
  * @param owner - GitHub repository owner
  * @param repo - GitHub repository name
- * @param packageManager - Package manager to use (npm, pnpm, or yarn)
+ * @param packageManager - Package manager to use (npm, pnpm, or yarn). If not provided, will try to detect, defaulting to pnpm.
  */
 /* v8 ignore next -- @preserve */
 export function upgradeFromGitHub(
   owner: string,
   repo: string,
-  packageManager: 'npm' | 'pnpm' | 'yarn' = 'npm'
+  packageManager?: 'npm' | 'pnpm' | 'yarn'
 ): void {
+  // Auto-detect package manager if not specified, defaulting to pnpm
+  const pm = packageManager || detectPackageManager() || 'pnpm';
   const githubUrl = `github:${owner}/${repo}`;
 
   let command: string;
-  switch (packageManager) {
+  switch (pm) {
     case 'pnpm':
       command = `pnpm add -g ${githubUrl}`;
       break;
@@ -127,6 +155,6 @@ export function upgradeFromGitHub(
   try {
     execSync(command, { stdio: 'inherit' });
   } catch (error) {
-    throw new Error(`Failed to upgrade using ${packageManager}: ${error}`);
+    throw new Error(`Failed to upgrade using ${pm}: ${error}`);
   }
 }
