@@ -3,7 +3,7 @@ export function escapeShellArg(arg) {
     return "'" + arg.replace(/'/g, "'\\''") + "'";
 }
 export function isSafeShellInput(input) {
-    const safePattern = /^[a-zA-Z0-9._\-/\s]+$/;
+    const safePattern = /^[a-zA-Z0-9._/\s-]+$/;
     return safePattern.test(input);
 }
 export function safeShellArg(arg, allowUnsafe = false) {

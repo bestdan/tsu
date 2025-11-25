@@ -26,7 +26,8 @@ export function isSafeShellInput(input: string): boolean {
   // Allow alphanumeric, dots, dashes, underscores, slashes, and spaces
   // Explicitly reject: quotes (' "), backticks (`), dollar signs ($), semicolons (;),
   // pipes (|), ampersands (&), redirects (< >), wildcards (* ?), and other shell metacharacters
-  const safePattern = /^[a-zA-Z0-9._\-/\s]+$/;
+  // The + quantifier requires at least one character, rejecting empty strings
+  const safePattern = /^[a-zA-Z0-9._/\s-]+$/;
   return safePattern.test(input);
 }
 
