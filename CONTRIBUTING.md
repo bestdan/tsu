@@ -8,6 +8,41 @@ cd tsu
 pnpm install
 ```
 
+## Security Guidelines
+
+Security is a top priority for this project. Please review our [Security Policy](SECURITY.md) before contributing.
+
+### Secure Coding Practices
+
+When contributing code:
+
+1. **Never commit secrets**: No API keys, tokens, passwords, or credentials in code
+2. **Validate all inputs**: Always validate and sanitize user inputs before use
+3. **Use shell escaping**: When executing shell commands, use `escapeShellArg()` from `src/utils/shell.ts`
+4. **Check dependencies**: Run `pnpm audit` before adding new dependencies
+5. **Follow least privilege**: Request minimal permissions needed for functionality
+6. **Review command execution**: Be extra careful with `execSync`, `spawn`, or `exec` calls
+7. **Avoid eval**: Never use `eval()` or `Function()` constructor with user input
+8. **Sanitize file paths**: Validate and sanitize file paths to prevent directory traversal
+
+### Security Checklist for PRs
+
+Before submitting a pull request:
+
+- [ ] No secrets or credentials committed
+- [ ] All user inputs are validated and sanitized
+- [ ] Shell commands use proper escaping with `escapeShellArg()`
+- [ ] No new dependencies with known vulnerabilities (`pnpm audit`)
+- [ ] File paths are validated to prevent directory traversal
+- [ ] Error messages don't leak sensitive information
+- [ ] Tests cover security-critical code paths
+
+### Reporting Security Issues
+
+**Never report security vulnerabilities through public GitHub issues.**
+
+Please see our [Security Policy](SECURITY.md) for instructions on how to report security issues privately.
+
 ## Git Hooks (Lefthook)
 
 This project uses [Lefthook](https://github.com/evilmartians/lefthook) to manage git hooks. After running `pnpm install`, the hooks will be automatically installed.
