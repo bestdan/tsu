@@ -1,10 +1,10 @@
 import { execSync } from 'node:child_process';
+const SAFE_SHELL_INPUT_PATTERN = /^[a-zA-Z0-9._/\s-]+$/;
 export function escapeShellArg(arg) {
     return "'" + arg.replace(/'/g, "'\\''") + "'";
 }
 export function isSafeShellInput(input) {
-    const safePattern = /^[a-zA-Z0-9._/\s-]+$/;
-    return safePattern.test(input);
+    return SAFE_SHELL_INPUT_PATTERN.test(input);
 }
 export function safeShellArg(arg, allowUnsafe = false) {
     if (!allowUnsafe && !isSafeShellInput(arg)) {

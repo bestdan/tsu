@@ -85,9 +85,11 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - uses: ./.github/actions/setup
       
+      # First check: Report all moderate+ vulnerabilities but don't fail
       - name: Run security audit
         run: pnpm audit --audit-level moderate
         continue-on-error: true
       
+      # Second check: Fail the build if high or critical vulnerabilities exist
       - name: Check for high/critical vulnerabilities
         run: pnpm audit --audit-level high
