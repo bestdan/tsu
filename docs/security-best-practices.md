@@ -199,6 +199,9 @@ Install from trusted sources only:
 # Good: Official repository
 pnpm add -g github:bestdan/tsu
 
+# Or using npm
+npm install -g github:bestdan/tsu
+
 # Verify checksums if available
 # Check package signatures
 ```
@@ -208,11 +211,11 @@ pnpm add -g github:bestdan/tsu
 Keep tsutils updated to receive security patches:
 
 ```bash
-# Check current version
-tsutils check version
+# Check current version against latest
+tsu check version
 
-# Upgrade to latest
-tsutils upgrade
+# Upgrade to latest version
+tsu upgrade
 ```
 
 ### 3. Permissions
