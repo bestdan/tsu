@@ -55,6 +55,8 @@ describe('isSafeShellInput', () => {
     expect(isSafeShellInput('file>')).toBe(false);
     expect(isSafeShellInput('file<')).toBe(false);
     expect(isSafeShellInput('file&')).toBe(false);
+    expect(isSafeShellInput("file'")).toBe(false);
+    expect(isSafeShellInput('file"')).toBe(false);
   });
 
   it('should handle empty string', () => {
@@ -88,8 +90,13 @@ describe('safeShellArg', () => {
   });
 
   it('should escape single quotes even in safe mode', () => {
-    // Note: single quotes make it "unsafe" by default pattern
-    // but with allowUnsafe=true, it should still escape
+    // Single quotes are rejected by isSafeShellInput
+    // but with allowUnsafe=true, it should still escape them
     expect(safeShellArg("file's.txt", true)).toBe("'file'\\''s.txt'");
+  });
+
+  it('should reject single quotes in strict mode', () => {
+    // Single quotes are considered unsafe
+    expect(() => safeShellArg("file's.txt")).toThrow(/Unsafe shell argument detected/);
   });
 });

@@ -24,7 +24,8 @@ export function escapeShellArg(arg: string): string {
  */
 export function isSafeShellInput(input: string): boolean {
   // Allow alphanumeric, dots, dashes, underscores, slashes, and spaces
-  // Reject anything that could be used for command injection
+  // Explicitly reject: quotes (' "), backticks (`), dollar signs ($), semicolons (;),
+  // pipes (|), ampersands (&), redirects (< >), wildcards (* ?), and other shell metacharacters
   const safePattern = /^[a-zA-Z0-9._\-/\s]+$/;
   return safePattern.test(input);
 }
