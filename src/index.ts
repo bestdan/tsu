@@ -35,7 +35,12 @@ export {
 } from './commands/git/utils/git.js';
 
 // Shell utilities
-export { escapeShellArg, isCommandInstalled } from './utils/shell.js';
+export {
+  escapeShellArg,
+  isCommandInstalled,
+  isSafeShellInput,
+  safeShellArg,
+} from './utils/shell.js';
 
 // File utilities
 export { filterFilesBySuffix } from './commands/files/utils/files.js';

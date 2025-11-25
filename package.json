@@ -22,7 +22,9 @@
     "lint:fix": "eslint src --fix && prettier --write \"src/**/*.ts\"",
     "format": "prettier --write \"src/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.ts\"",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "audit": "pnpm audit --audit-level moderate",
+    "audit:fix": "pnpm audit --fix"
   },
   "keywords": [
     "cli",

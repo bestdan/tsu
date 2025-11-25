@@ -131,6 +131,23 @@ src/
 - [Contributing Guide](CONTRIBUTING.md)
 - [Release Management](docs/release.md) - Automated versioning and releases
 
+## Security
+
+Security is a top priority for this project. We follow industry best practices to ensure the safety and integrity of our code and users.
+
+- **Security Policy**: See [SECURITY.md](SECURITY.md) for our security policy and how to report vulnerabilities
+- **Automated Scanning**: CodeQL security scanning runs on every PR and weekly
+- **Dependency Monitoring**: Dependabot monitors dependencies for known vulnerabilities
+- **Minimal Dependencies**: Only one runtime dependency (`commander`)
+- **Regular Updates**: Dependencies are regularly updated to patch security issues
+- **Code Reviews**: All changes undergo security-focused code review
+
+### Reporting Security Issues
+
+**Please do not report security vulnerabilities through public GitHub issues.**
+
+Report security issues privately via [GitHub Security Advisories](https://github.com/bestdan/tsu/security/advisories) or see our [Security Policy](SECURITY.md) for details.
+
 ## License
 
 MIT

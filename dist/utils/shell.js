@@ -1,6 +1,16 @@
 import { execSync } from 'node:child_process';
+const SAFE_SHELL_INPUT_PATTERN = /^[a-zA-Z0-9._/\s-]+$/;
 export function escapeShellArg(arg) {
     return "'" + arg.replace(/'/g, "'\\''") + "'";
+}
+export function isSafeShellInput(input) {
+    return SAFE_SHELL_INPUT_PATTERN.test(input);
+}
+export function safeShellArg(arg, allowUnsafe = false) {
+    if (!allowUnsafe && !isSafeShellInput(arg)) {
+        throw new Error(`Unsafe shell argument detected: "${arg}". Contains potentially dangerous characters.`);
+    }
+    return escapeShellArg(arg);
 }
 export function isCommandInstalled(command) {
     try {

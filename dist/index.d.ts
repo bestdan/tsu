@@ -1,6 +1,6 @@
 export type { BaseCommandOptions, CheckCommandOptions, GetValueCommandOptions, ChangedFilesOptions, } from './types/command-options.js';
 export { isGitRepo, getGitRoot, getChangedFiles, getAllChangedFiles, getFilesInRange, getFilesToPush, getCurrentBranch, getStagedDiff, getBranchDiff, isMainBranch, callClaude, generateCommitMessage, generatePRDescription, createCommit, hasUnstagedChanges, type ChangeType, type GetChangedFilesOptions, type GetFilesInRangeOptions, type CallClaudeOptions, type GenerateCommitMessageOptions, type GeneratePRDescriptionOptions, type CreateCommitOptions, } from './commands/git/utils/git.js';
-export { escapeShellArg, isCommandInstalled } from './utils/shell.js';
+export { escapeShellArg, isCommandInstalled, isSafeShellInput, safeShellArg, } from './utils/shell.js';
 export { filterFilesBySuffix } from './commands/files/utils/files.js';
 export { setVerbose, isVerbose, resetVerbose } from './utils/verbose-state.js';
 export { displayChangedFiles, getChangedFilesWithOptions, ensureCondition, ensureDartInstalled, ensureDCMInstalled, ensureClaudeInstalled, type DisplayChangedFilesOptions, } from './utils/command-helpers.js';
