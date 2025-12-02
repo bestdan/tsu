@@ -97,13 +97,29 @@ export async function hookCollate(options: HookCollateOptions = {}): Promise<voi
       const args = buildArgs();
       const fullCommand = args.length > 0 ? `${command} ${args.join(' ')}` : command;
 
-      await execAsync(fullCommand, {
-        cwd,
-        ...(verbose && { stdio: 'inherit' }),
-      });
+      const result = await execAsync(fullCommand, { cwd });
+
+      // In verbose mode, output the command results
+      if (verbose && result.stdout) {
+        process.stderr.write(result.stdout);
+      }
+      if (verbose && result.stderr) {
+        process.stderr.write(result.stderr);
+      }
+
       logIfVerbose(verbose, `✓ ${name} passed`);
       return { name, passed: true };
-    } catch {
+    } catch (error) {
+      // In verbose mode, show error output
+      if (verbose && error && typeof error === 'object') {
+        const execError = error as { stdout?: string; stderr?: string };
+        if (execError.stdout) {
+          process.stderr.write(execError.stdout);
+        }
+        if (execError.stderr) {
+          process.stderr.write(execError.stderr);
+        }
+      }
       logIfVerbose(verbose, `✗ ${name} failed`);
       return { name, passed: false };
     }
@@ -155,7 +171,12 @@ export async function hookCollate(options: HookCollateOptions = {}): Promise<voi
   const failures: string[] = [];
   results.forEach((result) => {
     if (result.status === 'fulfilled' && !result.value.passed) {
+      // Hook completed but failed
       failures.push(result.value.name);
+    } else if (result.status === 'rejected') {
+      // Hook promise was rejected (unexpected error)
+      failures.push('Unknown hook (unexpected error)');
+      logIfVerbose(verbose, `✗ Unexpected error in hook execution: ${result.reason}`);
     }
   });
 
