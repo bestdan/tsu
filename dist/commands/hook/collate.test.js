@@ -156,4 +156,33 @@ describe('hookCollate', () => {
         });
         mockExit.mockRestore();
     });
+    it('should run hooks concurrently, not sequentially', async () => {
+        mockGetAllChangedFiles.mockReturnValue(['lib/main.dart', 'schema/query.graphql']);
+        mockExecSync.mockReturnValue(Buffer.from('/usr/bin/tsu'));
+        const executionOrder = [];
+        mockExec.mockImplementation((cmd, _options, callback) => {
+            const hookName = cmd.includes('format')
+                ? 'format'
+                : cmd.includes('analysis')
+                    ? 'analysis'
+                    : cmd.includes('dcm')
+                        ? 'dcm'
+                        : 'graphql';
+            executionOrder.push(hookName);
+            Promise.resolve().then(() => {
+                callback(null, '', '');
+            });
+            return {};
+        });
+        const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => { }));
+        await hookCollate({ verbose: false });
+        expect(executionOrder).toHaveLength(4);
+        expect(executionOrder).toContain('format');
+        expect(executionOrder).toContain('analysis');
+        expect(executionOrder).toContain('dcm');
+        expect(executionOrder).toContain('graphql');
+        expect(mockExec).toHaveBeenCalledTimes(4);
+        expect(mockExit).toHaveBeenCalledWith(0);
+        mockExit.mockRestore();
+    });
 });

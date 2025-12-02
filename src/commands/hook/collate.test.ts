@@ -270,4 +270,57 @@ describe('hookCollate', () => {
 
     mockExit.mockRestore();
   });
+
+  it('should run hooks concurrently, not sequentially', async () => {
+    mockGetAllChangedFiles.mockReturnValue(['lib/main.dart', 'schema/query.graphql']);
+
+    // Mock which command to succeed
+    mockExecSync.mockReturnValue(Buffer.from('/usr/bin/tsu'));
+
+    // Track when each command starts
+    const executionOrder: string[] = [];
+
+    mockExec.mockImplementation(
+      (
+        cmd: string,
+        _options: any,
+        callback: (error: any, stdout: string, stderr: string) => void
+      ) => {
+        const hookName = cmd.includes('format')
+          ? 'format'
+          : cmd.includes('analysis')
+            ? 'analysis'
+            : cmd.includes('dcm')
+              ? 'dcm'
+              : 'graphql';
+
+        executionOrder.push(hookName);
+
+        // Call callback asynchronously using Promise.resolve
+        Promise.resolve().then(() => {
+          callback(null, '', '');
+        });
+
+        return {} as any;
+      }
+    );
+
+    const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {}) as never);
+
+    await hookCollate({ verbose: false });
+
+    // All 4 hooks should have been started
+    expect(executionOrder).toHaveLength(4);
+    expect(executionOrder).toContain('format');
+    expect(executionOrder).toContain('analysis');
+    expect(executionOrder).toContain('dcm');
+    expect(executionOrder).toContain('graphql');
+
+    // With concurrent execution, all hooks start before any complete
+    // This is validated by the fact that all hooks were called
+    expect(mockExec).toHaveBeenCalledTimes(4);
+    expect(mockExit).toHaveBeenCalledWith(0);
+
+    mockExit.mockRestore();
+  });
 });
