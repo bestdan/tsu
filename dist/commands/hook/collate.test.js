@@ -155,12 +155,16 @@ describe('hookCollate', () => {
         const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => { }));
         await hookCollate({ staged: true, baseBranch: 'develop', verbose: true });
         const calls = mockExecFile.mock.calls;
-        const hookCalls = calls.filter((call) => typeof call[0] === 'string' && call[0].includes('hook'));
+        const hookCalls = calls.filter((call) => {
+            const args = call[1];
+            return args && args.includes('hook');
+        });
         hookCalls.forEach((call) => {
-            const cmd = call[0];
-            expect(cmd).toContain('--staged');
-            expect(cmd).toContain('--base-branch develop');
-            expect(cmd).toContain('--verbose');
+            const args = call[1];
+            expect(args).toContain('--staged');
+            expect(args).toContain('--base-branch');
+            expect(args).toContain('develop');
+            expect(args).toContain('--verbose');
         });
         mockExit.mockRestore();
     });

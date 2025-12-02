@@ -266,15 +266,19 @@ describe('hookCollate', () => {
 
     // Check that hook commands receive the correct flags
     const calls = mockExecFile.mock.calls;
-    const hookCalls = calls.filter(
-      (call: any) => typeof call[0] === 'string' && call[0].includes('hook')
-    );
+    // Filter for hook calls by checking if args contain 'hook'
+    const hookCalls = calls.filter((call: any) => {
+      const args = call[1] as string[];
+      return args && args.includes('hook');
+    });
 
+    // Verify each hook call has the expected flags in its args
     hookCalls.forEach((call: any) => {
-      const cmd = call[0] as string;
-      expect(cmd).toContain('--staged');
-      expect(cmd).toContain('--base-branch develop');
-      expect(cmd).toContain('--verbose');
+      const args = call[1] as string[];
+      expect(args).toContain('--staged');
+      expect(args).toContain('--base-branch');
+      expect(args).toContain('develop');
+      expect(args).toContain('--verbose');
     });
 
     mockExit.mockRestore();
