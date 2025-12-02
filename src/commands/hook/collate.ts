@@ -112,7 +112,12 @@ export async function hookCollate(options: HookCollateOptions = {}): Promise<voi
     } catch (error) {
       // In verbose mode, show error output
       if (verbose && error && typeof error === 'object') {
-        const execError = error as { stdout?: string; stderr?: string };
+        const execError = error as {
+          stdout?: string;
+          stderr?: string;
+          code?: number;
+          signal?: string;
+        };
         if (execError.stdout) {
           process.stderr.write(execError.stdout);
         }
@@ -169,14 +174,16 @@ export async function hookCollate(options: HookCollateOptions = {}): Promise<voi
 
   // Extract failures from results
   const failures: string[] = [];
-  results.forEach((result) => {
+  results.forEach((result, index) => {
     if (result.status === 'fulfilled' && !result.value.passed) {
       // Hook completed but failed
       failures.push(result.value.name);
     } else if (result.status === 'rejected') {
-      // Hook promise was rejected (unexpected error)
-      failures.push('Unknown hook (unexpected error)');
-      logIfVerbose(verbose, `✗ Unexpected error in hook execution: ${result.reason}`);
+      // Hook promise was rejected (unexpected error - should be very rare)
+      const errorMsg =
+        result.reason instanceof Error ? result.reason.message : String(result.reason);
+      failures.push(`Hook execution error: ${errorMsg}`);
+      logIfVerbose(verbose, `✗ Unexpected error in hook ${index + 1}: ${errorMsg}`);
     }
   });
 

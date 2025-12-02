@@ -78,7 +78,9 @@ describe('hookCollate', () => {
         mockGetAllChangedFiles.mockReturnValue(['lib/main.dart', 'lib/utils.dart']);
         mockExecSync.mockReturnValue(Buffer.from('/usr/bin/tsu'));
         mockExec.mockImplementation((_cmd, _options, callback) => {
-            callback(null, '', '');
+            if (callback) {
+                callback(null, '', '');
+            }
             return {};
         });
         const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => { }));
@@ -91,7 +93,9 @@ describe('hookCollate', () => {
         mockGetAllChangedFiles.mockReturnValue(['lib/main.dart']);
         mockExecSync.mockReturnValue(Buffer.from('/usr/bin/tsu'));
         mockExec.mockImplementation((_cmd, _options, callback) => {
-            callback(null, '', '');
+            if (callback) {
+                callback(null, '', '');
+            }
             return {};
         });
         const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => { }));
@@ -106,13 +110,15 @@ describe('hookCollate', () => {
         let callCount = 0;
         mockExec.mockImplementation((_cmd, _options, callback) => {
             callCount++;
-            if (callCount === 1) {
-                const error = new Error('Command failed');
-                error.code = 1;
-                callback(error, '', '');
-            }
-            else {
-                callback(null, '', '');
+            if (callback) {
+                if (callCount === 1) {
+                    const error = new Error('Command failed');
+                    error.code = 1;
+                    callback(error, '', '');
+                }
+                else {
+                    callback(null, '', '');
+                }
             }
             return {};
         });
@@ -128,7 +134,9 @@ describe('hookCollate', () => {
         mockGetAllChangedFiles.mockReturnValue(['schema/query.graphql']);
         mockExecSync.mockReturnValue(Buffer.from('/usr/bin/tsu'));
         mockExec.mockImplementation((_cmd, _options, callback) => {
-            callback(null, '', '');
+            if (callback) {
+                callback(null, '', '');
+            }
             return {};
         });
         const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => { }));
@@ -141,7 +149,9 @@ describe('hookCollate', () => {
         mockGetAllChangedFiles.mockReturnValue(['lib/main.dart']);
         mockExecSync.mockReturnValue(Buffer.from('/usr/bin/tsu'));
         mockExec.mockImplementation((_cmd, _options, callback) => {
-            callback(null, '', '');
+            if (callback) {
+                callback(null, '', '');
+            }
             return {};
         });
         const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => { }));
@@ -170,7 +180,9 @@ describe('hookCollate', () => {
                         : 'graphql';
             executionOrder.push(hookName);
             Promise.resolve().then(() => {
-                callback(null, '', '');
+                if (callback) {
+                    callback(null, '', '');
+                }
             });
             return {};
         });

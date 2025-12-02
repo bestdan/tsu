@@ -115,9 +115,11 @@ describe('hookCollate', () => {
       (
         _cmd: string,
         _options: any,
-        callback: (error: any, stdout: string, stderr: string) => void
+        callback?: (error: any, stdout: string, stderr: string) => void
       ) => {
-        callback(null, '', '');
+        if (callback) {
+          callback(null, '', '');
+        }
         return {} as any;
       }
     );
@@ -146,9 +148,11 @@ describe('hookCollate', () => {
       (
         _cmd: string,
         _options: any,
-        callback: (error: any, stdout: string, stderr: string) => void
+        callback?: (error: any, stdout: string, stderr: string) => void
       ) => {
-        callback(null, '', '');
+        if (callback) {
+          callback(null, '', '');
+        }
         return {} as any;
       }
     );
@@ -176,16 +180,18 @@ describe('hookCollate', () => {
       (
         _cmd: string,
         _options: any,
-        callback: (error: any, stdout: string, stderr: string) => void
+        callback?: (error: any, stdout: string, stderr: string) => void
       ) => {
         callCount++;
-        // Fail the first hook command (format check)
-        if (callCount === 1) {
-          const error = new Error('Command failed') as Error & { code: number };
-          error.code = 1;
-          callback(error, '', '');
-        } else {
-          callback(null, '', '');
+        if (callback) {
+          // Fail the first hook command (format check)
+          if (callCount === 1) {
+            const error = new Error('Command failed') as Error & { code: number };
+            error.code = 1;
+            callback(error, '', '');
+          } else {
+            callback(null, '', '');
+          }
         }
         return {} as any;
       }
@@ -215,9 +221,11 @@ describe('hookCollate', () => {
       (
         _cmd: string,
         _options: any,
-        callback: (error: any, stdout: string, stderr: string) => void
+        callback?: (error: any, stdout: string, stderr: string) => void
       ) => {
-        callback(null, '', '');
+        if (callback) {
+          callback(null, '', '');
+        }
         return {} as any;
       }
     );
@@ -244,9 +252,11 @@ describe('hookCollate', () => {
       (
         _cmd: string,
         _options: any,
-        callback: (error: any, stdout: string, stderr: string) => void
+        callback?: (error: any, stdout: string, stderr: string) => void
       ) => {
-        callback(null, '', '');
+        if (callback) {
+          callback(null, '', '');
+        }
         return {} as any;
       }
     );
@@ -284,7 +294,7 @@ describe('hookCollate', () => {
       (
         cmd: string,
         _options: any,
-        callback: (error: any, stdout: string, stderr: string) => void
+        callback?: (error: any, stdout: string, stderr: string) => void
       ) => {
         const hookName = cmd.includes('format')
           ? 'format'
@@ -298,7 +308,9 @@ describe('hookCollate', () => {
 
         // Call callback asynchronously using Promise.resolve
         Promise.resolve().then(() => {
-          callback(null, '', '');
+          if (callback) {
+            callback(null, '', '');
+          }
         });
 
         return {} as any;

@@ -102,13 +102,14 @@ export async function hookCollate(options = {}) {
     }
     const results = await Promise.allSettled(hooks);
     const failures = [];
-    results.forEach((result) => {
+    results.forEach((result, index) => {
         if (result.status === 'fulfilled' && !result.value.passed) {
             failures.push(result.value.name);
         }
         else if (result.status === 'rejected') {
-            failures.push('Unknown hook (unexpected error)');
-            logIfVerbose(verbose, `✗ Unexpected error in hook execution: ${result.reason}`);
+            const errorMsg = result.reason instanceof Error ? result.reason.message : String(result.reason);
+            failures.push(`Hook execution error: ${errorMsg}`);
+            logIfVerbose(verbose, `✗ Unexpected error in hook ${index + 1}: ${errorMsg}`);
         }
     });
     if (failures.length > 0) {
