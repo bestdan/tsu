@@ -1,4 +1,5 @@
-import { execSync } from 'node:child_process';
+import { execSync, exec } from 'node:child_process';
+import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { isGitRepo, getAllChangedFiles } from '../git/utils/git.js';
@@ -7,6 +8,8 @@ import { ensureCondition } from '../../utils/command-helpers.js';
 import { logIfVerbose } from '../../utils/logger.js';
 import type { ChangedFilesOptions } from '../../types/command-options.js';
 import { setVerbose } from '../../utils/verbose-state.js';
+
+const execAsync = promisify(exec);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -23,16 +26,16 @@ export interface HookCollateOptions extends ChangedFilesOptions {
 }
 
 /**
- * Runs multiple hook checks and tracks if any fail.
+ * Runs multiple hook checks concurrently and tracks if any fail.
  * Exits with code 1 if any check fails, 0 if all pass.
  *
  * Steps:
  * 1. Determines which hooks to run based on flags (default: all)
- * 2. Runs each selected hook check by spawning subprocess
+ * 2. Runs each selected hook check concurrently using Promise.allSettled
  * 3. Tracks failures and continues running remaining checks
  * 4. Exits with appropriate code (1 if any failed, 0 if all passed)
  */
-export function hookCollate(options: HookCollateOptions = {}): void {
+export async function hookCollate(options: HookCollateOptions = {}): Promise<void> {
   const verbose = options.verbose || false;
 
   // Set global verbose state for downstream functions
@@ -66,8 +69,6 @@ export function hookCollate(options: HookCollateOptions = {}): void {
   const runDcmAnalyze = runAll || options.dcmAnalyze;
   const runGraphql = runAll || options.graphql;
 
-  const failures: string[] = [];
-
   // Build base command arguments for changed file options
   const buildArgs = (): string[] => {
     const args: string[] = [];
@@ -79,11 +80,15 @@ export function hookCollate(options: HookCollateOptions = {}): void {
     return args;
   };
 
-  // Helper to run a hook command and track failures
-  const runHook = (name: string, command: string, skipCondition?: boolean): void => {
+  // Helper to run a hook command asynchronously
+  const runHook = async (
+    name: string,
+    command: string,
+    skipCondition?: boolean
+  ): Promise<{ name: string; passed: boolean }> => {
     if (skipCondition) {
       logIfVerbose(verbose, `⏭️  Skipping ${name} (no relevant files)`);
-      return;
+      return { name, passed: true };
     }
 
     /* v8 ignore next -- @preserve */
@@ -92,14 +97,15 @@ export function hookCollate(options: HookCollateOptions = {}): void {
       const args = buildArgs();
       const fullCommand = args.length > 0 ? `${command} ${args.join(' ')}` : command;
 
-      execSync(fullCommand, {
+      await execAsync(fullCommand, {
         cwd,
-        stdio: verbose ? 'inherit' : 'pipe',
+        ...(verbose && { stdio: 'inherit' }),
       });
       logIfVerbose(verbose, `✓ ${name} passed`);
+      return { name, passed: true };
     } catch {
-      failures.push(name);
       logIfVerbose(verbose, `✗ ${name} failed`);
+      return { name, passed: false };
     }
   };
 
@@ -119,25 +125,39 @@ export function hookCollate(options: HookCollateOptions = {}): void {
 
   const tsu = getTsuCommand();
 
-  // Run dart format check
+  // Collect all hooks to run
+  const hooks: Promise<{ name: string; passed: boolean }>[] = [];
+
   if (runDartFormat) {
-    runHook('dart format check', `${tsu} hook format check`, dartFiles.length === 0);
+    hooks.push(runHook('dart format check', `${tsu} hook format check`, dartFiles.length === 0));
   }
 
-  // Run dart analysis check
   if (runDartAnalysis) {
-    runHook('dart analysis check', `${tsu} hook analysis check`, dartFiles.length === 0);
+    hooks.push(
+      runHook('dart analysis check', `${tsu} hook analysis check`, dartFiles.length === 0)
+    );
   }
 
-  // Run DCM analyze check
   if (runDcmAnalyze) {
-    runHook('DCM analyze check', `${tsu} hook dcm analyze check`, dartFiles.length === 0);
+    hooks.push(
+      runHook('DCM analyze check', `${tsu} hook dcm analyze check`, dartFiles.length === 0)
+    );
   }
 
-  // Run GraphQL check
   if (runGraphql) {
-    runHook('GraphQL check', `${tsu} hook graphql check`, graphqlFiles.length === 0);
+    hooks.push(runHook('GraphQL check', `${tsu} hook graphql check`, graphqlFiles.length === 0));
   }
+
+  // Run all hooks concurrently
+  const results = await Promise.allSettled(hooks);
+
+  // Extract failures from results
+  const failures: string[] = [];
+  results.forEach((result) => {
+    if (result.status === 'fulfilled' && !result.value.passed) {
+      failures.push(result.value.name);
+    }
+  });
 
   // Report results
   if (failures.length > 0) {

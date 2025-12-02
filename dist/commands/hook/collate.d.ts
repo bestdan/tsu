@@ -5,4 +5,4 @@ export interface HookCollateOptions extends ChangedFilesOptions {
     dcmAnalyze?: boolean;
     graphql?: boolean;
 }
-export declare function hookCollate(options?: HookCollateOptions): void;
+export declare function hookCollate(options?: HookCollateOptions): Promise<void>;

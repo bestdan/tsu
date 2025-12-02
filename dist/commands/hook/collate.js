@@ -1,4 +1,5 @@
-import { execSync } from 'node:child_process';
+import { execSync, exec } from 'node:child_process';
+import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { isGitRepo, getAllChangedFiles } from '../git/utils/git.js';
@@ -6,9 +7,10 @@ import { isDartPackage } from '../dart/utils/dart.js';
 import { ensureCondition } from '../../utils/command-helpers.js';
 import { logIfVerbose } from '../../utils/logger.js';
 import { setVerbose } from '../../utils/verbose-state.js';
+const execAsync = promisify(exec);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-export function hookCollate(options = {}) {
+export async function hookCollate(options = {}) {
     const verbose = options.verbose || false;
     setVerbose(verbose);
     logIfVerbose(verbose, '📋 Running pre-push checks...');
@@ -27,7 +29,6 @@ export function hookCollate(options = {}) {
     const runDartAnalysis = runAll || options.dartAnalysis;
     const runDcmAnalyze = runAll || options.dcmAnalyze;
     const runGraphql = runAll || options.graphql;
-    const failures = [];
     const buildArgs = () => {
         const args = [];
         if (options.staged)
@@ -42,24 +43,25 @@ export function hookCollate(options = {}) {
             args.push('--verbose');
         return args;
     };
-    const runHook = (name, command, skipCondition) => {
+    const runHook = async (name, command, skipCondition) => {
         if (skipCondition) {
             logIfVerbose(verbose, `⏭️  Skipping ${name} (no relevant files)`);
-            return;
+            return { name, passed: true };
         }
         try {
             logIfVerbose(verbose, `\n▶️  Running ${name}...`);
             const args = buildArgs();
             const fullCommand = args.length > 0 ? `${command} ${args.join(' ')}` : command;
-            execSync(fullCommand, {
+            await execAsync(fullCommand, {
                 cwd,
-                stdio: verbose ? 'inherit' : 'pipe',
+                ...(verbose && { stdio: 'inherit' }),
             });
             logIfVerbose(verbose, `✓ ${name} passed`);
+            return { name, passed: true };
         }
         catch {
-            failures.push(name);
             logIfVerbose(verbose, `✗ ${name} failed`);
+            return { name, passed: false };
         }
     };
     const getTsuCommand = () => {
@@ -73,18 +75,26 @@ export function hookCollate(options = {}) {
         }
     };
     const tsu = getTsuCommand();
+    const hooks = [];
     if (runDartFormat) {
-        runHook('dart format check', `${tsu} hook format check`, dartFiles.length === 0);
+        hooks.push(runHook('dart format check', `${tsu} hook format check`, dartFiles.length === 0));
     }
     if (runDartAnalysis) {
-        runHook('dart analysis check', `${tsu} hook analysis check`, dartFiles.length === 0);
+        hooks.push(runHook('dart analysis check', `${tsu} hook analysis check`, dartFiles.length === 0));
     }
     if (runDcmAnalyze) {
-        runHook('DCM analyze check', `${tsu} hook dcm analyze check`, dartFiles.length === 0);
+        hooks.push(runHook('DCM analyze check', `${tsu} hook dcm analyze check`, dartFiles.length === 0));
     }
     if (runGraphql) {
-        runHook('GraphQL check', `${tsu} hook graphql check`, graphqlFiles.length === 0);
+        hooks.push(runHook('GraphQL check', `${tsu} hook graphql check`, graphqlFiles.length === 0));
     }
+    const results = await Promise.allSettled(hooks);
+    const failures = [];
+    results.forEach((result) => {
+        if (result.status === 'fulfilled' && !result.value.passed) {
+            failures.push(result.value.name);
+        }
+    });
     if (failures.length > 0) {
         console.error('');
         console.error('❌ One or more checks failed:');

@@ -278,7 +278,7 @@ hook
     .option('--dcm-analyze', 'run DCM analyze check')
     .option('--graphql', 'run GraphQL check')
     .option('-v, --verbose', 'show human-readable status messages (output to stderr)')
-    .action((options) => {
-    hookCollate(options);
+    .action(async (options) => {
+    await hookCollate(options);
 });
 program.parse();

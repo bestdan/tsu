@@ -7,6 +7,24 @@ import { execSync } from 'node:child_process';
 // Mock child_process
 vi.mock('node:child_process', () => ({
   execSync: vi.fn(),
+  exec: vi.fn(),
+}));
+
+// Mock util - promisify should return a function that returns a promise
+vi.mock('node:util', () => ({
+  promisify: vi.fn((fn) => {
+    return (...args: any[]) => {
+      return new Promise((resolve, reject) => {
+        fn(...args, (error: any, stdout: string, stderr: string) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve({ stdout, stderr });
+          }
+        });
+      });
+    };
+  }),
 }));
 
 // Mock git utilities
@@ -26,7 +44,14 @@ describe('hookCollate', () => {
   const mockIsDartPackage = vi.mocked(dartUtils.isDartPackage);
   const mockGetAllChangedFiles = vi.mocked(gitUtils.getAllChangedFiles);
 
-  beforeEach(() => {
+  // We need to import exec after mocking
+  let mockExec: any;
+
+  beforeEach(async () => {
+    // Dynamically import exec after mocks are set up
+    const childProcess = await import('node:child_process');
+    mockExec = vi.mocked(childProcess.exec);
+
     vi.clearAllMocks();
     // Default successful state
     mockIsGitRepo.mockReturnValue(true);
@@ -38,24 +63,24 @@ describe('hookCollate', () => {
     vi.restoreAllMocks();
   });
 
-  it('should exit with code 0 when no files are changed', () => {
+  it('should exit with code 0 when no files are changed', async () => {
     mockGetAllChangedFiles.mockReturnValue([]);
 
     const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {}) as never);
 
-    hookCollate({ verbose: false });
+    await hookCollate({ verbose: false });
 
     expect(mockExit).toHaveBeenCalledWith(0);
     mockExit.mockRestore();
   });
 
-  it('should exit with code 1 when not in a git repository', () => {
+  it('should exit with code 1 when not in a git repository', async () => {
     mockIsGitRepo.mockReturnValue(false);
 
     const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {}) as never);
     const mockConsoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    hookCollate({ verbose: false });
+    await hookCollate({ verbose: false });
 
     expect(mockConsoleError).toHaveBeenCalledWith('Error: Not in a git repository');
     expect(mockExit).toHaveBeenCalledWith(1);
@@ -64,13 +89,13 @@ describe('hookCollate', () => {
     mockConsoleError.mockRestore();
   });
 
-  it('should exit with code 1 when not in a Dart package', () => {
+  it('should exit with code 1 when not in a Dart package', async () => {
     mockIsDartPackage.mockReturnValue(false);
 
     const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {}) as never);
     const mockConsoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    hookCollate({ verbose: false });
+    await hookCollate({ verbose: false });
 
     expect(mockConsoleError).toHaveBeenCalledWith('Error: Not in a Dart package');
     expect(mockExit).toHaveBeenCalledWith(1);
@@ -79,77 +104,97 @@ describe('hookCollate', () => {
     mockConsoleError.mockRestore();
   });
 
-  it('should run all hooks by default when Dart files are changed', () => {
+  it('should run all hooks by default when Dart files are changed', async () => {
     mockGetAllChangedFiles.mockReturnValue(['lib/main.dart', 'lib/utils.dart']);
-    mockExecSync.mockReturnValue(Buffer.from(''));
 
-    // Mock which command to succeed
-    mockExecSync.mockImplementation((cmd: string) => {
-      if (typeof cmd === 'string' && cmd.includes('which tsu')) {
-        return Buffer.from('/usr/bin/tsu');
+    // Mock which command to succeed (execSync for getTsuCommand)
+    mockExecSync.mockReturnValue(Buffer.from('/usr/bin/tsu'));
+
+    // Mock exec for hook commands (async)
+    mockExec.mockImplementation(
+      (
+        _cmd: string,
+        _options: any,
+        callback: (error: any, stdout: string, stderr: string) => void
+      ) => {
+        callback(null, '', '');
+        return {} as any;
       }
-      return Buffer.from('');
-    });
+    );
 
     const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {}) as never);
 
-    hookCollate({ verbose: false });
+    await hookCollate({ verbose: false });
 
     // Should run all 4 hooks (format, analysis, dcm analyze, graphql)
     // But graphql should be skipped since no .graphql files
     // which tsu + 3 hook commands (format, analysis, dcm analyze)
-    expect(mockExecSync).toHaveBeenCalledTimes(4);
+    expect(mockExec).toHaveBeenCalledTimes(3);
     expect(mockExit).toHaveBeenCalledWith(0);
 
     mockExit.mockRestore();
   });
 
-  it('should only run dart-format when specified', () => {
+  it('should only run dart-format when specified', async () => {
     mockGetAllChangedFiles.mockReturnValue(['lib/main.dart']);
-    mockExecSync.mockReturnValue(Buffer.from(''));
 
     // Mock which command to succeed
-    mockExecSync.mockImplementation((cmd: string) => {
-      if (typeof cmd === 'string' && cmd.includes('which tsu')) {
-        return Buffer.from('/usr/bin/tsu');
+    mockExecSync.mockReturnValue(Buffer.from('/usr/bin/tsu'));
+
+    // Mock exec for hook commands
+    mockExec.mockImplementation(
+      (
+        _cmd: string,
+        _options: any,
+        callback: (error: any, stdout: string, stderr: string) => void
+      ) => {
+        callback(null, '', '');
+        return {} as any;
       }
-      return Buffer.from('');
-    });
+    );
 
     const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {}) as never);
 
-    hookCollate({ dartFormat: true, verbose: false });
+    await hookCollate({ dartFormat: true, verbose: false });
 
-    // which tsu + 1 hook command (format only)
-    expect(mockExecSync).toHaveBeenCalledTimes(2);
+    // 1 hook command (format only)
+    expect(mockExec).toHaveBeenCalledTimes(1);
     expect(mockExit).toHaveBeenCalledWith(0);
 
     mockExit.mockRestore();
   });
 
-  it('should track and report failures when hooks fail', () => {
+  it('should track and report failures when hooks fail', async () => {
     mockGetAllChangedFiles.mockReturnValue(['lib/main.dart']);
 
     // Mock which command to succeed
+    mockExecSync.mockReturnValue(Buffer.from('/usr/bin/tsu'));
+
+    // Mock exec to fail the first hook command
     let callCount = 0;
-    mockExecSync.mockImplementation((cmd: string) => {
-      callCount++;
-      if (typeof cmd === 'string' && cmd.includes('which tsu')) {
-        return Buffer.from('/usr/bin/tsu');
+    mockExec.mockImplementation(
+      (
+        _cmd: string,
+        _options: any,
+        callback: (error: any, stdout: string, stderr: string) => void
+      ) => {
+        callCount++;
+        // Fail the first hook command (format check)
+        if (callCount === 1) {
+          const error = new Error('Command failed') as Error & { code: number };
+          error.code = 1;
+          callback(error, '', '');
+        } else {
+          callback(null, '', '');
+        }
+        return {} as any;
       }
-      // Fail the first hook command (format check)
-      if (callCount === 2) {
-        const error = new Error('Command failed') as Error & { status: number };
-        error.status = 1;
-        throw error;
-      }
-      return Buffer.from('');
-    });
+    );
 
     const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {}) as never);
     const mockConsoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    hookCollate({ verbose: false });
+    await hookCollate({ verbose: false });
 
     // Should continue running other hooks and report failure at the end
     expect(mockConsoleError).toHaveBeenCalledWith('❌ One or more checks failed:');
@@ -159,52 +204,64 @@ describe('hookCollate', () => {
     mockConsoleError.mockRestore();
   });
 
-  it('should run GraphQL check when .graphql files are changed', () => {
+  it('should run GraphQL check when .graphql files are changed', async () => {
     mockGetAllChangedFiles.mockReturnValue(['schema/query.graphql']);
-    mockExecSync.mockReturnValue(Buffer.from(''));
 
     // Mock which command to succeed
-    mockExecSync.mockImplementation((cmd: string) => {
-      if (typeof cmd === 'string' && cmd.includes('which tsu')) {
-        return Buffer.from('/usr/bin/tsu');
+    mockExecSync.mockReturnValue(Buffer.from('/usr/bin/tsu'));
+
+    // Mock exec for hook commands
+    mockExec.mockImplementation(
+      (
+        _cmd: string,
+        _options: any,
+        callback: (error: any, stdout: string, stderr: string) => void
+      ) => {
+        callback(null, '', '');
+        return {} as any;
       }
-      return Buffer.from('');
-    });
+    );
 
     const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {}) as never);
 
-    hookCollate({ verbose: false });
+    await hookCollate({ verbose: false });
 
-    // which tsu + 1 hook command (graphql only since no dart files)
-    expect(mockExecSync).toHaveBeenCalledTimes(2);
+    // 1 hook command (graphql only since no dart files)
+    expect(mockExec).toHaveBeenCalledTimes(1);
     expect(mockExit).toHaveBeenCalledWith(0);
 
     mockExit.mockRestore();
   });
 
-  it('should pass changed file options to hook commands', () => {
+  it('should pass changed file options to hook commands', async () => {
     mockGetAllChangedFiles.mockReturnValue(['lib/main.dart']);
-    mockExecSync.mockReturnValue(Buffer.from(''));
 
     // Mock which command to succeed
-    mockExecSync.mockImplementation((cmd: string) => {
-      if (typeof cmd === 'string' && cmd.includes('which tsu')) {
-        return Buffer.from('/usr/bin/tsu');
+    mockExecSync.mockReturnValue(Buffer.from('/usr/bin/tsu'));
+
+    // Mock exec for hook commands and capture calls
+    mockExec.mockImplementation(
+      (
+        _cmd: string,
+        _options: any,
+        callback: (error: any, stdout: string, stderr: string) => void
+      ) => {
+        callback(null, '', '');
+        return {} as any;
       }
-      return Buffer.from('');
-    });
+    );
 
     const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {}) as never);
 
-    hookCollate({ staged: true, baseBranch: 'develop', verbose: true });
+    await hookCollate({ staged: true, baseBranch: 'develop', verbose: true });
 
     // Check that hook commands receive the correct flags
-    const calls = mockExecSync.mock.calls;
+    const calls = mockExec.mock.calls;
     const hookCalls = calls.filter(
-      (call) => typeof call[0] === 'string' && call[0].includes('hook')
+      (call: any) => typeof call[0] === 'string' && call[0].includes('hook')
     );
 
-    hookCalls.forEach((call) => {
+    hookCalls.forEach((call: any) => {
       const cmd = call[0] as string;
       expect(cmd).toContain('--staged');
       expect(cmd).toContain('--base-branch develop');

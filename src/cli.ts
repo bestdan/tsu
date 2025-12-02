@@ -400,7 +400,7 @@ hook
   .option('--graphql', 'run GraphQL check')
   .option('-v, --verbose', 'show human-readable status messages (output to stderr)')
   .action(
-    (options: {
+    async (options: {
       staged?: boolean;
       unstaged?: boolean;
       all?: boolean;
@@ -411,7 +411,7 @@ hook
       graphql?: boolean;
       verbose?: boolean;
     }) => {
-      hookCollate(options);
+      await hookCollate(options);
     }
   );
 
