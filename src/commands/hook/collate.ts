@@ -1,4 +1,4 @@
-import { execSync, exec, ExecException } from 'node:child_process';
+import { execSync, exec, execFile, ExecException } from 'node:child_process';
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -10,6 +10,7 @@ import type { ChangedFilesOptions } from '../../types/command-options.js';
 import { setVerbose } from '../../utils/verbose-state.js';
 
 const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -83,7 +84,8 @@ export async function hookCollate(options: HookCollateOptions = {}): Promise<voi
   // Helper to run a hook command asynchronously
   const runHook = async (
     name: string,
-    command: string,
+    file: string,
+    args: string[],
     skipCondition?: boolean
   ): Promise<{ name: string; passed: boolean }> => {
     if (skipCondition) {
@@ -94,10 +96,9 @@ export async function hookCollate(options: HookCollateOptions = {}): Promise<voi
     /* v8 ignore next -- @preserve */
     try {
       logIfVerbose(verbose, `\n▶️  Running ${name}...`);
-      const args = buildArgs();
-      const fullCommand = args.length > 0 ? `${command} ${args.join(' ')}` : command;
+      const cmdArgs = [...args, ...buildArgs()];
 
-      const result = await execAsync(fullCommand, { cwd });
+      const result = await execFileAsync(file, cmdArgs, { cwd });
 
       // In verbose mode, output the command results
       if (verbose && result.stdout) {
@@ -126,31 +127,43 @@ export async function hookCollate(options: HookCollateOptions = {}): Promise<voi
   };
 
   // Find the tsu binary path (either from node_modules or global)
-  const getTsuCommand = (): string => {
+  const getTsuCommand = (): { file: string; args: string[] } => {
     // Try to use the built version from this package first
     try {
       execSync('which tsu', { stdio: 'pipe' });
-      return 'tsu';
+      return { file: 'tsu', args: [] };
     } catch {
       // Fallback to node execution of the built CLI using absolute path
       // __dirname is the dist/commands/hook directory, so we need to go up to dist
       const cliPath = join(__dirname, '..', '..', 'cli.js');
-      return `node ${cliPath}`;
+      return { file: 'node', args: [cliPath] };
     }
   };
 
-  const tsu = getTsuCommand();
+  const tsuCmd = getTsuCommand();
 
   // Collect all hooks to run
   const hooks: Promise<{ name: string; passed: boolean }>[] = [];
 
   if (runDartFormat) {
-    hooks.push(runHook('dart format check', `${tsu} hook format check`, dartFiles.length === 0));
+    hooks.push(
+      runHook(
+        'dart format check',
+        tsuCmd.file,
+        [...tsuCmd.args, 'hook', 'format', 'check'],
+        dartFiles.length === 0
+      )
+    );
   }
 
   if (runDartAnalysis) {
     hooks.push(
-      runHook('dart analysis check', `${tsu} hook analysis check`, dartFiles.length === 0)
+      runHook(
+        'dart analysis check',
+        tsuCmd.file,
+        [...tsuCmd.args, 'hook', 'analysis', 'check'],
+        dartFiles.length === 0
+      )
     );
   }
 
