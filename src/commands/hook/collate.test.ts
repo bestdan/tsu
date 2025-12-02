@@ -15,11 +15,11 @@ vi.mock('node:util', () => ({
   promisify: vi.fn((fn) => {
     return (...args: any[]) => {
       return new Promise((resolve, reject) => {
-        fn(...args, (error: any, stdout: string, stderr: string) => {
+        fn(...args, (error?: any, stdout?: string, stderr?: string) => {
           if (error) {
             reject(error);
           } else {
-            resolve({ stdout, stderr });
+            resolve({ stdout: stdout || '', stderr: stderr || '' });
           }
         });
       });

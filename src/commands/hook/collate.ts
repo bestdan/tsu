@@ -1,4 +1,4 @@
-import { execSync, exec } from 'node:child_process';
+import { execSync, exec, ExecException } from 'node:child_process';
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -112,12 +112,7 @@ export async function hookCollate(options: HookCollateOptions = {}): Promise<voi
     } catch (error) {
       // In verbose mode, show error output
       if (verbose && error && typeof error === 'object') {
-        const execError = error as {
-          stdout?: string;
-          stderr?: string;
-          code?: number;
-          signal?: string;
-        };
+        const execError = error as ExecException & { stdout?: string; stderr?: string };
         if (execError.stdout) {
           process.stderr.write(execError.stdout);
         }

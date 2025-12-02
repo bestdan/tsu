@@ -16,7 +16,7 @@ vi.mock('node:util', () => ({
                         reject(error);
                     }
                     else {
-                        resolve({ stdout, stderr });
+                        resolve({ stdout: stdout || '', stderr: stderr || '' });
                     }
                 });
             });
