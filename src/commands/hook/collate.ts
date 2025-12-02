@@ -1,4 +1,4 @@
-import { execSync, exec, execFile, ExecException } from 'node:child_process';
+import { execSync, execFile, ExecException } from 'node:child_process';
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -9,7 +9,6 @@ import { logIfVerbose } from '../../utils/logger.js';
 import type { ChangedFilesOptions } from '../../types/command-options.js';
 import { setVerbose } from '../../utils/verbose-state.js';
 
-const execAsync = promisify(exec);
 const execFileAsync = promisify(execFile);
 
 const __filename = fileURLToPath(import.meta.url);
@@ -169,12 +168,24 @@ export async function hookCollate(options: HookCollateOptions = {}): Promise<voi
 
   if (runDcmAnalyze) {
     hooks.push(
-      runHook('DCM analyze check', `${tsu} hook dcm analyze check`, dartFiles.length === 0)
+      runHook(
+        'DCM analyze check',
+        tsuCmd.file,
+        [...tsuCmd.args, 'hook', 'dcm', 'analyze', 'check'],
+        dartFiles.length === 0
+      )
     );
   }
 
   if (runGraphql) {
-    hooks.push(runHook('GraphQL check', `${tsu} hook graphql check`, graphqlFiles.length === 0));
+    hooks.push(
+      runHook(
+        'GraphQL check',
+        tsuCmd.file,
+        [...tsuCmd.args, 'hook', 'graphql', 'check'],
+        graphqlFiles.length === 0
+      )
+    );
   }
 
   // Run all hooks concurrently

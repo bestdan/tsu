@@ -2,12 +2,12 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { hookCollate } from './collate.js';
 import * as gitUtils from '../git/utils/git.js';
 import * as dartUtils from '../dart/utils/dart.js';
-import { execSync } from 'node:child_process';
+import { execSync, execFile } from 'node:child_process';
 
 // Mock child_process
 vi.mock('node:child_process', () => ({
   execSync: vi.fn(),
-  exec: vi.fn(),
+  execFile: vi.fn(),
 }));
 
 // Mock util - promisify should return a function that returns a promise
@@ -40,18 +40,12 @@ vi.mock('../dart/utils/dart.js', () => ({
 
 describe('hookCollate', () => {
   const mockExecSync = vi.mocked(execSync);
+  const mockExecFile = vi.mocked(execFile);
   const mockIsGitRepo = vi.mocked(gitUtils.isGitRepo);
   const mockIsDartPackage = vi.mocked(dartUtils.isDartPackage);
   const mockGetAllChangedFiles = vi.mocked(gitUtils.getAllChangedFiles);
 
-  // We need to import exec after mocking
-  let mockExec: any;
-
-  beforeEach(async () => {
-    // Dynamically import exec after mocks are set up
-    const childProcess = await import('node:child_process');
-    mockExec = vi.mocked(childProcess.exec);
-
+  beforeEach(() => {
     vi.clearAllMocks();
     // Default successful state
     mockIsGitRepo.mockReturnValue(true);
@@ -110,12 +104,13 @@ describe('hookCollate', () => {
     // Mock which command to succeed (execSync for getTsuCommand)
     mockExecSync.mockReturnValue(Buffer.from('/usr/bin/tsu'));
 
-    // Mock exec for hook commands (async)
-    mockExec.mockImplementation(
+    // Mock execFile for hook commands (async)
+    mockExecFile.mockImplementation(
       (
-        _cmd: string,
+        _file: string,
+        _args: readonly string[] | null | undefined,
         _options: any,
-        callback?: (error: any, stdout: string, stderr: string) => void
+        callback?: ((error: any, stdout: string, stderr: string) => void) | null
       ) => {
         if (callback) {
           callback(null, '', '');
@@ -131,7 +126,7 @@ describe('hookCollate', () => {
     // Should run all 4 hooks (format, analysis, dcm analyze, graphql)
     // But graphql should be skipped since no .graphql files
     // which tsu + 3 hook commands (format, analysis, dcm analyze)
-    expect(mockExec).toHaveBeenCalledTimes(3);
+    expect(mockExecFile).toHaveBeenCalledTimes(3);
     expect(mockExit).toHaveBeenCalledWith(0);
 
     mockExit.mockRestore();
@@ -143,12 +138,13 @@ describe('hookCollate', () => {
     // Mock which command to succeed
     mockExecSync.mockReturnValue(Buffer.from('/usr/bin/tsu'));
 
-    // Mock exec for hook commands
-    mockExec.mockImplementation(
+    // Mock execFile for hook commands
+    mockExecFile.mockImplementation(
       (
-        _cmd: string,
+        _file: string,
+        _args: readonly string[] | null | undefined,
         _options: any,
-        callback?: (error: any, stdout: string, stderr: string) => void
+        callback?: ((error: any, stdout: string, stderr: string) => void) | null
       ) => {
         if (callback) {
           callback(null, '', '');
@@ -162,7 +158,7 @@ describe('hookCollate', () => {
     await hookCollate({ dartFormat: true, verbose: false });
 
     // 1 hook command (format only)
-    expect(mockExec).toHaveBeenCalledTimes(1);
+    expect(mockExecFile).toHaveBeenCalledTimes(1);
     expect(mockExit).toHaveBeenCalledWith(0);
 
     mockExit.mockRestore();
@@ -176,11 +172,12 @@ describe('hookCollate', () => {
 
     // Mock exec to fail the first hook command
     let callCount = 0;
-    mockExec.mockImplementation(
+    mockExecFile.mockImplementation(
       (
-        _cmd: string,
+        _file: string,
+        _args: readonly string[] | null | undefined,
         _options: any,
-        callback?: (error: any, stdout: string, stderr: string) => void
+        callback?: ((error: any, stdout: string, stderr: string) => void) | null
       ) => {
         callCount++;
         if (callback) {
@@ -216,12 +213,13 @@ describe('hookCollate', () => {
     // Mock which command to succeed
     mockExecSync.mockReturnValue(Buffer.from('/usr/bin/tsu'));
 
-    // Mock exec for hook commands
-    mockExec.mockImplementation(
+    // Mock execFile for hook commands
+    mockExecFile.mockImplementation(
       (
-        _cmd: string,
+        _file: string,
+        _args: readonly string[] | null | undefined,
         _options: any,
-        callback?: (error: any, stdout: string, stderr: string) => void
+        callback?: ((error: any, stdout: string, stderr: string) => void) | null
       ) => {
         if (callback) {
           callback(null, '', '');
@@ -235,7 +233,7 @@ describe('hookCollate', () => {
     await hookCollate({ verbose: false });
 
     // 1 hook command (graphql only since no dart files)
-    expect(mockExec).toHaveBeenCalledTimes(1);
+    expect(mockExecFile).toHaveBeenCalledTimes(1);
     expect(mockExit).toHaveBeenCalledWith(0);
 
     mockExit.mockRestore();
@@ -247,12 +245,13 @@ describe('hookCollate', () => {
     // Mock which command to succeed
     mockExecSync.mockReturnValue(Buffer.from('/usr/bin/tsu'));
 
-    // Mock exec for hook commands and capture calls
-    mockExec.mockImplementation(
+    // Mock execFile for hook commands and capture calls
+    mockExecFile.mockImplementation(
       (
-        _cmd: string,
+        _file: string,
+        _args: readonly string[] | null | undefined,
         _options: any,
-        callback?: (error: any, stdout: string, stderr: string) => void
+        callback?: ((error: any, stdout: string, stderr: string) => void) | null
       ) => {
         if (callback) {
           callback(null, '', '');
@@ -266,7 +265,7 @@ describe('hookCollate', () => {
     await hookCollate({ staged: true, baseBranch: 'develop', verbose: true });
 
     // Check that hook commands receive the correct flags
-    const calls = mockExec.mock.calls;
+    const calls = mockExecFile.mock.calls;
     const hookCalls = calls.filter(
       (call: any) => typeof call[0] === 'string' && call[0].includes('hook')
     );
@@ -290,19 +289,23 @@ describe('hookCollate', () => {
     // Track when each command starts
     const executionOrder: string[] = [];
 
-    mockExec.mockImplementation(
+    mockExecFile.mockImplementation(
       (
-        cmd: string,
+        _file: string,
+        args: readonly string[] | null | undefined,
         _options: any,
-        callback?: (error: any, stdout: string, stderr: string) => void
+        callback?: ((error: any, stdout: string, stderr: string) => void) | null
       ) => {
-        const hookName = cmd.includes('format')
-          ? 'format'
-          : cmd.includes('analysis')
-            ? 'analysis'
-            : cmd.includes('dcm')
-              ? 'dcm'
-              : 'graphql';
+        // Determine hook name from args
+        const argsArray = args as string[];
+        const hookName =
+          argsArray && argsArray.includes('format')
+            ? 'format'
+            : argsArray && argsArray.includes('analysis')
+              ? 'analysis'
+              : argsArray && argsArray.includes('dcm')
+                ? 'dcm'
+                : 'graphql';
 
         executionOrder.push(hookName);
 
@@ -330,7 +333,7 @@ describe('hookCollate', () => {
 
     // With concurrent execution, all hooks start before any complete
     // This is validated by the fact that all hooks were called
-    expect(mockExec).toHaveBeenCalledTimes(4);
+    expect(mockExecFile).toHaveBeenCalledTimes(4);
     expect(mockExit).toHaveBeenCalledWith(0);
 
     mockExit.mockRestore();

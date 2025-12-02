@@ -2,10 +2,10 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { hookCollate } from './collate.js';
 import * as gitUtils from '../git/utils/git.js';
 import * as dartUtils from '../dart/utils/dart.js';
-import { execSync } from 'node:child_process';
+import { execSync, execFile } from 'node:child_process';
 vi.mock('node:child_process', () => ({
     execSync: vi.fn(),
-    exec: vi.fn(),
+    execFile: vi.fn(),
 }));
 vi.mock('node:util', () => ({
     promisify: vi.fn((fn) => {
@@ -32,13 +32,11 @@ vi.mock('../dart/utils/dart.js', () => ({
 }));
 describe('hookCollate', () => {
     const mockExecSync = vi.mocked(execSync);
+    const mockExecFile = vi.mocked(execFile);
     const mockIsGitRepo = vi.mocked(gitUtils.isGitRepo);
     const mockIsDartPackage = vi.mocked(dartUtils.isDartPackage);
     const mockGetAllChangedFiles = vi.mocked(gitUtils.getAllChangedFiles);
-    let mockExec;
-    beforeEach(async () => {
-        const childProcess = await import('node:child_process');
-        mockExec = vi.mocked(childProcess.exec);
+    beforeEach(() => {
         vi.clearAllMocks();
         mockIsGitRepo.mockReturnValue(true);
         mockIsDartPackage.mockReturnValue(true);
@@ -77,7 +75,7 @@ describe('hookCollate', () => {
     it('should run all hooks by default when Dart files are changed', async () => {
         mockGetAllChangedFiles.mockReturnValue(['lib/main.dart', 'lib/utils.dart']);
         mockExecSync.mockReturnValue(Buffer.from('/usr/bin/tsu'));
-        mockExec.mockImplementation((_cmd, _options, callback) => {
+        mockExecFile.mockImplementation((_file, _args, _options, callback) => {
             if (callback) {
                 callback(null, '', '');
             }
@@ -85,14 +83,14 @@ describe('hookCollate', () => {
         });
         const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => { }));
         await hookCollate({ verbose: false });
-        expect(mockExec).toHaveBeenCalledTimes(3);
+        expect(mockExecFile).toHaveBeenCalledTimes(3);
         expect(mockExit).toHaveBeenCalledWith(0);
         mockExit.mockRestore();
     });
     it('should only run dart-format when specified', async () => {
         mockGetAllChangedFiles.mockReturnValue(['lib/main.dart']);
         mockExecSync.mockReturnValue(Buffer.from('/usr/bin/tsu'));
-        mockExec.mockImplementation((_cmd, _options, callback) => {
+        mockExecFile.mockImplementation((_file, _args, _options, callback) => {
             if (callback) {
                 callback(null, '', '');
             }
@@ -100,7 +98,7 @@ describe('hookCollate', () => {
         });
         const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => { }));
         await hookCollate({ dartFormat: true, verbose: false });
-        expect(mockExec).toHaveBeenCalledTimes(1);
+        expect(mockExecFile).toHaveBeenCalledTimes(1);
         expect(mockExit).toHaveBeenCalledWith(0);
         mockExit.mockRestore();
     });
@@ -108,7 +106,7 @@ describe('hookCollate', () => {
         mockGetAllChangedFiles.mockReturnValue(['lib/main.dart']);
         mockExecSync.mockReturnValue(Buffer.from('/usr/bin/tsu'));
         let callCount = 0;
-        mockExec.mockImplementation((_cmd, _options, callback) => {
+        mockExecFile.mockImplementation((_file, _args, _options, callback) => {
             callCount++;
             if (callback) {
                 if (callCount === 1) {
@@ -133,7 +131,7 @@ describe('hookCollate', () => {
     it('should run GraphQL check when .graphql files are changed', async () => {
         mockGetAllChangedFiles.mockReturnValue(['schema/query.graphql']);
         mockExecSync.mockReturnValue(Buffer.from('/usr/bin/tsu'));
-        mockExec.mockImplementation((_cmd, _options, callback) => {
+        mockExecFile.mockImplementation((_file, _args, _options, callback) => {
             if (callback) {
                 callback(null, '', '');
             }
@@ -141,14 +139,14 @@ describe('hookCollate', () => {
         });
         const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => { }));
         await hookCollate({ verbose: false });
-        expect(mockExec).toHaveBeenCalledTimes(1);
+        expect(mockExecFile).toHaveBeenCalledTimes(1);
         expect(mockExit).toHaveBeenCalledWith(0);
         mockExit.mockRestore();
     });
     it('should pass changed file options to hook commands', async () => {
         mockGetAllChangedFiles.mockReturnValue(['lib/main.dart']);
         mockExecSync.mockReturnValue(Buffer.from('/usr/bin/tsu'));
-        mockExec.mockImplementation((_cmd, _options, callback) => {
+        mockExecFile.mockImplementation((_file, _args, _options, callback) => {
             if (callback) {
                 callback(null, '', '');
             }
@@ -156,7 +154,7 @@ describe('hookCollate', () => {
         });
         const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => { }));
         await hookCollate({ staged: true, baseBranch: 'develop', verbose: true });
-        const calls = mockExec.mock.calls;
+        const calls = mockExecFile.mock.calls;
         const hookCalls = calls.filter((call) => typeof call[0] === 'string' && call[0].includes('hook'));
         hookCalls.forEach((call) => {
             const cmd = call[0];
@@ -170,12 +168,13 @@ describe('hookCollate', () => {
         mockGetAllChangedFiles.mockReturnValue(['lib/main.dart', 'schema/query.graphql']);
         mockExecSync.mockReturnValue(Buffer.from('/usr/bin/tsu'));
         const executionOrder = [];
-        mockExec.mockImplementation((cmd, _options, callback) => {
-            const hookName = cmd.includes('format')
+        mockExecFile.mockImplementation((_file, args, _options, callback) => {
+            const argsArray = args;
+            const hookName = argsArray && argsArray.includes('format')
                 ? 'format'
-                : cmd.includes('analysis')
+                : argsArray && argsArray.includes('analysis')
                     ? 'analysis'
-                    : cmd.includes('dcm')
+                    : argsArray && argsArray.includes('dcm')
                         ? 'dcm'
                         : 'graphql';
             executionOrder.push(hookName);
@@ -193,7 +192,7 @@ describe('hookCollate', () => {
         expect(executionOrder).toContain('analysis');
         expect(executionOrder).toContain('dcm');
         expect(executionOrder).toContain('graphql');
-        expect(mockExec).toHaveBeenCalledTimes(4);
+        expect(mockExecFile).toHaveBeenCalledTimes(4);
         expect(mockExit).toHaveBeenCalledWith(0);
         mockExit.mockRestore();
     });

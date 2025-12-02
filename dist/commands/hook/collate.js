@@ -1,4 +1,4 @@
-import { execSync, exec } from 'node:child_process';
+import { execSync, execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -7,7 +7,7 @@ import { isDartPackage } from '../dart/utils/dart.js';
 import { ensureCondition } from '../../utils/command-helpers.js';
 import { logIfVerbose } from '../../utils/logger.js';
 import { setVerbose } from '../../utils/verbose-state.js';
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 export async function hookCollate(options = {}) {
@@ -43,16 +43,15 @@ export async function hookCollate(options = {}) {
             args.push('--verbose');
         return args;
     };
-    const runHook = async (name, command, skipCondition) => {
+    const runHook = async (name, file, args, skipCondition) => {
         if (skipCondition) {
             logIfVerbose(verbose, `⏭️  Skipping ${name} (no relevant files)`);
             return { name, passed: true };
         }
         try {
             logIfVerbose(verbose, `\n▶️  Running ${name}...`);
-            const args = buildArgs();
-            const fullCommand = args.length > 0 ? `${command} ${args.join(' ')}` : command;
-            const result = await execAsync(fullCommand, { cwd });
+            const cmdArgs = [...args, ...buildArgs()];
+            const result = await execFileAsync(file, cmdArgs, { cwd });
             if (verbose && result.stdout) {
                 process.stderr.write(result.stdout);
             }
@@ -79,26 +78,26 @@ export async function hookCollate(options = {}) {
     const getTsuCommand = () => {
         try {
             execSync('which tsu', { stdio: 'pipe' });
-            return 'tsu';
+            return { file: 'tsu', args: [] };
         }
         catch {
             const cliPath = join(__dirname, '..', '..', 'cli.js');
-            return `node ${cliPath}`;
+            return { file: 'node', args: [cliPath] };
         }
     };
-    const tsu = getTsuCommand();
+    const tsuCmd = getTsuCommand();
     const hooks = [];
     if (runDartFormat) {
-        hooks.push(runHook('dart format check', `${tsu} hook format check`, dartFiles.length === 0));
+        hooks.push(runHook('dart format check', tsuCmd.file, [...tsuCmd.args, 'hook', 'format', 'check'], dartFiles.length === 0));
     }
     if (runDartAnalysis) {
-        hooks.push(runHook('dart analysis check', `${tsu} hook analysis check`, dartFiles.length === 0));
+        hooks.push(runHook('dart analysis check', tsuCmd.file, [...tsuCmd.args, 'hook', 'analysis', 'check'], dartFiles.length === 0));
     }
     if (runDcmAnalyze) {
-        hooks.push(runHook('DCM analyze check', `${tsu} hook dcm analyze check`, dartFiles.length === 0));
+        hooks.push(runHook('DCM analyze check', tsuCmd.file, [...tsuCmd.args, 'hook', 'dcm', 'analyze', 'check'], dartFiles.length === 0));
     }
     if (runGraphql) {
-        hooks.push(runHook('GraphQL check', `${tsu} hook graphql check`, graphqlFiles.length === 0));
+        hooks.push(runHook('GraphQL check', tsuCmd.file, [...tsuCmd.args, 'hook', 'graphql', 'check'], graphqlFiles.length === 0));
     }
     const results = await Promise.allSettled(hooks);
     const failures = [];
