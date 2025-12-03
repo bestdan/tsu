@@ -17,6 +17,15 @@ pnpm add -g github:bestdan/tsu
 yarn global add github:bestdan/tsu
 ```
 
+Or clone and build locally
+
+```sh
+git clone https://github.com/bestdan/tsu.git
+cd tsu
+pnpm install
+pnpm build
+```
+
 After building, link the package globally
 
 ```bash
@@ -33,31 +42,18 @@ tsu <namespace> <command> [options]
 ### Available Namespaces
 
 - **check** - System dependency checks ([documentation](docs/check.md))
+- **upgrade** - Check for newer versions ([documentation](docs/upgrade.md))
 - **git** - Git-related utilities ([documentation](docs/git.md))
 - **dart** - Dart/Flutter project utilities ([documentation](docs/dart.md))
 - **hook** - Git / Claude hook utilities for Dart ([documentation](docs/hook.md))
 - **files** - File filtering utilities ([documentation](docs/files.md))
 
-### HK Integration
-
-TSU provides seamless integration with [HK](https://github.com/jdx/hk), a high-performance git hook manager that runs hooks in parallel. See the [HK integration guide](docs/hk.md) for setup instructions and benefits.
-
-**Prerequisites:** Install TSU and HK first (see [HK docs](docs/hk.md) for details)
-
-Quick setup:
-
-```bash
-# Download and run the setup script
-curl -fsSL https://raw.githubusercontent.com/bestdan/tsu/main/scripts/setup-hk.sh | bash
-```
-
 ### Top-level Commands
 
-- **upgrade** - Upgrade tsutils to the latest version from GitHub ([documentation](docs/upgrade.md))
-
-### Quick Examples
-
 ```bash
+# Run all checks concurrently, collate results
+tsu hook format --verbose
+
 # Check and upgrade tsutils
 tsutils check version --verbose
 tsutils upgrade --verbose
@@ -92,7 +88,7 @@ All commands follow a **pipe-friendly** design:
 
 ## Requirements
 
-- **Node.js**: >=22.0.0
+- **Node.js**: >=20.0.0
 
 ### Developer
 
@@ -132,8 +128,6 @@ src/
 - [Release Management](docs/release.md) - Automated versioning and releases
 
 ## Security
-
-Security is a top priority for this project. We follow industry best practices to ensure the safety and integrity of our code and users.
 
 - **Security Policy**: See [SECURITY.md](SECURITY.md) for our security policy and how to report vulnerabilities
 - **Automated Scanning**: CodeQL security scanning runs on every PR and weekly
