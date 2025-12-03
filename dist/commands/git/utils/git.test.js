@@ -1020,6 +1020,7 @@ describe('getFilesToPush', () => {
                 stdio: 'pipe',
             });
             execSync('git push -u origin main', { cwd: tempDir, stdio: 'pipe' });
+            execSync('git checkout -b dev/feature', { cwd: tempDir, stdio: 'pipe' });
             writeFileSync(join(tempDir, 'file2.txt'), 'content2');
             execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
             execSync('git commit -m "add file2"', { cwd: tempDir, stdio: 'pipe' });
