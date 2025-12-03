@@ -1,5 +1,8 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 import { gitCheck } from './commands/git/check.js';
 import { gitRoot } from './commands/git/root.js';
 import { gitChanged } from './commands/git/changed.js';
@@ -26,9 +29,17 @@ import { checkExternals } from './commands/check/externals.js';
 import { checkVersion } from './commands/check/version.js';
 import { upgrade } from './commands/upgrade.js';
 
+// Read version from package.json
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const packageJson = JSON.parse(readFileSync(join(__dirname, '../package.json'), 'utf-8'));
+
 const program = new Command();
 
-program.name('tsutils').description('TypeScript command line utilities').version('0.1.0');
+program
+  .name('tsutils')
+  .description('TypeScript command line utilities')
+  .version(packageJson.version);
 
 // Check subcommand namespace
 const check = program.command('check').description('Check system dependencies and environment');
@@ -400,7 +411,7 @@ hook
   .option('--graphql', 'run GraphQL check')
   .option('-v, --verbose', 'show human-readable status messages (output to stderr)')
   .action(
-    (options: {
+    async (options: {
       staged?: boolean;
       unstaged?: boolean;
       all?: boolean;
@@ -411,7 +422,7 @@ hook
       graphql?: boolean;
       verbose?: boolean;
     }) => {
-      hookCollate(options);
+      await hookCollate(options);
     }
   );
 

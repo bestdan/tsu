@@ -43,64 +43,8 @@ Before submitting a pull request:
 
 Please see our [Security Policy](SECURITY.md) for instructions on how to report security issues privately.
 
-## Git Hooks (Lefthook)
 
-This project uses [Lefthook](https://github.com/evilmartians/lefthook) to manage git hooks. After running `pnpm install`, the hooks will be automatically installed.
-
-**Pre-push Hook:**
-Before you push to the repository, the pre-push hook will automatically run:
-
-- **Lint** - Check only changed TypeScript files for linting errors using `pnpm eslint`
-- **Typecheck** - Verify TypeScript types only if TypeScript files changed using `pnpm typecheck`
-- **Build** - Ensure the project builds successfully using `pnpm build`
-
-These commands run in parallel to save time. If any of these checks fail, the push will be prevented.
-
-To run in verbose mode, with dry-run
-
-```bash
-LEFTHOOK_VERBOSE=1 git push --dry-run
-```
-
-To bypass the hook in case of emergency (not recommended):
-
-```bash
-git push --no-verify
-```
-
-### Customizing Hooks Locally
-
-You can skip specific checks by creating a `.lefthook-local.yml` file in the project root (this file is gitignored):
-
-**Skip the build check:**
-
-```yaml
-# .lefthook-local.yml
-pre-push:
-  commands:
-    build:
-      skip: true
-```
-
-**Skip multiple checks:**
-
-```yaml
-# .lefthook-local.yml
-pre-push:
-  commands:
-    build:
-      skip: true
-    typecheck:
-      skip: true
-```
-
-**Enable verbose output:**
-
-```bash
-LEFTHOOK_VERBOSE=1 git push
-```
-
-Standard Typescript package commands:
+## Standard Typescript package commands:
 
 ```bash
 # Build the project
@@ -160,11 +104,4 @@ This project enforces test coverage for all code. Coverage checks are:
 - **Enforced in CI**: The GitHub Actions workflow includes a coverage job that will fail if coverage drops below the threshold
 - **Coverage reports**: Generated in text, JSON, and HTML formats in the `coverage/` directory
 
-Coverage thresholds are configured in `vitest.config.ts` and currently require:
-
-- Statements: 77%
-- Branches: 65%
-- Functions: 77%
-- Lines: 77%
-
-The thresholds will be gradually increased as test coverage improves.
+Coverage thresholds are configured in `vitest.config.ts` 

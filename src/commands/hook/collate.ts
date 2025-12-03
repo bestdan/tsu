@@ -1,4 +1,5 @@
-import { execSync } from 'node:child_process';
+import { execSync, execFile, ExecException } from 'node:child_process';
+import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { isGitRepo, getAllChangedFiles } from '../git/utils/git.js';
@@ -7,6 +8,8 @@ import { ensureCondition } from '../../utils/command-helpers.js';
 import { logIfVerbose } from '../../utils/logger.js';
 import type { ChangedFilesOptions } from '../../types/command-options.js';
 import { setVerbose } from '../../utils/verbose-state.js';
+
+const execFileAsync = promisify(execFile);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -23,16 +26,16 @@ export interface HookCollateOptions extends ChangedFilesOptions {
 }
 
 /**
- * Runs multiple hook checks and tracks if any fail.
+ * Runs multiple hook checks concurrently and tracks if any fail.
  * Exits with code 1 if any check fails, 0 if all pass.
  *
  * Steps:
  * 1. Determines which hooks to run based on flags (default: all)
- * 2. Runs each selected hook check by spawning subprocess
+ * 2. Runs each selected hook check concurrently using Promise.allSettled
  * 3. Tracks failures and continues running remaining checks
  * 4. Exits with appropriate code (1 if any failed, 0 if all passed)
  */
-export function hookCollate(options: HookCollateOptions = {}): void {
+export async function hookCollate(options: HookCollateOptions = {}): Promise<void> {
   const verbose = options.verbose || false;
 
   // Set global verbose state for downstream functions
@@ -66,8 +69,6 @@ export function hookCollate(options: HookCollateOptions = {}): void {
   const runDcmAnalyze = runAll || options.dcmAnalyze;
   const runGraphql = runAll || options.graphql;
 
-  const failures: string[] = [];
-
   // Build base command arguments for changed file options
   const buildArgs = (): string[] => {
     const args: string[] = [];
@@ -79,65 +80,131 @@ export function hookCollate(options: HookCollateOptions = {}): void {
     return args;
   };
 
-  // Helper to run a hook command and track failures
-  const runHook = (name: string, command: string, skipCondition?: boolean): void => {
+  // Helper to run a hook command asynchronously
+  const runHook = async (
+    name: string,
+    file: string,
+    args: string[],
+    skipCondition?: boolean
+  ): Promise<{ name: string; passed: boolean }> => {
     if (skipCondition) {
       logIfVerbose(verbose, `⏭️  Skipping ${name} (no relevant files)`);
-      return;
+      return { name, passed: true };
     }
 
     /* v8 ignore next -- @preserve */
     try {
       logIfVerbose(verbose, `\n▶️  Running ${name}...`);
-      const args = buildArgs();
-      const fullCommand = args.length > 0 ? `${command} ${args.join(' ')}` : command;
+      const cmdArgs = [...args, ...buildArgs()];
 
-      execSync(fullCommand, {
-        cwd,
-        stdio: verbose ? 'inherit' : 'pipe',
-      });
+      const result = await execFileAsync(file, cmdArgs, { cwd });
+
+      // In verbose mode, output the command results
+      if (verbose && result.stdout) {
+        process.stderr.write(result.stdout);
+      }
+      if (verbose && result.stderr) {
+        process.stderr.write(result.stderr);
+      }
+
       logIfVerbose(verbose, `✓ ${name} passed`);
-    } catch {
-      failures.push(name);
+      return { name, passed: true };
+    } catch (error) {
+      // In verbose mode, show error output
+      if (verbose && error && typeof error === 'object') {
+        const execError = error as ExecException & { stdout?: string; stderr?: string };
+        if (execError.stdout) {
+          process.stderr.write(execError.stdout);
+        }
+        if (execError.stderr) {
+          process.stderr.write(execError.stderr);
+        }
+      }
       logIfVerbose(verbose, `✗ ${name} failed`);
+      return { name, passed: false };
     }
   };
 
   // Find the tsu binary path (either from node_modules or global)
-  const getTsuCommand = (): string => {
+  const getTsuCommand = (): { file: string; args: string[] } => {
     // Try to use the built version from this package first
     try {
       execSync('which tsu', { stdio: 'pipe' });
-      return 'tsu';
+      return { file: 'tsu', args: [] };
     } catch {
       // Fallback to node execution of the built CLI using absolute path
       // __dirname is the dist/commands/hook directory, so we need to go up to dist
       const cliPath = join(__dirname, '..', '..', 'cli.js');
-      return `node ${cliPath}`;
+      return { file: 'node', args: [cliPath] };
     }
   };
 
-  const tsu = getTsuCommand();
+  const tsuCmd = getTsuCommand();
 
-  // Run dart format check
+  // Collect all hooks to run
+  const hooks: Promise<{ name: string; passed: boolean }>[] = [];
+
   if (runDartFormat) {
-    runHook('dart format check', `${tsu} hook format check`, dartFiles.length === 0);
+    hooks.push(
+      runHook(
+        'dart format check',
+        tsuCmd.file,
+        [...tsuCmd.args, 'hook', 'format', 'check'],
+        dartFiles.length === 0
+      )
+    );
   }
 
-  // Run dart analysis check
   if (runDartAnalysis) {
-    runHook('dart analysis check', `${tsu} hook analysis check`, dartFiles.length === 0);
+    hooks.push(
+      runHook(
+        'dart analysis check',
+        tsuCmd.file,
+        [...tsuCmd.args, 'hook', 'analysis', 'check'],
+        dartFiles.length === 0
+      )
+    );
   }
 
-  // Run DCM analyze check
   if (runDcmAnalyze) {
-    runHook('DCM analyze check', `${tsu} hook dcm analyze check`, dartFiles.length === 0);
+    hooks.push(
+      runHook(
+        'DCM analyze check',
+        tsuCmd.file,
+        [...tsuCmd.args, 'hook', 'dcm', 'analyze', 'check'],
+        dartFiles.length === 0
+      )
+    );
   }
 
-  // Run GraphQL check
   if (runGraphql) {
-    runHook('GraphQL check', `${tsu} hook graphql check`, graphqlFiles.length === 0);
+    hooks.push(
+      runHook(
+        'GraphQL check',
+        tsuCmd.file,
+        [...tsuCmd.args, 'hook', 'graphql', 'check'],
+        graphqlFiles.length === 0
+      )
+    );
   }
+
+  // Run all hooks concurrently
+  const results = await Promise.allSettled(hooks);
+
+  // Extract failures from results
+  const failures: string[] = [];
+  results.forEach((result, index) => {
+    if (result.status === 'fulfilled' && !result.value.passed) {
+      // Hook completed but failed
+      failures.push(result.value.name);
+    } else if (result.status === 'rejected') {
+      // Hook promise was rejected (unexpected error - should be very rare)
+      const errorMsg =
+        result.reason instanceof Error ? result.reason.message : String(result.reason);
+      failures.push(`Hook execution error: ${errorMsg}`);
+      logIfVerbose(verbose, `✗ Unexpected error in hook ${index + 1}: ${errorMsg}`);
+    }
+  });
 
   // Report results
   if (failures.length > 0) {

@@ -37,7 +37,7 @@
     "commander": "^14.0.2"
   },
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=20.19.5"
   },
   "packageManager": "pnpm@9.0.0",
   "devDependencies": {

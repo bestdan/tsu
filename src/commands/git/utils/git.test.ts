@@ -1212,6 +1212,9 @@ describe('getFilesToPush', () => {
       });
       execSync('git push -u origin main', { cwd: tempDir, stdio: 'pipe' });
 
+      // check out feature branch
+      execSync('git checkout -b dev/feature', { cwd: tempDir, stdio: 'pipe' });
+
       // Create new commit that hasn't been pushed
       writeFileSync(join(tempDir, 'file2.txt'), 'content2');
       execSync('git add .', { cwd: tempDir, stdio: 'pipe' });

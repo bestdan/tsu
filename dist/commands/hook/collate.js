@@ -1,4 +1,5 @@
-import { execSync } from 'node:child_process';
+import { execSync, execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { isGitRepo, getAllChangedFiles } from '../git/utils/git.js';
@@ -6,9 +7,10 @@ import { isDartPackage } from '../dart/utils/dart.js';
 import { ensureCondition } from '../../utils/command-helpers.js';
 import { logIfVerbose } from '../../utils/logger.js';
 import { setVerbose } from '../../utils/verbose-state.js';
+const execFileAsync = promisify(execFile);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-export function hookCollate(options = {}) {
+export async function hookCollate(options = {}) {
     const verbose = options.verbose || false;
     setVerbose(verbose);
     logIfVerbose(verbose, '📋 Running pre-push checks...');
@@ -27,7 +29,6 @@ export function hookCollate(options = {}) {
     const runDartAnalysis = runAll || options.dartAnalysis;
     const runDcmAnalyze = runAll || options.dcmAnalyze;
     const runGraphql = runAll || options.graphql;
-    const failures = [];
     const buildArgs = () => {
         const args = [];
         if (options.staged)
@@ -42,49 +43,74 @@ export function hookCollate(options = {}) {
             args.push('--verbose');
         return args;
     };
-    const runHook = (name, command, skipCondition) => {
+    const runHook = async (name, file, args, skipCondition) => {
         if (skipCondition) {
             logIfVerbose(verbose, `⏭️  Skipping ${name} (no relevant files)`);
-            return;
+            return { name, passed: true };
         }
         try {
             logIfVerbose(verbose, `\n▶️  Running ${name}...`);
-            const args = buildArgs();
-            const fullCommand = args.length > 0 ? `${command} ${args.join(' ')}` : command;
-            execSync(fullCommand, {
-                cwd,
-                stdio: verbose ? 'inherit' : 'pipe',
-            });
+            const cmdArgs = [...args, ...buildArgs()];
+            const result = await execFileAsync(file, cmdArgs, { cwd });
+            if (verbose && result.stdout) {
+                process.stderr.write(result.stdout);
+            }
+            if (verbose && result.stderr) {
+                process.stderr.write(result.stderr);
+            }
             logIfVerbose(verbose, `✓ ${name} passed`);
+            return { name, passed: true };
         }
-        catch {
-            failures.push(name);
+        catch (error) {
+            if (verbose && error && typeof error === 'object') {
+                const execError = error;
+                if (execError.stdout) {
+                    process.stderr.write(execError.stdout);
+                }
+                if (execError.stderr) {
+                    process.stderr.write(execError.stderr);
+                }
+            }
             logIfVerbose(verbose, `✗ ${name} failed`);
+            return { name, passed: false };
         }
     };
     const getTsuCommand = () => {
         try {
             execSync('which tsu', { stdio: 'pipe' });
-            return 'tsu';
+            return { file: 'tsu', args: [] };
         }
         catch {
             const cliPath = join(__dirname, '..', '..', 'cli.js');
-            return `node ${cliPath}`;
+            return { file: 'node', args: [cliPath] };
         }
     };
-    const tsu = getTsuCommand();
+    const tsuCmd = getTsuCommand();
+    const hooks = [];
     if (runDartFormat) {
-        runHook('dart format check', `${tsu} hook format check`, dartFiles.length === 0);
+        hooks.push(runHook('dart format check', tsuCmd.file, [...tsuCmd.args, 'hook', 'format', 'check'], dartFiles.length === 0));
     }
     if (runDartAnalysis) {
-        runHook('dart analysis check', `${tsu} hook analysis check`, dartFiles.length === 0);
+        hooks.push(runHook('dart analysis check', tsuCmd.file, [...tsuCmd.args, 'hook', 'analysis', 'check'], dartFiles.length === 0));
     }
     if (runDcmAnalyze) {
-        runHook('DCM analyze check', `${tsu} hook dcm analyze check`, dartFiles.length === 0);
+        hooks.push(runHook('DCM analyze check', tsuCmd.file, [...tsuCmd.args, 'hook', 'dcm', 'analyze', 'check'], dartFiles.length === 0));
     }
     if (runGraphql) {
-        runHook('GraphQL check', `${tsu} hook graphql check`, graphqlFiles.length === 0);
+        hooks.push(runHook('GraphQL check', tsuCmd.file, [...tsuCmd.args, 'hook', 'graphql', 'check'], graphqlFiles.length === 0));
     }
+    const results = await Promise.allSettled(hooks);
+    const failures = [];
+    results.forEach((result, index) => {
+        if (result.status === 'fulfilled' && !result.value.passed) {
+            failures.push(result.value.name);
+        }
+        else if (result.status === 'rejected') {
+            const errorMsg = result.reason instanceof Error ? result.reason.message : String(result.reason);
+            failures.push(`Hook execution error: ${errorMsg}`);
+            logIfVerbose(verbose, `✗ Unexpected error in hook ${index + 1}: ${errorMsg}`);
+        }
+    });
     if (failures.length > 0) {
         console.error('');
         console.error('❌ One or more checks failed:');
