@@ -36,7 +36,10 @@ const packageJson = JSON.parse(readFileSync(join(__dirname, '../package.json'), 
 
 const program = new Command();
 
-program.name('tsutils').description('TypeScript command line utilities').version(packageJson.version);
+program
+  .name('tsutils')
+  .description('TypeScript command line utilities')
+  .version(packageJson.version);
 
 // Check subcommand namespace
 const check = program.command('check').description('Check system dependencies and environment');
