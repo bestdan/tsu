@@ -7,3 +7,5 @@ nodenv local 20.19.5
 
 pnpm install
 pnpm build
+
+pnpm link --global

@@ -4,39 +4,39 @@ TypeScript command line utilities package.
 
 ## Installation
 
-For straight usage:
-
-```bash
-# Using npm:
-npm install -g github:bestdan/tsu
-
-# Using pnpm:
-pnpm add -g github:bestdan/tsu
-
-# Using yarn:
-yarn global add github:bestdan/tsu
-```
-
-Or clone and build locally
+Clone and biuld
 
 ```sh
 git clone https://github.com/bestdan/tsu.git
 cd tsu
-pnpm install
-pnpm build
-```
-
-After building, link the package globally
-
-```bash
-pnpm link --global
+chmod +x script/setup.sh
+sh script/setup.sh
 ```
 
 ## Usage
 
-```bash
-tsutils <namespace> <command> [options]
+```sh
 tsu <namespace> <command> [options]
+```
+
+## Git hook
+
+To use tsu to check your dart changes before pushing, create a `pre-push` hook in your `.git/hooks` directory:
+
+```sh
+cd ~/src/mobile
+cat > .git/hooks/pre-push << 'EOF'
+#!/bin/bash
+
+# Enable pipefail so pipe failures are captured properly
+set -o pipefail
+
+echo "📋 Running pre-push tsu checks"
+tsu hook collate
+# tsu hook collate --verbose # If you want verbose output
+EOF
+
+chmod +x .git/hooks/pre-push
 ```
 
 ### Available Namespaces
