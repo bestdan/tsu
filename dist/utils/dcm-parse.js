@@ -4,11 +4,19 @@ import { findDartPackageRoot } from '../commands/dart/utils/dart.js';
 import { logIfVerbose } from './logger.js';
 import { isVerbose } from './verbose-state.js';
 export function isDcmVersionWarning(output) {
-    return /Installed DCM version \([^)]+\) does not match the configured constraint/.test(output);
+    return /Installed DCM version \([\d.]+\) does not match the configured constraint [\d.]+/.test(output);
+}
+export function isOnlyDcmVersionWarning(output) {
+    if (!output || output.trim().length === 0) {
+        return false;
+    }
+    const trimmedOutput = output.trim();
+    const versionWarningPattern = /^Installed DCM version \([\d.]+\) does not match the configured constraint [\d.]+\.?$/;
+    return versionWarningPattern.test(trimmedOutput);
 }
 export function handleDcmVersionWarning(output) {
     if (isDcmVersionWarning(output)) {
-        const match = output.match(/Installed DCM version \([^)]+\) does not match the configured constraint[^\n]*/);
+        const match = output.match(/Installed DCM version \([\d.]+\) does not match the configured constraint [\d.]+\.?/);
         if (match) {
             logIfVerbose(isVerbose(), `⚠️  DCM Warning: ${match[0]}`);
         }
@@ -52,7 +60,7 @@ function processDcmError(error, packageRoot, timeout) {
             filesWithIssues,
         };
     }
-    if (stderr.length > 0 && isDcmVersionWarning(stderr)) {
+    if (stderr.length > 0 && isOnlyDcmVersionWarning(stderr)) {
         return {
             success: true,
             output: stderr,

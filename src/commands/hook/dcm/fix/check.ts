@@ -9,7 +9,7 @@ import {
   displayFileList,
 } from '../../../../utils/command-helpers.js';
 import { logIfVerbose } from '../../../../utils/logger.js';
-import { handleDcmVersionWarning, isDcmVersionWarning } from '../../../../utils/dcm-parse.js';
+import { handleDcmVersionWarning, isOnlyDcmVersionWarning } from '../../../../utils/dcm-parse.js';
 import type { ChangedFilesOptions } from '../../../../types/command-options.js';
 import { setVerbose } from '../../../../utils/verbose-state.js';
 
@@ -92,8 +92,8 @@ export function dartHookDcmCheck(options: DartHookDcmCheckOptions = {}): void {
     handleDcmVersionWarning(stderr);
     handleDcmVersionWarning(stdout);
 
-    // If stderr only contains version warning, don't fail
-    if (stderr.length > 0 && isDcmVersionWarning(stderr) && stdout.length === 0) {
+    // If stderr contains ONLY a version warning (and stdout is empty), don't fail
+    if (stderr.length > 0 && isOnlyDcmVersionWarning(stderr) && stdout.length === 0) {
       // Version warning only - continue
     } else {
       // Real error

@@ -39,7 +39,28 @@ interface DcmAnalyzeOutput {
  * @returns true if a version warning is detected
  */
 export function isDcmVersionWarning(output: string): boolean {
-  return /Installed DCM version \([^)]+\) does not match the configured constraint/.test(output);
+  return /Installed DCM version \([\d.]+\) does not match the configured constraint [\d.]+/.test(
+    output
+  );
+}
+
+/**
+ * Checks if the output contains ONLY a DCM version mismatch warning.
+ * This is used to determine if an error should be ignored.
+ * @param output - The output to check
+ * @returns true if the output contains only a version warning (and whitespace)
+ */
+export function isOnlyDcmVersionWarning(output: string): boolean {
+  if (!output || output.trim().length === 0) {
+    return false;
+  }
+
+  const trimmedOutput = output.trim();
+  // Check if the entire output is just the version warning (possibly with whitespace)
+  const versionWarningPattern =
+    /^Installed DCM version \([\d.]+\) does not match the configured constraint [\d.]+\.?$/;
+
+  return versionWarningPattern.test(trimmedOutput);
 }
 
 /**
@@ -50,7 +71,7 @@ export function isDcmVersionWarning(output: string): boolean {
 export function handleDcmVersionWarning(output: string): void {
   if (isDcmVersionWarning(output)) {
     const match = output.match(
-      /Installed DCM version \([^)]+\) does not match the configured constraint[^\n]*/
+      /Installed DCM version \([\d.]+\) does not match the configured constraint [\d.]+\.?/
     );
     if (match) {
       logIfVerbose(isVerbose(), `⚠️  DCM Warning: ${match[0]}`);
@@ -145,8 +166,8 @@ function processDcmError(error: unknown, packageRoot: string, timeout: number): 
     };
   }
 
-  // Check if stderr only contains version warning (not a real error)
-  if (stderr.length > 0 && isDcmVersionWarning(stderr)) {
+  // Check if stderr contains ONLY a version warning (not a real error)
+  if (stderr.length > 0 && isOnlyDcmVersionWarning(stderr)) {
     // Version warning only - not a failure
     return {
       success: true,
@@ -155,7 +176,7 @@ function processDcmError(error: unknown, packageRoot: string, timeout: number): 
     };
   }
 
-  // DCM failed to run properly - no output
+  // DCM failed to run properly - no output or real errors
   const errorMsg = stderr.length > 0 ? stderr : 'No output from DCM';
   throw new Error(`DCM analyze failed in ${packageRoot}: ${errorMsg}`);
 }
