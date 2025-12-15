@@ -352,13 +352,13 @@ describe('dcmAnalyze', () => {
 
 describe('isDcmVersionWarning', () => {
   it('should detect DCM version mismatch warning', () => {
-    const warning = 'Installed DCM version (1.34.0) does not match the configured constraint 1.33.3';
+    const warning =
+      'Installed DCM version (1.34.0) does not match the configured constraint 1.33.3';
     expect(isDcmVersionWarning(warning)).toBe(true);
   });
 
   it('should detect version warning with different versions', () => {
-    const warning =
-      'Installed DCM version (2.0.0) does not match the configured constraint 1.99.9';
+    const warning = 'Installed DCM version (2.0.0) does not match the configured constraint 1.99.9';
     expect(isDcmVersionWarning(warning)).toBe(true);
   });
 
@@ -390,7 +390,8 @@ describe('handleDcmVersionWarning', () => {
   });
 
   it('should not throw on version warning output', () => {
-    const warning = 'Installed DCM version (1.34.0) does not match the configured constraint 1.33.3';
+    const warning =
+      'Installed DCM version (1.34.0) does not match the configured constraint 1.33.3';
     expect(() => handleDcmVersionWarning(warning)).not.toThrow();
   });
 });
@@ -400,7 +401,8 @@ describe('dcmAnalyze with version warnings', () => {
     const mockRunner = () => {
       const error: any = new Error('Version warning');
       error.stdout = '';
-      error.stderr = 'Installed DCM version (1.34.0) does not match the configured constraint 1.33.3';
+      error.stderr =
+        'Installed DCM version (1.34.0) does not match the configured constraint 1.33.3';
       throw error;
     };
 
@@ -411,7 +413,8 @@ describe('dcmAnalyze with version warnings', () => {
   });
 
   it('should succeed when version warning is mixed with successful JSON output', () => {
-    const mockOutput = 'Installed DCM version (1.34.0) does not match the configured constraint 1.33.3\n' +
+    const mockOutput =
+      'Installed DCM version (1.34.0) does not match the configured constraint 1.33.3\n' +
       JSON.stringify({
         formatVersion: 11,
         timestamp: '2025-11-04 14:46:10.000',
@@ -428,7 +431,8 @@ describe('dcmAnalyze with version warnings', () => {
   });
 
   it('should fail when version warning is mixed with actual issues', () => {
-    const mockOutput = 'Installed DCM version (1.34.0) does not match the configured constraint 1.33.3\n' +
+    const mockOutput =
+      'Installed DCM version (1.34.0) does not match the configured constraint 1.33.3\n' +
       JSON.stringify({
         formatVersion: 11,
         timestamp: '2025-11-04 14:46:10.000',
@@ -449,4 +453,3 @@ describe('dcmAnalyze with version warnings', () => {
     expect(result.filesWithIssues).toEqual(['lib/file.dart']);
   });
 });
-

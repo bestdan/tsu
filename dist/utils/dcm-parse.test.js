@@ -310,7 +310,8 @@ describe('dcmAnalyze with version warnings', () => {
         const mockRunner = () => {
             const error = new Error('Version warning');
             error.stdout = '';
-            error.stderr = 'Installed DCM version (1.34.0) does not match the configured constraint 1.33.3';
+            error.stderr =
+                'Installed DCM version (1.34.0) does not match the configured constraint 1.33.3';
             throw error;
         };
         const result = dcmAnalyze({ cwd: '/test' }, mockRunner);
