@@ -61,9 +61,8 @@ export function isOnlyDcmVersionWarning(output: string): boolean {
   }
 
   const trimmedOutput = output.trim();
-  // Use the same pattern but anchored to match the entire string
-  const exactPattern =
-    /^Installed\s+DCM\s+version\s+\([\d.]+\)\s+does\s+not\s+match\s+the\s+configured\s+constraint\s+[\d.]+\.?$/;
+  // Create an anchored version of the pattern to match the entire string
+  const exactPattern = new RegExp(`^${DCM_VERSION_WARNING_PATTERN.source}$`);
 
   return exactPattern.test(trimmedOutput);
 }

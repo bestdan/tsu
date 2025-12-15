@@ -11,7 +11,7 @@ export function isOnlyDcmVersionWarning(output) {
         return false;
     }
     const trimmedOutput = output.trim();
-    const exactPattern = /^Installed\s+DCM\s+version\s+\([\d.]+\)\s+does\s+not\s+match\s+the\s+configured\s+constraint\s+[\d.]+\.?$/;
+    const exactPattern = new RegExp(`^${DCM_VERSION_WARNING_PATTERN.source}$`);
     return exactPattern.test(trimmedOutput);
 }
 export function handleDcmVersionWarning(output) {
