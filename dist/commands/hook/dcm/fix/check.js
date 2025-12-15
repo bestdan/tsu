@@ -43,9 +43,8 @@ export function dartHookDcmCheck(options = {}) {
         const stderr = err.stderr?.toString() || '';
         handleDcmVersionWarning(stderr);
         handleDcmVersionWarning(stdout);
-        if (stderr.length > 0 && isOnlyDcmVersionWarning(stderr) && stdout.length === 0) {
-        }
-        else {
+        const isOnlyVersionWarning = stderr.length > 0 && isOnlyDcmVersionWarning(stderr) && stdout.length === 0;
+        if (!isOnlyVersionWarning) {
             console.error('Error: Failed to run dcm fix');
             if (error instanceof Error) {
                 console.error(error.message);

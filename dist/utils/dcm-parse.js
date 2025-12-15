@@ -2,20 +2,21 @@ import { execSync } from 'node:child_process';
 import { resolve, dirname } from 'node:path';
 import { findDartPackageRoot } from '../commands/dart/utils/dart.js';
 import { logIfVerbose } from './logger.js';
+const DCM_VERSION_WARNING_PATTERN = /Installed\s+DCM\s+version\s+\([\d.]+\)\s+does\s+not\s+match\s+the\s+configured\s+constraint\s+[\d.]+\.?/;
 export function isDcmVersionWarning(output) {
-    return /Installed DCM version \([\d.]+\) does not match the configured constraint [\d.]+/.test(output);
+    return DCM_VERSION_WARNING_PATTERN.test(output);
 }
 export function isOnlyDcmVersionWarning(output) {
     if (!output || output.trim().length === 0) {
         return false;
     }
     const trimmedOutput = output.trim();
-    const versionWarningPattern = /^Installed DCM version \([\d.]+\) does not match the configured constraint [\d.]+\.?$/;
-    return versionWarningPattern.test(trimmedOutput);
+    const exactPattern = /^Installed\s+DCM\s+version\s+\([\d.]+\)\s+does\s+not\s+match\s+the\s+configured\s+constraint\s+[\d.]+\.?$/;
+    return exactPattern.test(trimmedOutput);
 }
 export function handleDcmVersionWarning(output) {
     if (isDcmVersionWarning(output)) {
-        const match = output.match(/Installed DCM version \([\d.]+\) does not match the configured constraint [\d.]+\.?/);
+        const match = output.match(DCM_VERSION_WARNING_PATTERN);
         if (match) {
             logIfVerbose(undefined, `⚠️  DCM Warning: ${match[0]}`);
         }

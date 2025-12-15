@@ -32,15 +32,21 @@ interface DcmAnalyzeOutput {
 }
 
 /**
+ * Regular expression pattern for DCM version mismatch warnings.
+ * Matches: "Installed DCM version (X.Y.Z) does not match the configured constraint A.B.C"
+ * Allows for optional whitespace and trailing period.
+ */
+const DCM_VERSION_WARNING_PATTERN =
+  /Installed\s+DCM\s+version\s+\([\d.]+\)\s+does\s+not\s+match\s+the\s+configured\s+constraint\s+[\d.]+\.?/;
+
+/**
  * Detects if the output contains a DCM version mismatch warning.
  * The warning format is: "Installed DCM version (X.X.X) does not match the configured constraint Y.Y.Y"
  * @param output - The output to check
  * @returns true if a version warning is detected
  */
 export function isDcmVersionWarning(output: string): boolean {
-  return /Installed DCM version \([\d.]+\) does not match the configured constraint [\d.]+/.test(
-    output
-  );
+  return DCM_VERSION_WARNING_PATTERN.test(output);
 }
 
 /**
@@ -55,11 +61,11 @@ export function isOnlyDcmVersionWarning(output: string): boolean {
   }
 
   const trimmedOutput = output.trim();
-  // Check if the entire output is just the version warning (possibly with whitespace)
-  const versionWarningPattern =
-    /^Installed DCM version \([\d.]+\) does not match the configured constraint [\d.]+\.?$/;
+  // Use the same pattern but anchored to match the entire string
+  const exactPattern =
+    /^Installed\s+DCM\s+version\s+\([\d.]+\)\s+does\s+not\s+match\s+the\s+configured\s+constraint\s+[\d.]+\.?$/;
 
-  return versionWarningPattern.test(trimmedOutput);
+  return exactPattern.test(trimmedOutput);
 }
 
 /**
@@ -69,9 +75,7 @@ export function isOnlyDcmVersionWarning(output: string): boolean {
  */
 export function handleDcmVersionWarning(output: string): void {
   if (isDcmVersionWarning(output)) {
-    const match = output.match(
-      /Installed DCM version \([\d.]+\) does not match the configured constraint [\d.]+\.?/
-    );
+    const match = output.match(DCM_VERSION_WARNING_PATTERN);
     if (match) {
       logIfVerbose(undefined, `⚠️  DCM Warning: ${match[0]}`);
     }

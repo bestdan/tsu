@@ -92,17 +92,19 @@ export function dartHookDcmCheck(options: DartHookDcmCheckOptions = {}): void {
     handleDcmVersionWarning(stderr);
     handleDcmVersionWarning(stdout);
 
-    // If stderr contains ONLY a version warning (and stdout is empty), don't fail
-    if (stderr.length > 0 && isOnlyDcmVersionWarning(stderr) && stdout.length === 0) {
-      // Version warning only - continue
-    } else {
-      // Real error
+    // If stderr contains ONLY a version warning (and stdout is empty), continue execution
+    const isOnlyVersionWarning =
+      stderr.length > 0 && isOnlyDcmVersionWarning(stderr) && stdout.length === 0;
+
+    if (!isOnlyVersionWarning) {
+      // Real error - fail the check
       console.error('Error: Failed to run dcm fix');
       if (error instanceof Error) {
         console.error(error.message);
       }
       process.exit(1);
     }
+    // Version warning only - continue to next step
   }
 
   // Check if DCM fixes created changes in the files we fixed
