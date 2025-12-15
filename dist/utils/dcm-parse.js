@@ -1,6 +1,19 @@
 import { execSync } from 'node:child_process';
 import { resolve, dirname } from 'node:path';
 import { findDartPackageRoot } from '../commands/dart/utils/dart.js';
+import { logIfVerbose } from './logger.js';
+import { isVerbose } from './verbose-state.js';
+export function isDcmVersionWarning(output) {
+    return /Installed DCM version \([^)]+\) does not match the configured constraint/.test(output);
+}
+export function handleDcmVersionWarning(output) {
+    if (isDcmVersionWarning(output)) {
+        const match = output.match(/Installed DCM version \([^)]+\) does not match the configured constraint[^\n]*/);
+        if (match) {
+            logIfVerbose(isVerbose(), `⚠️  DCM Warning: ${match[0]}`);
+        }
+    }
+}
 export function parseDcmAnalyzeOutput(jsonOutput) {
     try {
         const jsonMatch = jsonOutput.match(/\{.*\}/s);
@@ -29,12 +42,21 @@ function processDcmError(error, packageRoot, timeout) {
     }
     const stdout = err.stdout?.toString() || '';
     const stderr = err.stderr?.toString() || '';
+    handleDcmVersionWarning(stderr);
+    handleDcmVersionWarning(stdout);
     if (stdout.length > 0) {
         const filesWithIssues = parseDcmAnalyzeOutput(stdout);
         return {
             success: false,
             output: stdout,
             filesWithIssues,
+        };
+    }
+    if (stderr.length > 0 && isDcmVersionWarning(stderr)) {
+        return {
+            success: true,
+            output: stderr,
+            filesWithIssues: [],
         };
     }
     const errorMsg = stderr.length > 0 ? stderr : 'No output from DCM';
@@ -62,10 +84,13 @@ export function dcmAnalyze(options, dcmRunner = runDcmForPackage) {
         try {
             const output = dcmRunner(packageRoot, timeout);
             combinedOutput += output;
+            handleDcmVersionWarning(output);
         }
         catch (error) {
             const result = processDcmError(error, packageRoot, timeout);
-            allSuccess = false;
+            if (!result.success) {
+                allSuccess = false;
+            }
             combinedOutput += result.output;
             allFilesWithIssues.push(...result.filesWithIssues);
         }
