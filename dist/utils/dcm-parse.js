@@ -2,7 +2,6 @@ import { execSync } from 'node:child_process';
 import { resolve, dirname } from 'node:path';
 import { findDartPackageRoot } from '../commands/dart/utils/dart.js';
 import { logIfVerbose } from './logger.js';
-import { isVerbose } from './verbose-state.js';
 export function isDcmVersionWarning(output) {
     return /Installed DCM version \([\d.]+\) does not match the configured constraint [\d.]+/.test(output);
 }
@@ -18,7 +17,7 @@ export function handleDcmVersionWarning(output) {
     if (isDcmVersionWarning(output)) {
         const match = output.match(/Installed DCM version \([\d.]+\) does not match the configured constraint [\d.]+\.?/);
         if (match) {
-            logIfVerbose(isVerbose(), `⚠️  DCM Warning: ${match[0]}`);
+            logIfVerbose(undefined, `⚠️  DCM Warning: ${match[0]}`);
         }
     }
 }
