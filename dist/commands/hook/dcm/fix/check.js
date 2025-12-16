@@ -5,6 +5,7 @@ import { filterFilesBySuffix } from '../../../files/utils/files.js';
 import { escapeShellArg } from '../../../../utils/shell.js';
 import { ensureCondition, ensureDCMInstalled, displayFileList, } from '../../../../utils/command-helpers.js';
 import { logIfVerbose } from '../../../../utils/logger.js';
+import { handleDcmVersionWarning, isOnlyDcmVersionWarning } from '../../../../utils/dcm-parse.js';
 import { setVerbose } from '../../../../utils/verbose-state.js';
 export function dartHookDcmCheck(options = {}) {
     const verbose = options.verbose || false;
@@ -29,17 +30,27 @@ export function dartHookDcmCheck(options = {}) {
     });
     try {
         const fileArgs = modifiedFiles.map(escapeShellArg).join(' ');
-        execSync(`dcm fix ${fileArgs}`, {
+        const output = execSync(`dcm fix ${fileArgs}`, {
             cwd,
             stdio: 'pipe',
+            encoding: 'utf-8',
         });
+        handleDcmVersionWarning(output);
     }
     catch (error) {
-        console.error('Error: Failed to run dcm fix');
-        if (error instanceof Error) {
-            console.error(error.message);
+        const err = error;
+        const stdout = err.stdout?.toString() || '';
+        const stderr = err.stderr?.toString() || '';
+        handleDcmVersionWarning(stderr);
+        handleDcmVersionWarning(stdout);
+        const isOnlyVersionWarning = stderr.length > 0 && isOnlyDcmVersionWarning(stderr) && stdout.length === 0;
+        if (!isOnlyVersionWarning) {
+            console.error('Error: Failed to run dcm fix');
+            if (error instanceof Error) {
+                console.error(error.message);
+            }
+            process.exit(1);
         }
-        process.exit(1);
     }
     const filesWithChanges = modifiedFiles.filter((file) => hasUnstagedChanges(file, cwd));
     if (filesWithChanges.length > 0) {

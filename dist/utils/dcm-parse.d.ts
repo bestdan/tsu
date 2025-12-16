@@ -1,3 +1,6 @@
+export declare function isDcmVersionWarning(output: string): boolean;
+export declare function isOnlyDcmVersionWarning(output: string): boolean;
+export declare function handleDcmVersionWarning(output: string): void;
 export declare function parseDcmAnalyzeOutput(jsonOutput: string): string[];
 export interface CallAndParseDcmOptions {
     cwd: string;

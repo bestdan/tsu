@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { parseDcmAnalyzeOutput, dcmAnalyze } from './dcm-parse.js';
+import { parseDcmAnalyzeOutput, dcmAnalyze, isDcmVersionWarning, isOnlyDcmVersionWarning, handleDcmVersionWarning, } from './dcm-parse.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 describe('parseDcmAnalyzeOutput', () => {
@@ -266,5 +266,155 @@ describe('dcmAnalyze', () => {
             files: ['packages/app/lib/main.dart', 'packages/core/lib/config.dart'],
         }, mockRunner);
         expect(result.success).toBe(true);
+    });
+});
+describe('isDcmVersionWarning', () => {
+    it('should detect DCM version mismatch warning', () => {
+        const warning = 'Installed DCM version (1.34.0) does not match the configured constraint 1.33.3';
+        expect(isDcmVersionWarning(warning)).toBe(true);
+    });
+    it('should detect version warning with different versions', () => {
+        const warning = 'Installed DCM version (2.0.0) does not match the configured constraint 1.99.9';
+        expect(isDcmVersionWarning(warning)).toBe(true);
+    });
+    it('should detect version warning with complex version numbers', () => {
+        const warning = 'Installed DCM version (1.2.3) does not match the configured constraint 10.20.30';
+        expect(isDcmVersionWarning(warning)).toBe(true);
+    });
+    it('should return false for non-warning output', () => {
+        expect(isDcmVersionWarning('No issues found')).toBe(false);
+        expect(isDcmVersionWarning('Error: Command not found')).toBe(false);
+        expect(isDcmVersionWarning('')).toBe(false);
+    });
+    it('should return false for JSON output', () => {
+        const json = JSON.stringify({
+            formatVersion: 11,
+            timestamp: '2025-11-04 14:46:10.000',
+            summary: [],
+            analyzeResults: [],
+        });
+        expect(isDcmVersionWarning(json)).toBe(false);
+    });
+});
+describe('isOnlyDcmVersionWarning', () => {
+    it('should return true when output contains only version warning', () => {
+        const warning = 'Installed DCM version (1.34.0) does not match the configured constraint 1.33.3';
+        expect(isOnlyDcmVersionWarning(warning)).toBe(true);
+    });
+    it('should return true when output contains version warning with period at end', () => {
+        const warning = 'Installed DCM version (1.34.0) does not match the configured constraint 1.33.3.';
+        expect(isOnlyDcmVersionWarning(warning)).toBe(true);
+    });
+    it('should return true when output contains version warning with whitespace', () => {
+        const warning = '  Installed DCM version (1.34.0) does not match the configured constraint 1.33.3  \n';
+        expect(isOnlyDcmVersionWarning(warning)).toBe(true);
+    });
+    it('should return false when output contains version warning mixed with error text', () => {
+        const mixed = 'Installed DCM version (1.34.0) does not match the configured constraint 1.33.3\nError: Command failed';
+        expect(isOnlyDcmVersionWarning(mixed)).toBe(false);
+    });
+    it('should return true when output contains version warning with success messages', () => {
+        const mixed = '✔ Analysis is completed. Preparing the results: 2.3s\n✔ no issues found!\nInstalled DCM version (1.34.0) does not match the configured constraint 1.35.0';
+        expect(isOnlyDcmVersionWarning(mixed)).toBe(true);
+    });
+    it('should return true when output contains version warning with checkmark messages', () => {
+        const mixed = '✓ no issues found!\nInstalled DCM version (1.34.0) does not match the configured constraint 1.33.3';
+        expect(isOnlyDcmVersionWarning(mixed)).toBe(true);
+    });
+    it('should return false for empty output', () => {
+        expect(isOnlyDcmVersionWarning('')).toBe(false);
+        expect(isOnlyDcmVersionWarning('   ')).toBe(false);
+    });
+    it('should return false for non-warning output', () => {
+        expect(isOnlyDcmVersionWarning('Error: Command not found')).toBe(false);
+    });
+});
+describe('handleDcmVersionWarning', () => {
+    it('should be a function', () => {
+        expect(typeof handleDcmVersionWarning).toBe('function');
+    });
+    it('should not throw on non-warning output', () => {
+        expect(() => handleDcmVersionWarning('No issues found')).not.toThrow();
+        expect(() => handleDcmVersionWarning('')).not.toThrow();
+    });
+    it('should not throw on version warning output', () => {
+        const warning = 'Installed DCM version (1.34.0) does not match the configured constraint 1.33.3';
+        expect(() => handleDcmVersionWarning(warning)).not.toThrow();
+    });
+});
+describe('dcmAnalyze with version warnings', () => {
+    it('should succeed when DCM returns version warning in stderr only', () => {
+        const mockRunner = () => {
+            const error = new Error('Version warning');
+            error.stdout = '';
+            error.stderr =
+                'Installed DCM version (1.34.0) does not match the configured constraint 1.33.3';
+            throw error;
+        };
+        const result = dcmAnalyze({ cwd: '/test' }, mockRunner);
+        expect(result.success).toBe(true);
+        expect(result.filesWithIssues).toEqual([]);
+    });
+    it('should fail when stderr contains version warning mixed with other errors', () => {
+        const mockRunner = () => {
+            const error = new Error('Real error with warning');
+            error.stdout = '';
+            error.stderr =
+                'Installed DCM version (1.34.0) does not match the configured constraint 1.33.3\nError: Command failed to execute';
+            throw error;
+        };
+        expect(() => dcmAnalyze({ cwd: '/test/pkg' }, mockRunner)).toThrow('DCM analyze failed in /test/pkg');
+    });
+    it('should succeed when version warning is mixed with successful JSON output', () => {
+        const mockOutput = 'Installed DCM version (1.34.0) does not match the configured constraint 1.33.3\n' +
+            JSON.stringify({
+                formatVersion: 11,
+                timestamp: '2025-11-04 14:46:10.000',
+                summary: [],
+                analyzeResults: [],
+            });
+        const mockRunner = () => mockOutput;
+        const result = dcmAnalyze({ cwd: '/test' }, mockRunner);
+        expect(result.success).toBe(true);
+        expect(result.filesWithIssues).toEqual([]);
+    });
+    it('should fail when version warning is mixed with actual issues', () => {
+        const mockOutput = 'Installed DCM version (1.34.0) does not match the configured constraint 1.33.3\n' +
+            JSON.stringify({
+                formatVersion: 11,
+                timestamp: '2025-11-04 14:46:10.000',
+                summary: [],
+                analyzeResults: [{ path: 'lib/file.dart', issues: [{}] }],
+            });
+        const mockRunner = () => {
+            const error = new Error('Issues found');
+            error.stdout = mockOutput;
+            error.stderr = '';
+            throw error;
+        };
+        const result = dcmAnalyze({ cwd: '/test' }, mockRunner);
+        expect(result.success).toBe(false);
+        expect(result.filesWithIssues).toEqual(['lib/file.dart']);
+    });
+    it('should succeed when JSON shows no issues and stderr has only version warning', () => {
+        const mockStdout = JSON.stringify({
+            formatVersion: 12,
+            timestamp: '2025-12-16 09:09:58.000',
+            summary: [
+                { title: 'Scanned folders', value: 1 },
+                { title: 'Scanned files', value: 1 },
+            ],
+            analyzeResults: [],
+        });
+        const mockStderr = 'Installed DCM version (1.34.0) does not match the configured constraint 1.35.0';
+        const mockRunner = () => {
+            const error = new Error('Non-zero exit');
+            error.stdout = mockStdout;
+            error.stderr = mockStderr;
+            throw error;
+        };
+        const result = dcmAnalyze({ cwd: '/test' }, mockRunner);
+        expect(result.success).toBe(true);
+        expect(result.filesWithIssues).toEqual([]);
     });
 });

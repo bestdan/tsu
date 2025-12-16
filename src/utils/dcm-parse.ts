@@ -1,6 +1,7 @@
 import { execSync } from 'node:child_process';
 import { resolve, dirname } from 'node:path';
 import { findDartPackageRoot } from '../commands/dart/utils/dart.js';
+import { logIfVerbose } from './logger.js';
 
 interface DcmAnalyzeResult {
   path: string;
@@ -28,6 +29,77 @@ interface DcmAnalyzeOutput {
     value: number;
   }>;
   analyzeResults: DcmAnalyzeResult[];
+}
+
+/**
+ * Regular expression pattern for DCM version mismatch warnings.
+ * Matches: "Installed DCM version (X.Y.Z) does not match the configured constraint A.B.C"
+ * Allows for optional whitespace and trailing period.
+ */
+const DCM_VERSION_WARNING_PATTERN =
+  /Installed\s+DCM\s+version\s+\([\d.]+\)\s+does\s+not\s+match\s+the\s+configured\s+constraint\s+[\d.]+\.?/;
+
+/**
+ * Detects if the output contains a DCM version mismatch warning.
+ * The warning format is: "Installed DCM version (X.X.X) does not match the configured constraint Y.Y.Y"
+ * @param output - The output to check
+ * @returns true if a version warning is detected
+ */
+export function isDcmVersionWarning(output: string): boolean {
+  return DCM_VERSION_WARNING_PATTERN.test(output);
+}
+
+/**
+ * Checks if the output contains ONLY a DCM version mismatch warning (and success messages).
+ * This is used to determine if an error should be ignored.
+ * Success messages like "✔ no issues found!" or "✔ Analysis is completed" are also allowed.
+ * @param output - The output to check
+ * @returns true if the output contains only a version warning, success messages, and whitespace
+ */
+export function isOnlyDcmVersionWarning(output: string): boolean {
+  if (!output || output.trim().length === 0) {
+    return false;
+  }
+
+  // Must contain a version warning
+  if (!isDcmVersionWarning(output)) {
+    return false;
+  }
+
+  // Split into lines and check each non-empty line
+  const lines = output
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
+
+  for (const line of lines) {
+    // Allow version warning lines
+    if (DCM_VERSION_WARNING_PATTERN.test(line)) {
+      continue;
+    }
+    // Allow success/completion messages
+    if (line.match(/^✔|^✓|Analysis is completed|no issues found|Preparing the results/)) {
+      continue;
+    }
+    // Any other line means it's not just a version warning
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Extracts and logs DCM version warnings from output if present.
+ * Logs warnings only in verbose mode to avoid cluttering output.
+ * @param output - The output to check for version warnings
+ */
+export function handleDcmVersionWarning(output: string): void {
+  if (isDcmVersionWarning(output)) {
+    const match = output.match(DCM_VERSION_WARNING_PATTERN);
+    if (match) {
+      logIfVerbose(undefined, `⚠️  DCM Warning: ${match[0]}`);
+    }
+  }
 }
 
 export function parseDcmAnalyzeOutput(jsonOutput: string): string[] {
@@ -84,6 +156,7 @@ interface DcmRunResult {
 /**
  * Processes error from DCM execution and extracts results.
  * Distinguishes between timeout/execution errors and DCM finding issues.
+ * Handles version mismatch warnings gracefully by logging them in verbose mode only.
  */
 function processDcmError(error: unknown, packageRoot: string, timeout: number): DcmRunResult {
   const err = error as {
@@ -102,9 +175,24 @@ function processDcmError(error: unknown, packageRoot: string, timeout: number): 
   const stdout = err.stdout?.toString() || '';
   const stderr = err.stderr?.toString() || '';
 
+  // Check for version warnings in stderr and log them in verbose mode
+  handleDcmVersionWarning(stderr);
+  handleDcmVersionWarning(stdout);
+
   if (stdout.length > 0) {
     // DCM found issues (exit code non-zero but produced JSON output)
     const filesWithIssues = parseDcmAnalyzeOutput(stdout);
+
+    // If there are no files with issues but stderr contains only version warning,
+    // treat this as success
+    if (filesWithIssues.length === 0 && isOnlyDcmVersionWarning(stderr)) {
+      return {
+        success: true,
+        output: stdout + stderr,
+        filesWithIssues: [],
+      };
+    }
+
     return {
       success: false,
       output: stdout,
@@ -112,7 +200,17 @@ function processDcmError(error: unknown, packageRoot: string, timeout: number): 
     };
   }
 
-  // DCM failed to run properly - no output
+  // Check if stderr contains ONLY a version warning (not a real error)
+  if (stderr.length > 0 && isOnlyDcmVersionWarning(stderr)) {
+    // Version warning only - not a failure
+    return {
+      success: true,
+      output: stderr,
+      filesWithIssues: [],
+    };
+  }
+
+  // DCM failed to run properly - no output or real errors
   const errorMsg = stderr.length > 0 ? stderr : 'No output from DCM';
   throw new Error(`DCM analyze failed in ${packageRoot}: ${errorMsg}`);
 }
@@ -151,9 +249,14 @@ export function dcmAnalyze(
     try {
       const output = dcmRunner(packageRoot, timeout);
       combinedOutput += output;
+      // Check for version warnings in successful runs too
+      handleDcmVersionWarning(output);
     } catch (error: unknown) {
       const result = processDcmError(error, packageRoot, timeout);
-      allSuccess = false;
+      // Only mark as failure if result indicates actual issues (not just version warning)
+      if (!result.success) {
+        allSuccess = false;
+      }
       combinedOutput += result.output;
       allFilesWithIssues.push(...result.filesWithIssues);
     }

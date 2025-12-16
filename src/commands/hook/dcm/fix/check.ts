@@ -9,6 +9,7 @@ import {
   displayFileList,
 } from '../../../../utils/command-helpers.js';
 import { logIfVerbose } from '../../../../utils/logger.js';
+import { handleDcmVersionWarning, isOnlyDcmVersionWarning } from '../../../../utils/dcm-parse.js';
 import type { ChangedFilesOptions } from '../../../../types/command-options.js';
 import { setVerbose } from '../../../../utils/verbose-state.js';
 
@@ -71,16 +72,39 @@ export function dartHookDcmCheck(options: DartHookDcmCheckOptions = {}): void {
   /* v8 ignore next -- @preserve */
   try {
     const fileArgs = modifiedFiles.map(escapeShellArg).join(' ');
-    execSync(`dcm fix ${fileArgs}`, {
+    const output = execSync(`dcm fix ${fileArgs}`, {
       cwd,
       stdio: 'pipe',
+      encoding: 'utf-8',
     });
+    // Check for version warnings in successful runs
+    handleDcmVersionWarning(output);
   } catch (error) {
-    console.error('Error: Failed to run dcm fix');
-    if (error instanceof Error) {
-      console.error(error.message);
+    // Check if this is just a version warning
+    const err = error as {
+      stdout?: Buffer | string;
+      stderr?: Buffer | string;
+    };
+    const stdout = err.stdout?.toString() || '';
+    const stderr = err.stderr?.toString() || '';
+
+    // Handle version warnings in error output
+    handleDcmVersionWarning(stderr);
+    handleDcmVersionWarning(stdout);
+
+    // If stderr contains ONLY a version warning (and stdout is empty), continue execution
+    const isOnlyVersionWarning =
+      stderr.length > 0 && isOnlyDcmVersionWarning(stderr) && stdout.length === 0;
+
+    if (!isOnlyVersionWarning) {
+      // Real error - fail the check
+      console.error('Error: Failed to run dcm fix');
+      if (error instanceof Error) {
+        console.error(error.message);
+      }
+      process.exit(1);
     }
-    process.exit(1);
+    // Version warning only - continue to next step
   }
 
   // Check if DCM fixes created changes in the files we fixed
