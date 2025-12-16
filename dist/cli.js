@@ -32,7 +32,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const packageJson = JSON.parse(readFileSync(join(__dirname, '../package.json'), 'utf-8'));
 const program = new Command();
-program.name('tsutils').description('TypeScript command line utilities').version(packageJson.version);
+program
+    .name('tsutils')
+    .description('TypeScript command line utilities')
+    .version(packageJson.version);
 const check = program.command('check').description('Check system dependencies and environment');
 check
     .command('externals')
