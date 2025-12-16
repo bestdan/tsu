@@ -10,9 +10,23 @@ export function isOnlyDcmVersionWarning(output) {
     if (!output || output.trim().length === 0) {
         return false;
     }
-    const trimmedOutput = output.trim();
-    const exactPattern = new RegExp(`^${DCM_VERSION_WARNING_PATTERN.source}$`);
-    return exactPattern.test(trimmedOutput);
+    if (!isDcmVersionWarning(output)) {
+        return false;
+    }
+    const lines = output
+        .split('\n')
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0);
+    for (const line of lines) {
+        if (DCM_VERSION_WARNING_PATTERN.test(line)) {
+            continue;
+        }
+        if (line.match(/^✔|^✓|Analysis is completed|no issues found|Preparing the results/)) {
+            continue;
+        }
+        return false;
+    }
+    return true;
 }
 export function handleDcmVersionWarning(output) {
     if (isDcmVersionWarning(output)) {
@@ -54,6 +68,13 @@ function processDcmError(error, packageRoot, timeout) {
     handleDcmVersionWarning(stdout);
     if (stdout.length > 0) {
         const filesWithIssues = parseDcmAnalyzeOutput(stdout);
+        if (filesWithIssues.length === 0 && isOnlyDcmVersionWarning(stderr)) {
+            return {
+                success: true,
+                output: stdout + stderr,
+                filesWithIssues: [],
+            };
+        }
         return {
             success: false,
             output: stdout,

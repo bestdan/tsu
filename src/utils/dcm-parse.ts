@@ -50,21 +50,42 @@ export function isDcmVersionWarning(output: string): boolean {
 }
 
 /**
- * Checks if the output contains ONLY a DCM version mismatch warning.
+ * Checks if the output contains ONLY a DCM version mismatch warning (and success messages).
  * This is used to determine if an error should be ignored.
+ * Success messages like "✔ no issues found!" or "✔ Analysis is completed" are also allowed.
  * @param output - The output to check
- * @returns true if the output contains only a version warning (and whitespace)
+ * @returns true if the output contains only a version warning, success messages, and whitespace
  */
 export function isOnlyDcmVersionWarning(output: string): boolean {
   if (!output || output.trim().length === 0) {
     return false;
   }
 
-  const trimmedOutput = output.trim();
-  // Create an anchored version of the pattern to match the entire string
-  const exactPattern = new RegExp(`^${DCM_VERSION_WARNING_PATTERN.source}$`);
+  // Must contain a version warning
+  if (!isDcmVersionWarning(output)) {
+    return false;
+  }
 
-  return exactPattern.test(trimmedOutput);
+  // Split into lines and check each non-empty line
+  const lines = output
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
+
+  for (const line of lines) {
+    // Allow version warning lines
+    if (DCM_VERSION_WARNING_PATTERN.test(line)) {
+      continue;
+    }
+    // Allow success/completion messages
+    if (line.match(/^✔|^✓|Analysis is completed|no issues found|Preparing the results/)) {
+      continue;
+    }
+    // Any other line means it's not just a version warning
+    return false;
+  }
+
+  return true;
 }
 
 /**
@@ -161,6 +182,17 @@ function processDcmError(error: unknown, packageRoot: string, timeout: number): 
   if (stdout.length > 0) {
     // DCM found issues (exit code non-zero but produced JSON output)
     const filesWithIssues = parseDcmAnalyzeOutput(stdout);
+
+    // If there are no files with issues but stderr contains only version warning,
+    // treat this as success
+    if (filesWithIssues.length === 0 && isOnlyDcmVersionWarning(stderr)) {
+      return {
+        success: true,
+        output: stdout + stderr,
+        filesWithIssues: [],
+      };
+    }
+
     return {
       success: false,
       output: stdout,
