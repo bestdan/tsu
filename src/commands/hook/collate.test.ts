@@ -60,10 +60,30 @@ describe('hookCollate', () => {
   it('should exit with code 0 when no files are changed', async () => {
     mockGetAllChangedFiles.mockReturnValue([]);
 
+    // Mock which command to succeed
+    mockExecSync.mockReturnValue(Buffer.from('/usr/bin/tsu'));
+
+    // Mock execFile for codeowners check (which still runs even with no files)
+    mockExecFile.mockImplementation(
+      (
+        _file: string,
+        _args: readonly string[] | null | undefined,
+        _options: any,
+        callback?: ((error: any, stdout: string, stderr: string) => void) | null
+      ) => {
+        if (callback) {
+          callback(null, '', '');
+        }
+        return {} as any;
+      }
+    );
+
     const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {}) as never);
 
     await hookCollate({ verbose: false });
 
+    // Should run codeowners check even when no files changed
+    expect(mockExecFile).toHaveBeenCalledTimes(1);
     expect(mockExit).toHaveBeenCalledWith(0);
     mockExit.mockRestore();
   });
@@ -71,10 +91,12 @@ describe('hookCollate', () => {
   it('should exit with code 1 when not in a git repository', async () => {
     mockIsGitRepo.mockReturnValue(false);
 
-    const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {}) as never);
+    const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {
+      throw new Error('process.exit called');
+    }) as never);
     const mockConsoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    await hookCollate({ verbose: false });
+    await expect(hookCollate({ verbose: false })).rejects.toThrow('process.exit called');
 
     expect(mockConsoleError).toHaveBeenCalledWith('Error: Not in a git repository');
     expect(mockExit).toHaveBeenCalledWith(1);
@@ -86,10 +108,12 @@ describe('hookCollate', () => {
   it('should exit with code 1 when not in a Dart package', async () => {
     mockIsDartPackage.mockReturnValue(false);
 
-    const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {}) as never);
+    const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {
+      throw new Error('process.exit called');
+    }) as never);
     const mockConsoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    await hookCollate({ verbose: false });
+    await expect(hookCollate({ verbose: false })).rejects.toThrow('process.exit called');
 
     expect(mockConsoleError).toHaveBeenCalledWith('Error: Not in a Dart package');
     expect(mockExit).toHaveBeenCalledWith(1);
@@ -123,10 +147,10 @@ describe('hookCollate', () => {
 
     await hookCollate({ verbose: false });
 
-    // Should run all 4 hooks (format, analysis, dcm analyze, graphql)
-    // But graphql should be skipped since no .graphql files
-    // which tsu + 3 hook commands (format, analysis, dcm analyze)
-    expect(mockExecFile).toHaveBeenCalledTimes(3);
+    // Should run all hooks (format, analysis, dcm analyze, codeowners)
+    // graphql should be skipped since no .graphql files
+    // which tsu + 4 hook commands (format, analysis, dcm analyze, codeowners)
+    expect(mockExecFile).toHaveBeenCalledTimes(4);
     expect(mockExit).toHaveBeenCalledWith(0);
 
     mockExit.mockRestore();
@@ -232,8 +256,8 @@ describe('hookCollate', () => {
 
     await hookCollate({ verbose: false });
 
-    // 1 hook command (graphql only since no dart files)
-    expect(mockExecFile).toHaveBeenCalledTimes(1);
+    // 2 hook commands (graphql and codeowners, no dart files so dart hooks skipped)
+    expect(mockExecFile).toHaveBeenCalledTimes(2);
     expect(mockExit).toHaveBeenCalledWith(0);
 
     mockExit.mockRestore();
@@ -309,7 +333,9 @@ describe('hookCollate', () => {
               ? 'analysis'
               : argsArray && argsArray.includes('dcm')
                 ? 'dcm'
-                : 'graphql';
+                : argsArray && argsArray.includes('codeowners')
+                  ? 'codeowners'
+                  : 'graphql';
 
         executionOrder.push(hookName);
 
@@ -328,17 +354,179 @@ describe('hookCollate', () => {
 
     await hookCollate({ verbose: false });
 
-    // All 4 hooks should have been started
-    expect(executionOrder).toHaveLength(4);
+    // All 5 hooks should have been started
+    expect(executionOrder).toHaveLength(5);
     expect(executionOrder).toContain('format');
     expect(executionOrder).toContain('analysis');
     expect(executionOrder).toContain('dcm');
     expect(executionOrder).toContain('graphql');
+    expect(executionOrder).toContain('codeowners');
 
     // With concurrent execution, all hooks start before any complete
     // This is validated by the fact that all hooks were called
+    expect(mockExecFile).toHaveBeenCalledTimes(5);
+    expect(mockExit).toHaveBeenCalledWith(0);
+
+    mockExit.mockRestore();
+  });
+
+  it('should run codeowners check by default when Dart files are changed', async () => {
+    mockGetAllChangedFiles.mockReturnValue(['lib/main.dart']);
+
+    // Mock which command to succeed
+    mockExecSync.mockReturnValue(Buffer.from('/usr/bin/tsu'));
+
+    // Track which commands are called
+    const calledCommands: string[] = [];
+    mockExecFile.mockImplementation(
+      (
+        _file: string,
+        args: readonly string[] | null | undefined,
+        _options: any,
+        callback?: ((error: any, stdout: string, stderr: string) => void) | null
+      ) => {
+        const argsArray = args as string[];
+        if (argsArray) {
+          // Track which command was called
+          const commandPath = argsArray.join(' ');
+          calledCommands.push(commandPath);
+        }
+        if (callback) {
+          callback(null, '', '');
+        }
+        return {} as any;
+      }
+    );
+
+    const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {}) as never);
+
+    await hookCollate({ verbose: false });
+
+    // Should include codeowners check
+    expect(calledCommands.some((cmd) => cmd.includes('git codeowners check'))).toBe(true);
+    // Should run 4 hooks: format, analysis, dcm analyze, codeowners (graphql skipped)
     expect(mockExecFile).toHaveBeenCalledTimes(4);
     expect(mockExit).toHaveBeenCalledWith(0);
+
+    mockExit.mockRestore();
+  });
+
+  it('should skip codeowners check when explicitly disabled with other flags', async () => {
+    mockGetAllChangedFiles.mockReturnValue(['lib/main.dart']);
+
+    // Mock which command to succeed
+    mockExecSync.mockReturnValue(Buffer.from('/usr/bin/tsu'));
+
+    // Track which commands are called
+    const calledCommands: string[] = [];
+    mockExecFile.mockImplementation(
+      (
+        _file: string,
+        args: readonly string[] | null | undefined,
+        _options: any,
+        callback?: ((error: any, stdout: string, stderr: string) => void) | null
+      ) => {
+        const argsArray = args as string[];
+        if (argsArray) {
+          const commandPath = argsArray.join(' ');
+          calledCommands.push(commandPath);
+        }
+        if (callback) {
+          callback(null, '', '');
+        }
+        return {} as any;
+      }
+    );
+
+    const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {}) as never);
+
+    await hookCollate({ dartFormat: true, verbose: false });
+
+    // Should NOT include codeowners check (only dartFormat specified)
+    expect(calledCommands.some((cmd) => cmd.includes('git codeowners check'))).toBe(false);
+    expect(mockExecFile).toHaveBeenCalledTimes(1);
+    expect(mockExit).toHaveBeenCalledWith(0);
+
+    mockExit.mockRestore();
+  });
+
+  it('should run only codeowners check when specified', async () => {
+    mockGetAllChangedFiles.mockReturnValue([]);
+
+    // Mock which command to succeed
+    mockExecSync.mockReturnValue(Buffer.from('/usr/bin/tsu'));
+
+    // Track which commands are called
+    const calledCommands: string[] = [];
+    mockExecFile.mockImplementation(
+      (
+        _file: string,
+        args: readonly string[] | null | undefined,
+        _options: any,
+        callback?: ((error: any, stdout: string, stderr: string) => void) | null
+      ) => {
+        const argsArray = args as string[];
+        if (argsArray) {
+          const commandPath = argsArray.join(' ');
+          calledCommands.push(commandPath);
+        }
+        if (callback) {
+          callback(null, '', '');
+        }
+        return {} as any;
+      }
+    );
+
+    const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {}) as never);
+
+    await hookCollate({ codeowners: true, verbose: false });
+
+    // Should only run codeowners check
+    expect(calledCommands.some((cmd) => cmd.includes('git codeowners check'))).toBe(true);
+    expect(mockExecFile).toHaveBeenCalledTimes(1);
+    expect(mockExit).toHaveBeenCalledWith(0);
+
+    mockExit.mockRestore();
+  });
+
+  it('should not pass changed file args to codeowners check', async () => {
+    mockGetAllChangedFiles.mockReturnValue(['lib/main.dart']);
+
+    // Mock which command to succeed
+    mockExecSync.mockReturnValue(Buffer.from('/usr/bin/tsu'));
+
+    // Track args passed to commands
+    const commandArgs: string[][] = [];
+    mockExecFile.mockImplementation(
+      (
+        _file: string,
+        args: readonly string[] | null | undefined,
+        _options: any,
+        callback?: ((error: any, stdout: string, stderr: string) => void) | null
+      ) => {
+        const argsArray = args as string[];
+        if (argsArray) {
+          commandArgs.push([...argsArray]);
+        }
+        if (callback) {
+          callback(null, '', '');
+        }
+        return {} as any;
+      }
+    );
+
+    const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {}) as never);
+
+    await hookCollate({ staged: true, baseBranch: 'develop', verbose: false });
+
+    // Find the codeowners command args
+    const codeownersArgs = commandArgs.find((args) => args.includes('codeowners'));
+
+    // Should NOT include --staged or --base-branch
+    expect(codeownersArgs).toBeDefined();
+    expect(codeownersArgs).not.toContain('--staged');
+    expect(codeownersArgs).not.toContain('--base-branch');
+    expect(codeownersArgs).not.toContain('develop');
 
     mockExit.mockRestore();
   });

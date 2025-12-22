@@ -4,5 +4,6 @@ export interface HookCollateOptions extends ChangedFilesOptions {
     dartAnalysis?: boolean;
     dcmAnalyze?: boolean;
     graphql?: boolean;
+    codeowners?: boolean;
 }
 export declare function hookCollate(options?: HookCollateOptions): Promise<void>;

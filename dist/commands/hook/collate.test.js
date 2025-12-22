@@ -47,16 +47,26 @@ describe('hookCollate', () => {
     });
     it('should exit with code 0 when no files are changed', async () => {
         mockGetAllChangedFiles.mockReturnValue([]);
+        mockExecSync.mockReturnValue(Buffer.from('/usr/bin/tsu'));
+        mockExecFile.mockImplementation((_file, _args, _options, callback) => {
+            if (callback) {
+                callback(null, '', '');
+            }
+            return {};
+        });
         const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => { }));
         await hookCollate({ verbose: false });
+        expect(mockExecFile).toHaveBeenCalledTimes(1);
         expect(mockExit).toHaveBeenCalledWith(0);
         mockExit.mockRestore();
     });
     it('should exit with code 1 when not in a git repository', async () => {
         mockIsGitRepo.mockReturnValue(false);
-        const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => { }));
+        const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {
+            throw new Error('process.exit called');
+        }));
         const mockConsoleError = vi.spyOn(console, 'error').mockImplementation(() => { });
-        await hookCollate({ verbose: false });
+        await expect(hookCollate({ verbose: false })).rejects.toThrow('process.exit called');
         expect(mockConsoleError).toHaveBeenCalledWith('Error: Not in a git repository');
         expect(mockExit).toHaveBeenCalledWith(1);
         mockExit.mockRestore();
@@ -64,9 +74,11 @@ describe('hookCollate', () => {
     });
     it('should exit with code 1 when not in a Dart package', async () => {
         mockIsDartPackage.mockReturnValue(false);
-        const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => { }));
+        const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {
+            throw new Error('process.exit called');
+        }));
         const mockConsoleError = vi.spyOn(console, 'error').mockImplementation(() => { });
-        await hookCollate({ verbose: false });
+        await expect(hookCollate({ verbose: false })).rejects.toThrow('process.exit called');
         expect(mockConsoleError).toHaveBeenCalledWith('Error: Not in a Dart package');
         expect(mockExit).toHaveBeenCalledWith(1);
         mockExit.mockRestore();
@@ -83,7 +95,7 @@ describe('hookCollate', () => {
         });
         const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => { }));
         await hookCollate({ verbose: false });
-        expect(mockExecFile).toHaveBeenCalledTimes(3);
+        expect(mockExecFile).toHaveBeenCalledTimes(4);
         expect(mockExit).toHaveBeenCalledWith(0);
         mockExit.mockRestore();
     });
@@ -139,7 +151,7 @@ describe('hookCollate', () => {
         });
         const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => { }));
         await hookCollate({ verbose: false });
-        expect(mockExecFile).toHaveBeenCalledTimes(1);
+        expect(mockExecFile).toHaveBeenCalledTimes(2);
         expect(mockExit).toHaveBeenCalledWith(0);
         mockExit.mockRestore();
     });
@@ -180,7 +192,9 @@ describe('hookCollate', () => {
                     ? 'analysis'
                     : argsArray && argsArray.includes('dcm')
                         ? 'dcm'
-                        : 'graphql';
+                        : argsArray && argsArray.includes('codeowners')
+                            ? 'codeowners'
+                            : 'graphql';
             executionOrder.push(hookName);
             Promise.resolve().then(() => {
                 if (callback) {
@@ -191,13 +205,103 @@ describe('hookCollate', () => {
         });
         const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => { }));
         await hookCollate({ verbose: false });
-        expect(executionOrder).toHaveLength(4);
+        expect(executionOrder).toHaveLength(5);
         expect(executionOrder).toContain('format');
         expect(executionOrder).toContain('analysis');
         expect(executionOrder).toContain('dcm');
         expect(executionOrder).toContain('graphql');
+        expect(executionOrder).toContain('codeowners');
+        expect(mockExecFile).toHaveBeenCalledTimes(5);
+        expect(mockExit).toHaveBeenCalledWith(0);
+        mockExit.mockRestore();
+    });
+    it('should run codeowners check by default when Dart files are changed', async () => {
+        mockGetAllChangedFiles.mockReturnValue(['lib/main.dart']);
+        mockExecSync.mockReturnValue(Buffer.from('/usr/bin/tsu'));
+        const calledCommands = [];
+        mockExecFile.mockImplementation((_file, args, _options, callback) => {
+            const argsArray = args;
+            if (argsArray) {
+                const commandPath = argsArray.join(' ');
+                calledCommands.push(commandPath);
+            }
+            if (callback) {
+                callback(null, '', '');
+            }
+            return {};
+        });
+        const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => { }));
+        await hookCollate({ verbose: false });
+        expect(calledCommands.some((cmd) => cmd.includes('git codeowners check'))).toBe(true);
         expect(mockExecFile).toHaveBeenCalledTimes(4);
         expect(mockExit).toHaveBeenCalledWith(0);
+        mockExit.mockRestore();
+    });
+    it('should skip codeowners check when explicitly disabled with other flags', async () => {
+        mockGetAllChangedFiles.mockReturnValue(['lib/main.dart']);
+        mockExecSync.mockReturnValue(Buffer.from('/usr/bin/tsu'));
+        const calledCommands = [];
+        mockExecFile.mockImplementation((_file, args, _options, callback) => {
+            const argsArray = args;
+            if (argsArray) {
+                const commandPath = argsArray.join(' ');
+                calledCommands.push(commandPath);
+            }
+            if (callback) {
+                callback(null, '', '');
+            }
+            return {};
+        });
+        const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => { }));
+        await hookCollate({ dartFormat: true, verbose: false });
+        expect(calledCommands.some((cmd) => cmd.includes('git codeowners check'))).toBe(false);
+        expect(mockExecFile).toHaveBeenCalledTimes(1);
+        expect(mockExit).toHaveBeenCalledWith(0);
+        mockExit.mockRestore();
+    });
+    it('should run only codeowners check when specified', async () => {
+        mockGetAllChangedFiles.mockReturnValue([]);
+        mockExecSync.mockReturnValue(Buffer.from('/usr/bin/tsu'));
+        const calledCommands = [];
+        mockExecFile.mockImplementation((_file, args, _options, callback) => {
+            const argsArray = args;
+            if (argsArray) {
+                const commandPath = argsArray.join(' ');
+                calledCommands.push(commandPath);
+            }
+            if (callback) {
+                callback(null, '', '');
+            }
+            return {};
+        });
+        const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => { }));
+        await hookCollate({ codeowners: true, verbose: false });
+        expect(calledCommands.some((cmd) => cmd.includes('git codeowners check'))).toBe(true);
+        expect(mockExecFile).toHaveBeenCalledTimes(1);
+        expect(mockExit).toHaveBeenCalledWith(0);
+        mockExit.mockRestore();
+    });
+    it('should not pass changed file args to codeowners check', async () => {
+        mockGetAllChangedFiles.mockReturnValue(['lib/main.dart']);
+        mockExecSync.mockReturnValue(Buffer.from('/usr/bin/tsu'));
+        const commandArgs = [];
+        mockExecFile.mockImplementation((_file, args, _options, callback) => {
+            const argsArray = args;
+            if (argsArray) {
+                commandArgs.push([...argsArray]);
+            }
+            if (callback) {
+                callback(null, '', '');
+            }
+            return {};
+        });
+        const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => { }));
+        await hookCollate({ staged: true, baseBranch: 'develop', verbose: false });
+        const codeownersArgs = commandArgs.find((args) => args.includes('codeowners'));
+        expect(codeownersArgs).toBeDefined();
+        expect(codeownersArgs).not.toContain('--staged');
+        expect(codeownersArgs).not.toContain('--base-branch');
+        expect(codeownersArgs).not.toContain('develop');
         mockExit.mockRestore();
     });
 });
