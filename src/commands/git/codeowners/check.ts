@@ -9,8 +9,7 @@ import type { CheckCommandOptions } from '../../../types/command-options.js';
 export interface GitCodeownersCheckOptions extends CheckCommandOptions {}
 
 /**
- * Checks if CODEOWNERS files are in sync by running coach codeowners generate
- * and verifying no files changed.
+ * Checks if CODEOWNERS files are in sync and if there are any unowned files.
  *
  * Steps:
  * 1. Checks if coach is installed
@@ -18,6 +17,8 @@ export interface GitCodeownersCheckOptions extends CheckCommandOptions {}
  * 3. Runs coach codeowners generate
  * 4. Checks if any CODEOWNERS files changed
  * 5. Exits with error if files were modified
+ * 6. Runs coach codeowners unowned --check
+ * 7. Exits with error if there are unowned files
  */
 export function gitCodeownersCheck(options: GitCodeownersCheckOptions = {}): void {
   const verbose = options.verbose || false;
@@ -109,5 +110,24 @@ export function gitCodeownersCheck(options: GitCodeownersCheckOptions = {}): voi
   }
 
   logIfVerbose(verbose, '✓ CODEOWNERS files are in sync');
+
+  // Check for unowned files
+  logIfVerbose(verbose, '🔍 Checking for unowned files...');
+
+  /* v8 ignore next -- @preserve */
+  try {
+    execSync('coach codeowners unowned --check', {
+      cwd,
+      stdio: verbose ? 'inherit' : 'pipe',
+    });
+  } catch {
+    console.error('');
+    console.error('❌ There are unowned files in the repository!');
+    console.error('Please add the necessary OWNERSHIP files to appropriately tag owners.');
+    console.error('');
+    process.exit(1);
+  }
+
+  logIfVerbose(verbose, '✅ No unowned files detected!');
   process.exit(0);
 }

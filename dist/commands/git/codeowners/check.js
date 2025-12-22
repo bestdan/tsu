@@ -56,5 +56,20 @@ export function gitCodeownersCheck(options = {}) {
         process.exit(1);
     }
     logIfVerbose(verbose, '✓ CODEOWNERS files are in sync');
+    logIfVerbose(verbose, '🔍 Checking for unowned files...');
+    try {
+        execSync('coach codeowners unowned --check', {
+            cwd,
+            stdio: verbose ? 'inherit' : 'pipe',
+        });
+    }
+    catch (error) {
+        console.error('');
+        console.error('❌ There are unowned files in the repository!');
+        console.error('Please add the necessary OWNERSHIP files to appropriately tag owners.');
+        console.error('');
+        process.exit(1);
+    }
+    logIfVerbose(verbose, '✅ No unowned files detected!');
     process.exit(0);
 }

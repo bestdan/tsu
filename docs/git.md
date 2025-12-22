@@ -105,7 +105,7 @@ Generates a GitHub PR description from branch changes using Claude CLI. Outputs 
 
 ### `git codeowners check`
 
-Checks if CODEOWNERS files are in sync by running `coach codeowners generate` and verifying no files changed. Returns exit code only (0=in sync, 1=out of sync). Perfect for CI/CD pipelines.
+Checks if CODEOWNERS files are in sync by running `coach codeowners generate` and verifying no files changed. Also checks for unowned files using `coach codeowners unowned --check`. Returns exit code only (0=all checks pass, 1=checks fail). Perfect for CI/CD pipelines.
 
 **Requirements**: `coach` CLI must be installed.
 
