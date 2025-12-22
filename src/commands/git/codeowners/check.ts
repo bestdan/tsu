@@ -120,10 +120,13 @@ export function gitCodeownersCheck(options: GitCodeownersCheckOptions = {}): voi
       cwd,
       stdio: verbose ? 'inherit' : 'pipe',
     });
-  } catch {
+  } catch (error) {
     console.error('');
     console.error('❌ There are unowned files in the repository!');
     console.error('Please add the necessary OWNERSHIP files to appropriately tag owners.');
+    if (verbose && error instanceof Error) {
+      console.error('Error details:', error.message);
+    }
     console.error('');
     process.exit(1);
   }
