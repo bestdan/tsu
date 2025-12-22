@@ -207,8 +207,8 @@ export async function hookCollate(options: HookCollateOptions = {}): Promise<voi
         'git codeowners check',
         tsuCmd.file,
         codeownersArgs,
-        false, // Always run if enabled, doesn't depend on changed files
-        false // Don't append changed file args, only accepts --verbose
+        false, // skipCondition: always run codeowners check if enabled
+        false // appendChangedFileArgs: codeowners check only accepts --verbose
       )
     );
   }
