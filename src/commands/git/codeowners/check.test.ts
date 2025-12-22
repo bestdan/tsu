@@ -173,4 +173,66 @@ describe('gitCodeownersCheck', () => {
     expect(consoleErrorSpy).not.toHaveBeenCalledWith('🔍 Checking CODEOWNERS files...');
     expect(consoleErrorSpy).not.toHaveBeenCalledWith('🔧 Running coach codeowners generate...');
   });
+
+  it('should exit with error if there are unowned files', () => {
+    isGitRepoSpy.mockReturnValue(true);
+    isCommandInstalledSpy.mockReturnValue(true);
+    const gitStatus = 'M  lib/user.dart';
+    getGitStatusSpy.mockReturnValue(gitStatus);
+
+    // Mock execSync to succeed for generate but fail for unowned check
+    vi.mocked(execSync).mockImplementation((command: string) => {
+      if (command === 'coach codeowners unowned --check') {
+        throw new Error('Unowned files found');
+      }
+      return '' as any;
+    });
+
+    expect(() => {
+      gitCodeownersCheck({ verbose: false });
+    }).toThrow('process.exit(1)');
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith('❌ There are unowned files in the repository!');
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      'Please add the necessary OWNERSHIP files to appropriately tag owners.'
+    );
+    expect(processExitSpy).toHaveBeenCalledWith(1);
+  });
+
+  it('should log verbose messages for unowned check when verbose flag is enabled', () => {
+    isGitRepoSpy.mockReturnValue(true);
+    isCommandInstalledSpy.mockReturnValue(true);
+    const gitStatus = 'M  lib/user.dart';
+    getGitStatusSpy.mockReturnValue(gitStatus);
+
+    expect(() => {
+      gitCodeownersCheck({ verbose: true });
+    }).toThrow('process.exit(0)');
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith('🔍 Checking for unowned files...');
+    expect(consoleErrorSpy).toHaveBeenCalledWith('✅ No unowned files detected!');
+  });
+
+  it('should pass all checks when both generate and unowned checks succeed', () => {
+    isGitRepoSpy.mockReturnValue(true);
+    isCommandInstalledSpy.mockReturnValue(true);
+    const gitStatus = 'M  lib/user.dart';
+    getGitStatusSpy.mockReturnValue(gitStatus);
+
+    // Both execSync calls should succeed (default mock behavior)
+    expect(() => {
+      gitCodeownersCheck({ verbose: false });
+    }).toThrow('process.exit(0)');
+
+    expect(processExitSpy).toHaveBeenCalledWith(0);
+    // Verify both commands were called
+    expect(execSync).toHaveBeenCalledWith(
+      'coach codeowners generate',
+      expect.objectContaining({ cwd: expect.any(String) })
+    );
+    expect(execSync).toHaveBeenCalledWith(
+      'coach codeowners unowned --check',
+      expect.objectContaining({ cwd: expect.any(String) })
+    );
+  });
 });
