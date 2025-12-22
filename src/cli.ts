@@ -10,6 +10,7 @@ import { gitBranch } from './commands/git/branch.js';
 import { gitIsMain } from './commands/git/is-main.js';
 import { gitCommitMsg } from './commands/git/commit-msg.js';
 import { gitPRDescription } from './commands/git/pr-description.js';
+import { gitCodeownersCheck } from './commands/git/codeowners/check.js';
 import { filesFilter } from './commands/files/filter/suffix.js';
 import { dartCheck } from './commands/dart/check.js';
 import { dartRoot } from './commands/dart/root.js';
@@ -148,6 +149,17 @@ git
   .option('-v, --verbose', 'show progress messages (output to stderr)')
   .action((options: { baseBranch?: string; verbose?: boolean }) => {
     gitPRDescription(options);
+  });
+
+// Git codeowners subcommand namespace
+const gitCodeowners = git.command('codeowners').description('CODEOWNERS file utilities');
+
+gitCodeowners
+  .command('check')
+  .description('Check if CODEOWNERS files are in sync (suitable for CI checks)')
+  .option('-v, --verbose', 'show human-readable status messages (output to stderr)')
+  .action((options: { verbose?: boolean }) => {
+    gitCodeownersCheck(options);
   });
 
 // Files subcommand namespace
