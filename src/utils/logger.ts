@@ -1,8 +1,16 @@
+import { isVerbose } from './verbose-state.js';
+import { loadDataDogConfig, initializeDataDogClient, createDataDogLogger } from './datadog.js';
+
 export enum LogLevel {
   INFO = 'INFO',
   WARN = 'WARN',
   ERROR = 'ERROR',
 }
+
+// Initialize DataDog client once on module load
+const dataDogConfig = loadDataDogConfig();
+const dataDogClient = initializeDataDogClient(dataDogConfig);
+const dataDogLogger = createDataDogLogger(dataDogClient);
 
 /* v8 ignore next -- @preserve */
 export function log(message: string, level: LogLevel = LogLevel.INFO): void {
@@ -13,19 +21,23 @@ export function log(message: string, level: LogLevel = LogLevel.INFO): void {
 /* v8 ignore next -- @preserve */
 export function logError(message: string): void {
   log(message, LogLevel.ERROR);
+  // Send to DataDog asynchronously without blocking
+  void dataDogLogger.error(message);
 }
 
 /* v8 ignore next -- @preserve */
 export function logWarn(message: string): void {
   log(message, LogLevel.WARN);
+  // Send to DataDog asynchronously without blocking
+  void dataDogLogger.warn(message);
 }
 
 /* v8 ignore next -- @preserve */
 export function logInfo(message: string): void {
   log(message, LogLevel.INFO);
+  // Send to DataDog asynchronously without blocking
+  void dataDogLogger.info(message);
 }
-
-import { isVerbose } from './verbose-state.js';
 
 /**
  * Logs a message to stderr if verbose mode is enabled.

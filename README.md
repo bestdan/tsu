@@ -126,13 +126,14 @@ src/
 
 - [Contributing Guide](CONTRIBUTING.md)
 - [Release Management](docs/release.md) - Automated versioning and releases
+- [DataDog Logging](docs/datadog.md) - Optional logging integration
 
 ## Security
 
 - **Security Policy**: See [SECURITY.md](SECURITY.md) for our security policy and how to report vulnerabilities
 - **Automated Scanning**: CodeQL security scanning runs on every PR and weekly
 - **Dependency Monitoring**: Dependabot monitors dependencies for known vulnerabilities
-- **Minimal Dependencies**: Only one runtime dependency (`commander`)
+- **Minimal Dependencies**: Two runtime dependencies (`commander`, `@datadog/datadog-api-client`)
 - **Regular Updates**: Dependencies are regularly updated to patch security issues
 - **Code Reviews**: All changes undergo security-focused code review
 

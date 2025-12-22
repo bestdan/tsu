@@ -112,3 +112,16 @@ export { dartDcmAnalyze, type DartDcmAnalyzeOptions } from './commands/dart/dcm/
 
 // Check utilities
 export { checkExternals, type CheckExternalsOptions } from './commands/check/externals.js';
+
+// DataDog utilities
+export {
+  loadDataDogConfig,
+  initializeDataDogClient,
+  createDataDogLogger,
+  sendLogToDataDog,
+  DataDogLogLevel,
+  type DataDogConfig,
+} from './utils/datadog.js';
+
+// Logger utilities
+export { logInfo, logWarn, logError, LogLevel } from './utils/logger.js';

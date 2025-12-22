@@ -14,3 +14,5 @@ export { dartFix } from './commands/dart/fix.js';
 export { parseDcmAnalyzeOutput, dcmAnalyze, } from './utils/dcm-parse.js';
 export { dartDcmAnalyze } from './commands/dart/dcm/analyze.js';
 export { checkExternals } from './commands/check/externals.js';
+export { loadDataDogConfig, initializeDataDogClient, createDataDogLogger, sendLogToDataDog, DataDogLogLevel, } from './utils/datadog.js';
+export { logInfo, logWarn, logError, LogLevel } from './utils/logger.js';

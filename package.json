@@ -34,6 +34,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@datadog/datadog-api-client": "^1.49.0",
     "commander": "^14.0.2"
   },
   "engines": {
