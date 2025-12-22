@@ -5,7 +5,7 @@ import { client, v2 } from '@datadog/datadog-api-client';
  */
 export interface DataDogConfig {
   apiKey?: string;
-  site?: string;
+  site: string;
   enabled: boolean;
 }
 
@@ -38,7 +38,7 @@ export function initializeDataDogClient(config: DataDogConfig): v2.LogsApi | nul
   });
 
   configuration.setServerVariables({
-    site: config.site || 'datadoghq.com',
+    site: config.site,
   });
 
   return new v2.LogsApi(configuration);

@@ -16,7 +16,7 @@ export function initializeDataDogClient(config) {
         },
     });
     configuration.setServerVariables({
-        site: config.site || 'datadoghq.com',
+        site: config.site,
     });
     return new v2.LogsApi(configuration);
 }

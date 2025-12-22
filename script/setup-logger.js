@@ -21,23 +21,28 @@ if (!level || !message) {
 }
 
 /* v8 ignore next -- @preserve */
-switch (level.toLowerCase()) {
-  case 'info':
-    logInfo(message);
-    break;
-  case 'warn':
-    logWarn(message);
-    break;
-  case 'error':
-    logError(message);
-    break;
-  default:
-    console.error(`Invalid log level: ${level}`);
-    process.exit(1);
+async function main() {
+  switch (level.toLowerCase()) {
+    case 'info':
+      logInfo(message);
+      break;
+    case 'warn':
+      logWarn(message);
+      break;
+    case 'error':
+      logError(message);
+      break;
+    default:
+      console.error(`Invalid log level: ${level}`);
+      process.exit(1);
+  }
+
+  // Give async operations a brief moment to complete
+  // This is a reasonable timeout for network requests to be queued
+  await new Promise((resolve) => setTimeout(resolve, 100));
 }
 
-// Give async operations time to complete
-/* v8 ignore next -- @preserve */
-setTimeout(() => {
-  process.exit(0);
-}, 100);
+main().catch((error) => {
+  console.error('Failed to log message:', error);
+  process.exit(1);
+});

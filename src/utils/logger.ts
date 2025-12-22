@@ -1,5 +1,11 @@
 import { isVerbose } from './verbose-state.js';
-import { loadDataDogConfig, initializeDataDogClient, createDataDogLogger } from './datadog.js';
+import {
+  loadDataDogConfig,
+  initializeDataDogClient,
+  createDataDogLogger,
+  type DataDogConfig,
+} from './datadog.js';
+import type { v2 } from '@datadog/datadog-api-client';
 
 export enum LogLevel {
   INFO = 'INFO',
@@ -7,10 +13,19 @@ export enum LogLevel {
   ERROR = 'ERROR',
 }
 
-// Initialize DataDog client once on module load
-const dataDogConfig = loadDataDogConfig();
-const dataDogClient = initializeDataDogClient(dataDogConfig);
-const dataDogLogger = createDataDogLogger(dataDogClient);
+// Lazy initialization of DataDog client to handle runtime environment changes
+let dataDogConfig: DataDogConfig | null = null;
+let dataDogClient: v2.LogsApi | null = null;
+let dataDogLogger: ReturnType<typeof createDataDogLogger> | null = null;
+
+function getDataDogLogger() {
+  if (dataDogLogger === null) {
+    dataDogConfig = loadDataDogConfig();
+    dataDogClient = initializeDataDogClient(dataDogConfig);
+    dataDogLogger = createDataDogLogger(dataDogClient);
+  }
+  return dataDogLogger;
+}
 
 /* v8 ignore next -- @preserve */
 export function log(message: string, level: LogLevel = LogLevel.INFO): void {
@@ -22,21 +37,21 @@ export function log(message: string, level: LogLevel = LogLevel.INFO): void {
 export function logError(message: string): void {
   log(message, LogLevel.ERROR);
   // Send to DataDog asynchronously without blocking
-  void dataDogLogger.error(message);
+  void getDataDogLogger().error(message);
 }
 
 /* v8 ignore next -- @preserve */
 export function logWarn(message: string): void {
   log(message, LogLevel.WARN);
   // Send to DataDog asynchronously without blocking
-  void dataDogLogger.warn(message);
+  void getDataDogLogger().warn(message);
 }
 
 /* v8 ignore next -- @preserve */
 export function logInfo(message: string): void {
   log(message, LogLevel.INFO);
   // Send to DataDog asynchronously without blocking
-  void dataDogLogger.info(message);
+  void getDataDogLogger().info(message);
 }
 
 /**

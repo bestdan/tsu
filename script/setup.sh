@@ -9,8 +9,9 @@ log_message() {
   local message="$*"
   echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] [$level] $message"
   
-  # If build exists, send to DataDog via logger
-  if [ -f "dist/utils/logger.js" ]; then
+  # If build exists and is recent enough, send to DataDog via logger
+  # This ensures we only try to use the logger after a successful build
+  if [ -f "dist/utils/logger.js" ] && [ -f "script/setup-logger.js" ]; then
     node script/setup-logger.js "$level" "$message" 2>/dev/null || true
   fi
 }

@@ -1,7 +1,7 @@
 import { v2 } from '@datadog/datadog-api-client';
 export interface DataDogConfig {
     apiKey?: string;
-    site?: string;
+    site: string;
     enabled: boolean;
 }
 export declare function loadDataDogConfig(): DataDogConfig;
