@@ -93,8 +93,8 @@ export async function hookCollate(options: HookCollateOptions = {}): Promise<voi
     name: string,
     file: string,
     args: string[],
-    skipCondition?: boolean,
-    appendChangedFileArgs?: boolean
+    skipCondition: boolean = false,
+    appendChangedFileArgs: boolean = true
   ): Promise<{ name: string; passed: boolean }> => {
     if (skipCondition) {
       logIfVerbose(verbose, `⏭️  Skipping ${name} (no relevant files)`);
@@ -104,7 +104,7 @@ export async function hookCollate(options: HookCollateOptions = {}): Promise<voi
     /* v8 ignore next -- @preserve */
     try {
       logIfVerbose(verbose, `\n▶️  Running ${name}...`);
-      const cmdArgs = appendChangedFileArgs !== false ? [...args, ...buildArgs()] : [...args];
+      const cmdArgs = appendChangedFileArgs ? [...args, ...buildArgs()] : [...args];
 
       const result = await execFileAsync(file, cmdArgs, { cwd });
 

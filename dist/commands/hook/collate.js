@@ -48,14 +48,14 @@ export async function hookCollate(options = {}) {
             args.push('--verbose');
         return args;
     };
-    const runHook = async (name, file, args, skipCondition, appendChangedFileArgs) => {
+    const runHook = async (name, file, args, skipCondition = false, appendChangedFileArgs = true) => {
         if (skipCondition) {
             logIfVerbose(verbose, `⏭️  Skipping ${name} (no relevant files)`);
             return { name, passed: true };
         }
         try {
             logIfVerbose(verbose, `\n▶️  Running ${name}...`);
-            const cmdArgs = appendChangedFileArgs !== false ? [...args, ...buildArgs()] : [...args];
+            const cmdArgs = appendChangedFileArgs ? [...args, ...buildArgs()] : [...args];
             const result = await execFileAsync(file, cmdArgs, { cwd });
             if (verbose && result.stdout) {
                 process.stderr.write(result.stdout);
