@@ -23,6 +23,8 @@ export interface HookCollateOptions extends ChangedFilesOptions {
   dcmAnalyze?: boolean;
   /** Run GraphQL check */
   graphql?: boolean;
+  /** Run git codeowners check */
+  codeowners?: boolean;
 }
 
 /**
@@ -56,18 +58,24 @@ export async function hookCollate(options: HookCollateOptions = {}): Promise<voi
   const dartFiles = allFiles.filter((file) => file.endsWith('.dart'));
   const graphqlFiles = allFiles.filter((file) => file.endsWith('.graphql'));
 
-  if (dartFiles.length === 0 && graphqlFiles.length === 0) {
-    logIfVerbose(verbose, '✓ No Dart or GraphQL files modified');
-    process.exit(0);
-  }
-
   // Determine which hooks to run (default: all)
   const runAll =
-    !options.dartFormat && !options.dartAnalysis && !options.dcmAnalyze && !options.graphql;
+    !options.dartFormat &&
+    !options.dartAnalysis &&
+    !options.dcmAnalyze &&
+    !options.graphql &&
+    !options.codeowners;
   const runDartFormat = runAll || options.dartFormat;
   const runDartAnalysis = runAll || options.dartAnalysis;
   const runDcmAnalyze = runAll || options.dcmAnalyze;
   const runGraphql = runAll || options.graphql;
+  const runCodeowners = runAll || options.codeowners;
+
+  // Exit early if no relevant files and codeowners check is not enabled
+  if (dartFiles.length === 0 && graphqlFiles.length === 0 && !runCodeowners) {
+    logIfVerbose(verbose, '✓ No Dart or GraphQL files modified');
+    process.exit(0);
+  }
 
   // Build base command arguments for changed file options
   const buildArgs = (): string[] => {
@@ -85,7 +93,8 @@ export async function hookCollate(options: HookCollateOptions = {}): Promise<voi
     name: string,
     file: string,
     args: string[],
-    skipCondition?: boolean
+    skipCondition?: boolean,
+    appendChangedFileArgs?: boolean
   ): Promise<{ name: string; passed: boolean }> => {
     if (skipCondition) {
       logIfVerbose(verbose, `⏭️  Skipping ${name} (no relevant files)`);
@@ -95,7 +104,7 @@ export async function hookCollate(options: HookCollateOptions = {}): Promise<voi
     /* v8 ignore next -- @preserve */
     try {
       logIfVerbose(verbose, `\n▶️  Running ${name}...`);
-      const cmdArgs = [...args, ...buildArgs()];
+      const cmdArgs = appendChangedFileArgs !== false ? [...args, ...buildArgs()] : [...args];
 
       const result = await execFileAsync(file, cmdArgs, { cwd });
 
@@ -184,6 +193,22 @@ export async function hookCollate(options: HookCollateOptions = {}): Promise<voi
         tsuCmd.file,
         [...tsuCmd.args, 'hook', 'graphql', 'check'],
         graphqlFiles.length === 0
+      )
+    );
+  }
+
+  if (runCodeowners) {
+    const codeownersArgs = [...tsuCmd.args, 'git', 'codeowners', 'check'];
+    if (verbose) {
+      codeownersArgs.push('--verbose');
+    }
+    hooks.push(
+      runHook(
+        'git codeowners check',
+        tsuCmd.file,
+        codeownersArgs,
+        false, // Always run if enabled, doesn't depend on changed files
+        false // Don't append changed file args, only accepts --verbose
       )
     );
   }

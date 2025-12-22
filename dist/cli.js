@@ -295,6 +295,7 @@ hook
     .option('--dart-analysis', 'run dart analysis check')
     .option('--dcm-analyze', 'run DCM analyze check')
     .option('--graphql', 'run GraphQL check')
+    .option('--codeowners', 'run git codeowners check')
     .option('-v, --verbose', 'show human-readable status messages (output to stderr)')
     .action(async (options) => {
     await hookCollate(options);

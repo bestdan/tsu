@@ -20,15 +20,20 @@ export async function hookCollate(options = {}) {
     const allFiles = getAllChangedFiles(options, cwd);
     const dartFiles = allFiles.filter((file) => file.endsWith('.dart'));
     const graphqlFiles = allFiles.filter((file) => file.endsWith('.graphql'));
-    if (dartFiles.length === 0 && graphqlFiles.length === 0) {
-        logIfVerbose(verbose, '✓ No Dart or GraphQL files modified');
-        process.exit(0);
-    }
-    const runAll = !options.dartFormat && !options.dartAnalysis && !options.dcmAnalyze && !options.graphql;
+    const runAll = !options.dartFormat &&
+        !options.dartAnalysis &&
+        !options.dcmAnalyze &&
+        !options.graphql &&
+        !options.codeowners;
     const runDartFormat = runAll || options.dartFormat;
     const runDartAnalysis = runAll || options.dartAnalysis;
     const runDcmAnalyze = runAll || options.dcmAnalyze;
     const runGraphql = runAll || options.graphql;
+    const runCodeowners = runAll || options.codeowners;
+    if (dartFiles.length === 0 && graphqlFiles.length === 0 && !runCodeowners) {
+        logIfVerbose(verbose, '✓ No Dart or GraphQL files modified');
+        process.exit(0);
+    }
     const buildArgs = () => {
         const args = [];
         if (options.staged)
@@ -43,14 +48,14 @@ export async function hookCollate(options = {}) {
             args.push('--verbose');
         return args;
     };
-    const runHook = async (name, file, args, skipCondition) => {
+    const runHook = async (name, file, args, skipCondition, appendChangedFileArgs) => {
         if (skipCondition) {
             logIfVerbose(verbose, `⏭️  Skipping ${name} (no relevant files)`);
             return { name, passed: true };
         }
         try {
             logIfVerbose(verbose, `\n▶️  Running ${name}...`);
-            const cmdArgs = [...args, ...buildArgs()];
+            const cmdArgs = appendChangedFileArgs !== false ? [...args, ...buildArgs()] : [...args];
             const result = await execFileAsync(file, cmdArgs, { cwd });
             if (verbose && result.stdout) {
                 process.stderr.write(result.stdout);
@@ -98,6 +103,13 @@ export async function hookCollate(options = {}) {
     }
     if (runGraphql) {
         hooks.push(runHook('GraphQL check', tsuCmd.file, [...tsuCmd.args, 'hook', 'graphql', 'check'], graphqlFiles.length === 0));
+    }
+    if (runCodeowners) {
+        const codeownersArgs = [...tsuCmd.args, 'git', 'codeowners', 'check'];
+        if (verbose) {
+            codeownersArgs.push('--verbose');
+        }
+        hooks.push(runHook('git codeowners check', tsuCmd.file, codeownersArgs, false, false));
     }
     const results = await Promise.allSettled(hooks);
     const failures = [];
