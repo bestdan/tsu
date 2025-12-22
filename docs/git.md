@@ -14,6 +14,7 @@ tsutils git branch             # Get current branch name
 tsutils git is-main            # Check if on main branch
 tsutils git commit-msg         # Generate commit message using Claude CLI
 tsutils git pr-description     # Generate PR description using Claude CLI
+tsutils git codeowners check   # Check if CODEOWNERS files are in sync
 ```
 
 ## Pipe-Friendly Output
@@ -101,6 +102,12 @@ Generates a commit message from staged changes using Claude CLI. Outputs message
 Generates a GitHub PR description from branch changes using Claude CLI. Outputs markdown description to stdout. Compares current branch to main (or `--base-branch`).
 
 **Requirements**: Claude CLI must be installed. Get it from https://github.com/anthropics/claude-cli
+
+### `git codeowners check`
+
+Checks if CODEOWNERS files are in sync by running `coach codeowners generate` and verifying no files changed. Returns exit code only (0=in sync, 1=out of sync). Perfect for CI/CD pipelines.
+
+**Requirements**: `coach` CLI must be installed.
 
 ## Verbose Mode
 
