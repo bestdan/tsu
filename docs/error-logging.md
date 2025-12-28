@@ -8,7 +8,7 @@ tsutils includes a local error logging system designed for open-source CLI tools
 
 - **Local-only**: All error logs are stored locally on your machine
 - **Privacy-focused**: Sanitizes error messages to remove sensitive data
-- **Opt-out by default**: Error logging is enabled by default but can be easily disabled
+- **Enabled by default**: Can be easily disabled via environment variable
 - **No external services**: No data is sent to external servers or tracking services
 - **Transparent**: Clear documentation of what is logged
 

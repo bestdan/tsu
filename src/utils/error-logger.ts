@@ -63,7 +63,7 @@ export interface ErrorContext {
  */
 /* v8 ignore next -- @preserve */
 export function getErrorLogConfig(): ErrorLogConfig {
-  const enabled = process.env.TSU_ERROR_LOG !== 'false'; // Enabled by default, disabled if explicitly set to 'false'
+  const enabled = process.env.TSU_ERROR_LOG !== 'false';
   const logDir = process.env.TSU_LOG_DIR || join(homedir(), '.tsu', 'logs');
 
   return {
@@ -100,22 +100,22 @@ function ensureLogDirectory(logDir: string): void {
 
 /**
  * Sanitize error message to remove potential sensitive data
- * - Removes absolute paths outside the project
+ * - Replaces home directory paths with tilde notation
  * - Removes potential secrets (anything that looks like keys/tokens)
  */
 export function sanitizeErrorMessage(message: string): string {
   let sanitized = message;
 
-  // Replace absolute paths outside CWD with relative paths
-  // This prevents leaking user directory structure
+  // Replace home directory paths with tilde notation
+  // This prevents leaking usernames in paths
   const homeDir = homedir();
   sanitized = sanitized.replace(new RegExp(homeDir, 'g'), '~');
 
   // Remove potential secrets (patterns like API keys, tokens)
   // Match common secret patterns but preserve error context
-  sanitized = sanitized.replace(/\b[A-Za-z0-9_-]{20,}\b/g, (match) => {
-    // Only redact if it looks like a secret (no spaces, unusual length)
-    if (match.length > 30 && /[A-Z]/.test(match) && /[a-z]/.test(match) && /[0-9]/.test(match)) {
+  sanitized = sanitized.replace(/\b[A-Za-z0-9_-]{30,}\b/g, (match) => {
+    // Only redact if it looks like a secret (mixed case with numbers)
+    if (/[A-Z]/.test(match) && /[a-z]/.test(match) && /[0-9]/.test(match)) {
       return '[REDACTED]';
     }
     return match;
@@ -146,7 +146,7 @@ export function createErrorContext(error: Error | string, command: string): Erro
 
 /**
  * Log an error to the local error log file
- * This is opt-in and respects user privacy by:
+ * This is enabled by default and respects user privacy by:
  * - Only logging if TSU_ERROR_LOG is not set to 'false'
  * - Sanitizing error messages to remove sensitive data
  * - Storing logs locally (not sending to external services)

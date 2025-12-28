@@ -31,8 +31,8 @@ export function sanitizeErrorMessage(message) {
     let sanitized = message;
     const homeDir = homedir();
     sanitized = sanitized.replace(new RegExp(homeDir, 'g'), '~');
-    sanitized = sanitized.replace(/\b[A-Za-z0-9_-]{20,}\b/g, (match) => {
-        if (match.length > 30 && /[A-Z]/.test(match) && /[a-z]/.test(match) && /[0-9]/.test(match)) {
+    sanitized = sanitized.replace(/\b[A-Za-z0-9_-]{30,}\b/g, (match) => {
+        if (/[A-Z]/.test(match) && /[a-z]/.test(match) && /[0-9]/.test(match)) {
             return '[REDACTED]';
         }
         return match;
