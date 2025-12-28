@@ -76,6 +76,20 @@ This project includes protection against command injection:
 - User inputs are validated before being passed to shell commands
 - File paths are resolved to prevent directory traversal
 
+### Error Logging
+
+The project includes a local error logging system that respects user privacy:
+
+- **Local only**: All logs are stored locally on the user's machine
+- **Opt-out**: Enabled by default but can be disabled via `TSU_ERROR_LOG=false`
+- **Privacy protection**: Automatically sanitizes sensitive data:
+  - Replaces home directory paths with `~`
+  - Redacts patterns that look like secrets (API keys, tokens)
+- **No external transmission**: Error logs never leave the user's machine
+- **Transparent**: Clear documentation of what is logged and where
+
+See [Error Logging Documentation](docs/error-logging.md) for details.
+
 ### Dependency Security
 
 - Minimal runtime dependencies (only `commander`)
