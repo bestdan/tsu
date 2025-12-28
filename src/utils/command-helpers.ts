@@ -7,6 +7,7 @@ import {
 import type { ChangedFilesOptions } from '../types/command-options.js';
 import { isCommandInstalled } from './shell.js';
 import { isVerbose } from './verbose-state.js';
+import { logError } from './error-logger.js';
 
 /**
  * Checks a condition and exits with an error if the condition is false.
@@ -17,18 +18,23 @@ import { isVerbose } from './verbose-state.js';
  * @param options.verbose - If true, logs a success message when condition is true
  * @param options.successMessage - Message to log when condition is true and verbose is enabled
  * @param options.exitCode - Exit code to use when condition is false (defaults to 1)
+ * @param options.command - The command being executed (for error logging)
  * @example
- * ensureCondition(isGitRepo(), 'Error: Not in a git repository');
+ * ensureCondition(isGitRepo(), 'Error: Not in a git repository', { command: 'tsu git changed' });
  * ensureCondition(isGitRepo(), 'Error: Not in a git repository', { verbose: true, successMessage: '✓ In git repository' });
  * ensureCondition(isDcmInstalled(), '⚠️  Warning: DCM not installed, skipping', { exitCode: 0 });
  */
 export function ensureCondition(
   condition: boolean,
   errorMessage: string,
-  options?: { verbose?: boolean; successMessage?: string; exitCode?: number }
+  options?: { verbose?: boolean; successMessage?: string; exitCode?: number; command?: string }
 ): void {
   if (!condition) {
     if (errorMessage) {
+      // Log error if this is a failure (non-zero exit code)
+      if ((options?.exitCode ?? 1) !== 0 && options?.command) {
+        logError(new Error(errorMessage), options.command);
+      }
       console.error(errorMessage);
     }
     process.exit(options?.exitCode ?? 1);

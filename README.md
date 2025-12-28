@@ -122,6 +122,21 @@ src/
     └── files.ts                 # File utilities
 ```
 
+## Error Logging and Diagnostics
+
+tsutils includes a **privacy-focused local error logging system** to help diagnose issues:
+
+- 🔒 **Local-only**: All error logs stay on your machine
+- 🛡️ **Privacy-first**: Automatically sanitizes sensitive data
+- ⚙️ **Configurable**: Easy to disable or customize
+- 📝 **Transparent**: See exactly what gets logged
+
+See [Error Logging Documentation](docs/error-logging.md) for details on:
+- How to disable error logging
+- What information is logged
+- How to report issues
+- Privacy and security considerations
+
 ## Development
 
 - [Contributing Guide](CONTRIBUTING.md)

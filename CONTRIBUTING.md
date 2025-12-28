@@ -86,6 +86,38 @@ pnpm typecheck
 4. Write tests in a `.test.ts` file
 5. Export utilities from `src/index.ts` if needed
 
+### Error Handling in Commands
+
+When adding error handling to commands, use the error logger to help diagnose issues:
+
+```typescript
+import { logError } from '../utils/error-logger.js';
+
+export function myCommand(options: { verbose?: boolean }) {
+  try {
+    // Your command logic
+    console.log('Success!');
+    process.exit(0);
+  } catch (error) {
+    // Log error for diagnostics (respects user's TSU_ERROR_LOG setting)
+    logError(error as Error, 'tsu namespace command');
+    
+    // Display user-friendly error message to stderr
+    console.error('Error: Something went wrong');
+    
+    // Exit with appropriate code
+    process.exit(1);
+  }
+}
+```
+
+**Best Practices:**
+- Always log errors before exiting with non-zero exit code
+- Include the full command in the log (e.g., 'tsu git changed')
+- Display user-friendly messages to users, log technical details for debugging
+- Let `logError()` handle sanitization - don't pre-sanitize error messages
+- See [Error Logging Documentation](docs/error-logging.md) for more details
+
 ## File Organization Guidelines
 
 When creating or modifying code files:
