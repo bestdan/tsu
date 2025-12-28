@@ -19,6 +19,27 @@ DataDog logging is controlled by environment variables:
 
 ### Setup
 
+#### Option 1: Using the setup command (Recommended)
+
+Run the interactive setup command:
+
+```bash
+tsu datadog setup
+```
+
+This will prompt you for:
+- Your DataDog API key (get it from [DataDog API Keys](https://app.datadoghq.com/organization-settings/api-keys))
+- DataDog site (defaults to `datadoghq.com`)
+- NODE_ENV (defaults to `development`)
+
+You can also run it non-interactively with flags:
+
+```bash
+tsu datadog setup --api-key YOUR_KEY --site datadoghq.com --node-env production
+```
+
+#### Option 2: Manual setup
+
 1. Copy the example environment file:
    ```bash
    cp .env.example .env
@@ -32,6 +53,32 @@ DataDog logging is controlled by environment variables:
    ```
 
 3. Get your API key from [DataDog API Keys](https://app.datadoghq.com/organization-settings/api-keys)
+
+### Verifying Your Setup
+
+After setting up DataDog, verify the connection works:
+
+```bash
+tsu datadog check
+```
+
+This will:
+- Verify your DataDog configuration is valid
+- Send a test log to DataDog
+- Provide a direct link to view your logs
+
+If successful, you'll see:
+```
+success
+✅ DataDog connection successful!
+Test log has been sent to DataDog.
+Check your logs at: https://app.datadoghq.com/logs
+```
+
+Use the `-v` flag for more detailed output:
+```bash
+tsu datadog check -v
+```
 
 ### Local Development
 
@@ -103,10 +150,19 @@ Logs sent to DataDog include:
 
 ### Logs not appearing in DataDog
 
-1. Verify your API key is correct
-2. Check that `DD_API_KEY` is set in your environment
-3. Verify the `DD_SITE` matches your DataDog account region
-4. Check for errors in the console (failed DataDog requests are logged to stderr)
+First, run the check command to diagnose the issue:
+
+```bash
+tsu datadog check -v
+```
+
+This will help identify common problems:
+
+1. **DataDog not configured**: Run `tsu datadog setup` to configure your API key
+2. **Invalid API key**: Verify your API key is correct at [DataDog API Keys](https://app.datadoghq.com/organization-settings/api-keys)
+3. **Wrong DataDog site**: Check that `DD_SITE` matches your DataDog account region
+4. **Network issues**: Ensure you have internet connectivity
+5. **Environment variables**: Check that `DD_API_KEY` is set in your current environment
 
 ### Setup script not logging to DataDog
 

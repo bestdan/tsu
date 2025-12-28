@@ -28,6 +28,8 @@ import { dartDcmAnalyze } from './commands/dart/dcm/analyze.js';
 import { checkExternals } from './commands/check/externals.js';
 import { checkVersion } from './commands/check/version.js';
 import { upgrade } from './commands/upgrade.js';
+import { dataDogSetup } from './commands/datadog/setup.js';
+import { dataDogCheck } from './commands/datadog/check.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const packageJson = JSON.parse(readFileSync(join(__dirname, '../package.json'), 'utf-8'));
@@ -58,6 +60,24 @@ program
     .option('-p, --package-manager <manager>', 'package manager to use (npm, pnpm, or yarn)', 'npm')
     .action(async (options) => {
     await upgrade(options);
+});
+const datadog = program.command('datadog').description('DataDog logging utilities');
+datadog
+    .command('setup')
+    .description('Interactive setup for DataDog logging configuration')
+    .option('-v, --verbose', 'show progress messages (output to stderr)')
+    .option('--api-key <key>', 'DataDog API key')
+    .option('--site <site>', 'DataDog site (default: datadoghq.com)')
+    .option('--node-env <env>', 'NODE_ENV value (default: development)')
+    .action(async (options) => {
+    await dataDogSetup(options);
+});
+datadog
+    .command('check')
+    .description('Check DataDog connection by sending a test log')
+    .option('-v, --verbose', 'show progress messages (output to stderr)')
+    .action(async (options) => {
+    await dataDogCheck(options);
 });
 const git = program.command('git').description('Git repository utilities');
 git

@@ -123,5 +123,8 @@ export {
   type DataDogConfig,
 } from './utils/datadog.js';
 
+export { dataDogSetup, type DataDogSetupOptions } from './commands/datadog/setup.js';
+export { dataDogCheck, type DataDogCheckOptions } from './commands/datadog/check.js';
+
 // Logger utilities
 export { logInfo, logWarn, logError, LogLevel } from './utils/logger.js';

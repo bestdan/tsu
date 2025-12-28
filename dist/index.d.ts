@@ -16,4 +16,6 @@ export { parseDcmAnalyzeOutput, dcmAnalyze, type CallAndParseDcmOptions, type Ca
 export { dartDcmAnalyze, type DartDcmAnalyzeOptions } from './commands/dart/dcm/analyze.js';
 export { checkExternals, type CheckExternalsOptions } from './commands/check/externals.js';
 export { loadDataDogConfig, initializeDataDogClient, createDataDogLogger, sendLogToDataDog, DataDogLogLevel, type DataDogConfig, } from './utils/datadog.js';
+export { dataDogSetup, type DataDogSetupOptions } from './commands/datadog/setup.js';
+export { dataDogCheck, type DataDogCheckOptions } from './commands/datadog/check.js';
 export { logInfo, logWarn, logError, LogLevel } from './utils/logger.js';
