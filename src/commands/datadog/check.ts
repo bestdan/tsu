@@ -43,16 +43,11 @@ export async function dataDogCheck(options: DataDogCheckOptions = {}): Promise<v
 
   // Send test log
   try {
-    await sendLogToDataDog(
-      logsApi,
-      'DataDog connection test from tsutils',
-      DataDogLogLevel.INFO,
-      {
-        test: true,
-        timestamp: new Date().toISOString(),
-        command: 'datadog check',
-      }
-    );
+    await sendLogToDataDog(logsApi, 'DataDog connection test from tsutils', DataDogLogLevel.INFO, {
+      test: true,
+      timestamp: new Date().toISOString(),
+      command: 'datadog check',
+    });
 
     logIfVerbose(verbose, 'Test log sent successfully');
     console.log('success');

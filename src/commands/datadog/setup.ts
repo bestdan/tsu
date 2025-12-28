@@ -38,7 +38,9 @@ export async function dataDogSetup(options: DataDogSetupOptions = {}): Promise<v
   let finalApiKey = apiKey;
   if (!finalApiKey) {
     logIfVerbose(verbose, 'Prompting for DataDog API key...');
-    console.error('\nGet your API key from: https://app.datadoghq.com/organization-settings/api-keys\n');
+    console.error(
+      '\nGet your API key from: https://app.datadoghq.com/organization-settings/api-keys\n'
+    );
     finalApiKey = await promptUser('Enter your DataDog API key: ');
     if (!finalApiKey) {
       console.error('Error: API key is required');
