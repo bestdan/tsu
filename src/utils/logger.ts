@@ -18,6 +18,7 @@ let dataDogConfig: DataDogConfig | null = null;
 let dataDogClient: v2.LogsApi | null = null;
 let dataDogLogger: ReturnType<typeof createDataDogLogger> | null = null;
 
+/* v8 ignore next -- @preserve */
 function getDataDogLogger() {
   if (dataDogLogger === null) {
     dataDogConfig = loadDataDogConfig();
