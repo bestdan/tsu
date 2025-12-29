@@ -13,12 +13,21 @@ export interface GetFilesToPushOptions {
 }
 
 /**
- * Gets the list of files in commits that would be pushed to upstream.
- * Compares HEAD against the remote tracking branch (e.g., origin/feature-branch).
- * If the remote branch doesn't exist (never pushed before), compares against base branch.
- * Equivalent to: git diff --name-only origin/$(git branch --show-current)..HEAD
+ * Gets the list of files that have changed uniquely in the current branch.
+ * Uses three-dot diff against the base branch to show only files modified in the current branch,
+ * excluding files that came from merge commits (e.g., when merging main into a feature branch).
+ *
+ * This is specifically designed for pre-push hooks and linting tools where you want to check
+ * only the files you've actually modified, not files that were merged in from other branches.
+ *
  * @param options - Configuration options or just the cwd string (for backwards compatibility)
- * @returns Array of file paths, or null if not in a git repo
+ * @returns Array of file paths unique to the current branch, or null if not in a git repo
+ *
+ * @example
+ * // On feature branch that merged main:
+ * // - feature.txt (your change)
+ * // - main1.txt, main2.txt (merged from main)
+ * // Result: ['feature.txt'] - only your changes
  */
 export function getFilesToPush(options: GetFilesToPushOptions | string = {}): string[] | null {
   // Support legacy string parameter for backwards compatibility
@@ -38,40 +47,27 @@ export function getFilesToPush(options: GetFilesToPushOptions | string = {}): st
       return null;
     }
 
-    // Construct the remote tracking branch (e.g., origin/feature-branch)
-    const remoteBranch = `origin/${currentBranch}`;
+    // Check if we're on the base branch
+    if (currentBranch === baseBranch) {
+      // On base branch, return empty array (no files to check)
+      return [];
+    }
 
-    // Check if the remote branch exists
-    let range: string;
+    // Verify base branch exists
     try {
-      execSync(`git rev-parse --verify ${escapeShellArg(remoteBranch)}`, {
+      execSync(`git rev-parse --verify ${escapeShellArg(baseBranch)}`, {
         cwd: resolvedCwd,
         stdio: 'pipe',
       });
-      // Remote branch exists, compare against it
-      range = `${remoteBranch}..HEAD`;
     } catch {
-      // Remote branch doesn't exist (never pushed before)
-      // Fall back to comparing against base branch
-      try {
-        execSync(`git rev-parse --verify ${escapeShellArg(baseBranch)}`, {
-          cwd: resolvedCwd,
-          stdio: 'pipe',
-        });
-      } catch {
-        // Base branch doesn't exist either, return empty array
-        return [];
-      }
-
-      // Check if we're on the base branch
-      if (currentBranch === baseBranch) {
-        // On base branch with no remote, return empty array
-        return [];
-      }
-
-      // Compare current branch to base branch
-      range = `${baseBranch}...HEAD`;
+      // Base branch doesn't exist, return empty array
+      return [];
     }
+
+    // Use three-dot range to compare against base branch
+    // This finds the merge base and shows only changes unique to HEAD
+    // Handles merge commits elegantly by excluding merged files
+    const range = `${baseBranch}...HEAD`;
 
     // Get files in the determined range
     return getFilesInRange({ range, cwd: resolvedCwd });

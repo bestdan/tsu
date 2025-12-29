@@ -1228,6 +1228,128 @@ describe('getFilesToPush', () => {
       rmSync(tempDir, { recursive: true, force: true });
     }
   });
+
+  it('should only return feature branch changes after merging main', () => {
+    const tempDir = realpathSync(mkdtempSync(join(tmpdir(), 'git-test-')));
+    try {
+      execSync('git init', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git config user.email "test@test.com"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git config user.name "Test User"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git checkout -b main', { cwd: tempDir, stdio: 'pipe' });
+
+      // Create initial commit on main
+      writeFileSync(join(tempDir, 'initial.txt'), 'initial');
+      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "initial"', { cwd: tempDir, stdio: 'pipe' });
+
+      // Create a bare remote and push main
+      const remoteDir = realpathSync(mkdtempSync(join(tmpdir(), 'git-remote-')));
+      execSync('git init --bare', { cwd: remoteDir, stdio: 'pipe' });
+      execSync(`git remote add origin "${remoteDir}"`, {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git push -u origin main', { cwd: tempDir, stdio: 'pipe' });
+
+      // Create and push feature branch with one commit
+      execSync('git checkout -b feature', { cwd: tempDir, stdio: 'pipe' });
+      writeFileSync(join(tempDir, 'feature.txt'), 'feature work');
+      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "feature work"', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git push -u origin feature', { cwd: tempDir, stdio: 'pipe' });
+
+      // Add commits to main branch
+      execSync('git checkout main', { cwd: tempDir, stdio: 'pipe' });
+      for (let i = 1; i <= 3; i++) {
+        writeFileSync(join(tempDir, `main${i}.txt`), `main work ${i}`);
+        execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+        execSync('git commit -m "main work ${i}"', { cwd: tempDir, stdio: 'pipe' });
+      }
+      execSync('git push origin main', { cwd: tempDir, stdio: 'pipe' });
+
+      // Merge main into feature
+      execSync('git checkout feature', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git merge main -m "Merge main"', { cwd: tempDir, stdio: 'pipe' });
+
+      // Should only show feature.txt, not the files from main
+      const files = getFilesToPush(tempDir);
+      expect(files).toEqual(['feature.txt']);
+      expect(files).not.toContain('main1.txt');
+      expect(files).not.toContain('main2.txt');
+      expect(files).not.toContain('main3.txt');
+
+      rmSync(remoteDir, { recursive: true, force: true });
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it('should handle multiple feature commits with merge', () => {
+    const tempDir = realpathSync(mkdtempSync(join(tmpdir(), 'git-test-')));
+    try {
+      execSync('git init', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git config user.email "test@test.com"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git config user.name "Test User"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git checkout -b main', { cwd: tempDir, stdio: 'pipe' });
+
+      // Create initial commit on main
+      writeFileSync(join(tempDir, 'initial.txt'), 'initial');
+      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "initial"', { cwd: tempDir, stdio: 'pipe' });
+
+      // Create a bare remote and push main
+      const remoteDir = realpathSync(mkdtempSync(join(tmpdir(), 'git-remote-')));
+      execSync('git init --bare', { cwd: remoteDir, stdio: 'pipe' });
+      execSync(`git remote add origin "${remoteDir}"`, {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git push -u origin main', { cwd: tempDir, stdio: 'pipe' });
+
+      // Create and push feature branch
+      execSync('git checkout -b feature', { cwd: tempDir, stdio: 'pipe' });
+      writeFileSync(join(tempDir, 'feature1.txt'), 'feature work 1');
+      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "feature work 1"', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git push -u origin feature', { cwd: tempDir, stdio: 'pipe' });
+
+      // Add commits to main
+      execSync('git checkout main', { cwd: tempDir, stdio: 'pipe' });
+      writeFileSync(join(tempDir, 'main1.txt'), 'main work');
+      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "main work"', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git push origin main', { cwd: tempDir, stdio: 'pipe' });
+
+      // Merge main into feature and add more feature work
+      execSync('git checkout feature', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git merge main -m "Merge main"', { cwd: tempDir, stdio: 'pipe' });
+      writeFileSync(join(tempDir, 'feature2.txt'), 'feature work 2');
+      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "feature work 2"', { cwd: tempDir, stdio: 'pipe' });
+
+      // Should show both feature files, not main files
+      const files = getFilesToPush(tempDir);
+      expect(files).toContain('feature1.txt');
+      expect(files).toContain('feature2.txt');
+      expect(files).not.toContain('main1.txt');
+
+      rmSync(remoteDir, { recursive: true, force: true });
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
 });
 
 // Note: generateCommitMessage and generatePRDescription require Claude CLI

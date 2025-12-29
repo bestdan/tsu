@@ -15,30 +15,19 @@ export function getFilesToPush(options = {}) {
         if (!currentBranch) {
             return null;
         }
-        const remoteBranch = `origin/${currentBranch}`;
-        let range;
+        if (currentBranch === baseBranch) {
+            return [];
+        }
         try {
-            execSync(`git rev-parse --verify ${escapeShellArg(remoteBranch)}`, {
+            execSync(`git rev-parse --verify ${escapeShellArg(baseBranch)}`, {
                 cwd: resolvedCwd,
                 stdio: 'pipe',
             });
-            range = `${remoteBranch}..HEAD`;
         }
         catch {
-            try {
-                execSync(`git rev-parse --verify ${escapeShellArg(baseBranch)}`, {
-                    cwd: resolvedCwd,
-                    stdio: 'pipe',
-                });
-            }
-            catch {
-                return [];
-            }
-            if (currentBranch === baseBranch) {
-                return [];
-            }
-            range = `${baseBranch}...HEAD`;
+            return [];
         }
+        const range = `${baseBranch}...HEAD`;
         return getFilesInRange({ range, cwd: resolvedCwd });
     }
     catch {
