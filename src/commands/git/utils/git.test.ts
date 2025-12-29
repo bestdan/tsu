@@ -1269,7 +1269,7 @@ describe('getFilesToPush', () => {
       for (let i = 1; i <= 3; i++) {
         writeFileSync(join(tempDir, `main${i}.txt`), `main work ${i}`);
         execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
-        execSync('git commit -m "main work ${i}"', { cwd: tempDir, stdio: 'pipe' });
+        execSync(`git commit -m "main work ${i}"`, { cwd: tempDir, stdio: 'pipe' });
       }
       execSync('git push origin main', { cwd: tempDir, stdio: 'pipe' });
 
