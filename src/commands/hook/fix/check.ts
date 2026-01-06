@@ -3,7 +3,11 @@ import { isGitRepo, hasUnstagedChanges, getAllChangedFiles } from '../../git/uti
 import { isDartPackage, COMMON_DART_CODEGEN_SUFFIXES } from '../../dart/utils/dart.js';
 import { filterFilesBySuffix } from '../../files/utils/files.js';
 import { escapeShellArg } from '../../../utils/shell.js';
-import { ensureCondition, displayFileList } from '../../../utils/command-helpers.js';
+import {
+  ensureCondition,
+  ensureDartInstalled,
+  displayFileList,
+} from '../../../utils/command-helpers.js';
 import { logIfVerbose } from '../../../utils/logger.js';
 import type { ChangedFilesOptions } from '../../../types/command-options.js';
 import { setVerbose } from '../../../utils/verbose-state.js';
@@ -29,6 +33,9 @@ export function dartHookFixCheck(options: DartHookFixCheckOptions = {}): void {
 
   // Set global verbose state for downstream functions
   setVerbose(verbose);
+
+  // Check if Dart is installed
+  ensureDartInstalled(verbose);
 
   logIfVerbose(verbose, '🔧 Running dart fix on modified files...');
 
