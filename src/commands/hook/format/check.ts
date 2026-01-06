@@ -4,7 +4,11 @@ import { isDartPackage, COMMON_DART_CODEGEN_SUFFIXES } from '../../dart/utils/da
 import { filterFilesBySuffix } from '../../files/utils/files.js';
 import { escapeShellArg } from '../../../utils/shell.js';
 import { logIfVerbose } from '../../../utils/logger.js';
-import { ensureCondition, ensureDartInstalled, displayFileList } from '../../../utils/command-helpers.js';
+import {
+  ensureCondition,
+  ensureDartInstalled,
+  displayFileList,
+} from '../../../utils/command-helpers.js';
 import type { ChangedFilesOptions } from '../../../types/command-options.js';
 import { setVerbose } from '../../../utils/verbose-state.js';
 

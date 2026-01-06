@@ -146,10 +146,14 @@ export function upgradeFromGitHub(
 ): void {
   // Validate owner and repo to prevent command injection
   if (!isValidGitHubName(owner)) {
-    throw new Error(`Invalid GitHub owner: "${owner}". Must be alphanumeric with hyphens/underscores.`);
+    throw new Error(
+      `Invalid GitHub owner: "${owner}". Must be alphanumeric with hyphens/underscores.`
+    );
   }
   if (!isValidGitHubName(repo)) {
-    throw new Error(`Invalid GitHub repo: "${repo}". Must be alphanumeric with hyphens/underscores.`);
+    throw new Error(
+      `Invalid GitHub repo: "${repo}". Must be alphanumeric with hyphens/underscores.`
+    );
   }
 
   // Auto-detect package manager if not specified, defaulting to pnpm
