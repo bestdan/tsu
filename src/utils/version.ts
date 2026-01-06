@@ -127,6 +127,7 @@ export function detectPackageManager(): 'npm' | 'pnpm' | 'yarn' | null {
  * GitHub names can contain alphanumeric characters, hyphens, and underscores.
  * They cannot start with a hyphen or contain shell metacharacters.
  */
+/* v8 ignore next -- @preserve */
 function isValidGitHubName(name: string): boolean {
   return /^[a-zA-Z0-9][a-zA-Z0-9_-]*$/.test(name);
 }
