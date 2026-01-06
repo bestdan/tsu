@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { dartHookFixCheck } from './check.js';
 import * as gitUtils from '../../git/utils/git.js';
 import * as dartUtils from '../../dart/utils/dart.js';
+import * as shellUtils from '../../../utils/shell.js';
 import { execSync } from 'node:child_process';
 import { resetVerbose } from '../../../utils/verbose-state.js';
 
@@ -15,6 +16,7 @@ describe('dartHookFixCheck', () => {
   let isGitRepoSpy: any;
   let isDartPackageSpy: any;
   let getAllChangedFilesSpy: any;
+  let isCommandInstalledSpy: any;
 
   beforeEach(() => {
     // Reset verbose state before each test
@@ -27,7 +29,10 @@ describe('dartHookFixCheck', () => {
     isGitRepoSpy = vi.spyOn(gitUtils, 'isGitRepo');
     isDartPackageSpy = vi.spyOn(dartUtils, 'isDartPackage');
     getAllChangedFilesSpy = vi.spyOn(gitUtils, 'getAllChangedFiles');
+    isCommandInstalledSpy = vi.spyOn(shellUtils, 'isCommandInstalled');
 
+    // Default: Dart is installed
+    isCommandInstalledSpy.mockReturnValue(true);
     // Mock execSync to succeed by default
     vi.mocked(execSync).mockReturnValue('' as any);
   });
@@ -38,6 +43,7 @@ describe('dartHookFixCheck', () => {
     isGitRepoSpy.mockRestore();
     isDartPackageSpy.mockRestore();
     getAllChangedFilesSpy.mockRestore();
+    isCommandInstalledSpy.mockRestore();
     vi.clearAllMocks();
   });
 
