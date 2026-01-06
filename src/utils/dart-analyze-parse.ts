@@ -1,6 +1,7 @@
 import { execSync } from 'node:child_process';
 import { resolve, dirname, relative } from 'node:path';
 import { findDartPackageRoot } from '../commands/dart/utils/dart.js';
+import { escapeShellArg } from './shell.js';
 
 export interface DartAnalyzeIssue {
   severity: string;
@@ -66,7 +67,7 @@ export interface CallAndParseDartAnalyzeResult {
  */
 /* v8 ignore next -- @preserve */
 function runDartAnalyzeForPackage(packageRoot: string, timeout: number, files?: string[]): string {
-  const fileArgs = files && files.length > 0 ? files.map((f) => `"${f}"`).join(' ') : '.';
+  const fileArgs = files && files.length > 0 ? files.map((f) => escapeShellArg(f)).join(' ') : '.';
 
   return execSync(`dart analyze ${fileArgs} --fatal-infos --fatal-warnings`, {
     cwd: packageRoot,

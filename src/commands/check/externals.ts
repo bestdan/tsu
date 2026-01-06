@@ -40,6 +40,12 @@ const EXTERNAL_DEPENDENCIES: ExternalDependency[] = [
     description: 'Required for git commit-msg and git pr-description',
     installUrl: 'https://github.com/anthropics/claude-cli',
   },
+  {
+    command: 'coach',
+    name: 'Coach',
+    description: 'Required for git codeowners check',
+    installUrl: 'https://github.com/spotify/coach',
+  },
 ];
 
 /**
