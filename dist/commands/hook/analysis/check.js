@@ -1,7 +1,7 @@
 import { isGitRepo, getAllChangedFiles } from '../../git/utils/git.js';
 import { isDartPackage, COMMON_DART_CODEGEN_SUFFIXES } from '../../dart/utils/dart.js';
 import { filterFilesBySuffix } from '../../files/utils/files.js';
-import { ensureCondition, displayFileList } from '../../../utils/command-helpers.js';
+import { ensureCondition, ensureDartInstalled, displayFileList, } from '../../../utils/command-helpers.js';
 import { logIfVerbose } from '../../../utils/logger.js';
 import { dartAnalyze } from '../../../utils/dart-analyze-parse.js';
 import { setVerbose } from '../../../utils/verbose-state.js';
@@ -9,6 +9,7 @@ export function dartHookAnalysisCheck(options = {}) {
     const verbose = options.verbose || false;
     const excludeSuffixes = options.excludeSuffixes || [...COMMON_DART_CODEGEN_SUFFIXES];
     setVerbose(verbose);
+    ensureDartInstalled(verbose);
     logIfVerbose(verbose, '🔍 Running dart analyze on modified files...');
     ensureCondition(isGitRepo(), 'Error: Not in a git repository');
     ensureCondition(isDartPackage(), 'Error: Not in a Dart package');

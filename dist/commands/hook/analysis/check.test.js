@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { dartHookAnalysisCheck } from './check.js';
 import * as gitUtils from '../../git/utils/git.js';
 import * as dartUtils from '../../dart/utils/dart.js';
+import * as shellUtils from '../../../utils/shell.js';
 import * as dartAnalyzeParse from '../../../utils/dart-analyze-parse.js';
 import { resetVerbose } from '../../../utils/verbose-state.js';
 describe('dartHookAnalysisCheck', () => {
@@ -10,6 +11,7 @@ describe('dartHookAnalysisCheck', () => {
     let isGitRepoSpy;
     let isDartPackageSpy;
     let getAllChangedFilesSpy;
+    let isCommandInstalledSpy;
     beforeEach(() => {
         resetVerbose();
         consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => { });
@@ -19,6 +21,8 @@ describe('dartHookAnalysisCheck', () => {
         isGitRepoSpy = vi.spyOn(gitUtils, 'isGitRepo');
         isDartPackageSpy = vi.spyOn(dartUtils, 'isDartPackage');
         getAllChangedFilesSpy = vi.spyOn(gitUtils, 'getAllChangedFiles');
+        isCommandInstalledSpy = vi.spyOn(shellUtils, 'isCommandInstalled');
+        isCommandInstalledSpy.mockReturnValue(true);
     });
     afterEach(() => {
         consoleErrorSpy.mockRestore();
@@ -26,6 +30,7 @@ describe('dartHookAnalysisCheck', () => {
         isGitRepoSpy.mockRestore();
         isDartPackageSpy.mockRestore();
         getAllChangedFilesSpy.mockRestore();
+        isCommandInstalledSpy.mockRestore();
         vi.clearAllMocks();
     });
     it('should exit with error if not in a git repository', () => {
