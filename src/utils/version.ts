@@ -123,10 +123,20 @@ export function detectPackageManager(): 'npm' | 'pnpm' | 'yarn' | null {
 }
 
 /**
+ * Validates a GitHub owner or repo name.
+ * GitHub names can contain alphanumeric characters, hyphens, and underscores.
+ * They cannot start with a hyphen or contain shell metacharacters.
+ */
+function isValidGitHubName(name: string): boolean {
+  return /^[a-zA-Z0-9][a-zA-Z0-9_-]*$/.test(name);
+}
+
+/**
  * Upgrade tsutils by installing from GitHub
  * @param owner - GitHub repository owner
  * @param repo - GitHub repository name
  * @param packageManager - Package manager to use (npm, pnpm, or yarn). If not provided, will try to detect, defaulting to pnpm.
+ * @throws Error if owner or repo contain invalid characters
  */
 /* v8 ignore next -- @preserve */
 export function upgradeFromGitHub(
@@ -134,6 +144,14 @@ export function upgradeFromGitHub(
   repo: string,
   packageManager?: 'npm' | 'pnpm' | 'yarn'
 ): void {
+  // Validate owner and repo to prevent command injection
+  if (!isValidGitHubName(owner)) {
+    throw new Error(`Invalid GitHub owner: "${owner}". Must be alphanumeric with hyphens/underscores.`);
+  }
+  if (!isValidGitHubName(repo)) {
+    throw new Error(`Invalid GitHub repo: "${repo}". Must be alphanumeric with hyphens/underscores.`);
+  }
+
   // Auto-detect package manager if not specified, defaulting to pnpm
   const pm = packageManager || detectPackageManager() || 'pnpm';
   const githubUrl = `github:${owner}/${repo}`;
