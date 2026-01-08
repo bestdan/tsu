@@ -1,5 +1,6 @@
 import { checkForUpdate } from '../../utils/version.js';
 import { logIfVerbose } from '../../utils/logger.js';
+import { logError } from '../../utils/error-logger.js';
 
 export interface CheckVersionOptions {
   verbose?: boolean;
@@ -48,6 +49,7 @@ export async function checkVersion(options: CheckVersionOptions = {}): Promise<v
     if (error instanceof Error && error.message.startsWith('process.exit(')) {
       throw error;
     }
+    logError(error as Error, 'tsu check version');
     if (verbose) {
       console.error(`❌ Failed to check for updates: ${error}`);
     }

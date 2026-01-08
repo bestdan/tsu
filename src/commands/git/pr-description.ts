@@ -1,6 +1,7 @@
 import { isGitRepo, generatePRDescription } from './utils/git.js';
 import { ensureClaudeInstalled } from '../../utils/command-helpers.js';
 import type { BaseCommandOptions } from '../../types/command-options.js';
+import { logError } from '../../utils/error-logger.js';
 
 export interface GitPRDescriptionOptions extends BaseCommandOptions {
   /** Base branch to compare against (default: 'main') */
@@ -9,6 +10,8 @@ export interface GitPRDescriptionOptions extends BaseCommandOptions {
 
 export function gitPRDescription(options: GitPRDescriptionOptions = {}): void {
   if (!isGitRepo()) {
+    const error = new Error('Not in a git repository');
+    logError(error, 'tsu git pr-description');
     console.error('Error: Not in a git repository');
     process.exit(1);
   }
@@ -27,6 +30,10 @@ export function gitPRDescription(options: GitPRDescriptionOptions = {}): void {
   try {
     description = generatePRDescription({ baseBranch });
   } catch (error) {
+    logError(
+      error as Error,
+      `tsu git pr-description${baseBranch !== 'main' ? ` -b ${baseBranch}` : ''}`
+    );
     if (error instanceof Error) {
       console.error(`Error: ${error.message}`);
     } else {
@@ -36,6 +43,8 @@ export function gitPRDescription(options: GitPRDescriptionOptions = {}): void {
   }
 
   if (!description) {
+    const error = new Error('Failed to generate PR description');
+    logError(error, `tsu git pr-description${baseBranch !== 'main' ? ` -b ${baseBranch}` : ''}`);
     console.error('Error: Failed to generate PR description');
     process.exit(1);
   }
