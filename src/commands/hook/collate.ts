@@ -32,11 +32,15 @@ export interface HookCollateOptions extends ChangedFilesOptions {
  * Runs multiple hook checks concurrently and tracks if any fail.
  * Exits with code 1 if any check fails, 0 if all pass.
  *
+ * Uses listr2 to display tasks in a grouped, organized format with inline updates.
+ * In verbose mode, uses the verbose renderer to show all command output.
+ *
  * Steps:
  * 1. Determines which hooks to run based on flags (default: all)
- * 2. Runs each selected hook check concurrently using Promise.allSettled
- * 3. Tracks failures and continues running remaining checks
- * 4. Exits with appropriate code (1 if any failed, 0 if all passed)
+ * 2. Runs each selected hook check concurrently using listr2
+ * 3. Tasks are grouped by command with clear status indicators
+ * 4. Tracks failures and continues running remaining checks
+ * 5. Exits with appropriate code (1 if any failed, 0 if all passed)
  */
 export async function hookCollate(options: HookCollateOptions = {}): Promise<void> {
   const verbose = options.verbose || false;
@@ -105,7 +109,7 @@ export async function hookCollate(options: HookCollateOptions = {}): Promise<voi
         }
         return false;
       },
-      task: async (ctx: any, task: any) => {
+      task: async (ctx: { failures?: string[] }, task: { output?: string }) => {
         /* v8 ignore next -- @preserve */
         try {
           const cmdArgs = appendChangedFileArgs ? [...args, ...buildArgs()] : [...args];
@@ -167,7 +171,12 @@ export async function hookCollate(options: HookCollateOptions = {}): Promise<voi
   const tsuCmd = getTsuCommand();
 
   // Collect all hook tasks to run
-  const hookTasks: any[] = [];
+  interface HookTask {
+    title: string;
+    skip?: () => string | false;
+    task: (ctx: { failures?: string[] }, task: { output?: string }) => Promise<string>;
+  }
+  const hookTasks: HookTask[] = [];
 
   if (runDartFormat) {
     hookTasks.push(
@@ -259,7 +268,7 @@ export async function hookCollate(options: HookCollateOptions = {}): Promise<voi
 
     logIfVerbose(verbose, '\n✅ All checks passed. Push allowed.');
     process.exit(0);
-  } catch (error) {
+  } catch {
     // Listr2 throws an error when tasks fail
     // The error details are already shown in the task output
     console.error('');

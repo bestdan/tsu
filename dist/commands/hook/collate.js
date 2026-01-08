@@ -152,7 +152,7 @@ export async function hookCollate(options = {}) {
         logIfVerbose(verbose, '\n✅ All checks passed. Push allowed.');
         process.exit(0);
     }
-    catch (error) {
+    catch {
         console.error('');
         console.error('Push aborted.');
         process.exit(1);
