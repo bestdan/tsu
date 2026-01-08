@@ -27,13 +27,17 @@ function ensureLogDirectory(logDir) {
         mkdirSync(logDir, { recursive: true });
     }
 }
+function escapeRegex(str) {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
 export function sanitizeErrorMessage(message) {
     let sanitized = message;
     const homeDir = homedir();
-    sanitized = sanitized.replace(new RegExp(homeDir, 'g'), '~');
-    sanitized = sanitized.replace(/\b[A-Za-z0-9_-]{30,}\b/g, (match) => {
-        if (/[A-Z]/.test(match) && /[a-z]/.test(match) && /[0-9]/.test(match)) {
-            return '[REDACTED]';
+    const escapedHomeDir = escapeRegex(homeDir);
+    sanitized = sanitized.replace(new RegExp(escapedHomeDir, 'g'), '~');
+    sanitized = sanitized.replace(/(?:^|[^A-Za-z0-9_-])([A-Za-z0-9_-]{30,})(?:$|[^A-Za-z0-9_-])/g, (match, captured) => {
+        if (/[A-Z]/.test(captured) && /[a-z]/.test(captured) && /[0-9]/.test(captured)) {
+            return match.replace(captured, '[REDACTED]');
         }
         return match;
     });
@@ -42,15 +46,17 @@ export function sanitizeErrorMessage(message) {
 export function createErrorContext(error, command) {
     const errorObj = typeof error === 'string' ? new Error(error) : error;
     const cwd = process.cwd();
+    const homeDir = homedir();
+    const escapedHomeDir = escapeRegex(homeDir);
     return {
         timestamp: new Date().toISOString(),
         version: getVersion(),
         nodeVersion: process.version,
         platform: process.platform,
-        command,
+        command: sanitizeErrorMessage(command),
         error: sanitizeErrorMessage(errorObj.message),
         stack: errorObj.stack ? sanitizeErrorMessage(errorObj.stack) : undefined,
-        cwd: cwd.replace(homedir(), '~'),
+        cwd: cwd.replace(new RegExp(escapedHomeDir, 'g'), '~'),
     };
 }
 export function logError(error, command) {

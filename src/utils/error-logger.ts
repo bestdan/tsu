@@ -99,6 +99,13 @@ function ensureLogDirectory(logDir: string): void {
 }
 
 /**
+ * Escape special regex characters in a string
+ */
+function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
  * Sanitize error message to remove potential sensitive data
  * - Replaces home directory paths with tilde notation
  * - Removes potential secrets (anything that looks like keys/tokens)
@@ -109,17 +116,22 @@ export function sanitizeErrorMessage(message: string): string {
   // Replace home directory paths with tilde notation
   // This prevents leaking usernames in paths
   const homeDir = homedir();
-  sanitized = sanitized.replace(new RegExp(homeDir, 'g'), '~');
+  const escapedHomeDir = escapeRegex(homeDir);
+  sanitized = sanitized.replace(new RegExp(escapedHomeDir, 'g'), '~');
 
   // Remove potential secrets (patterns like API keys, tokens)
   // Match common secret patterns but preserve error context
-  sanitized = sanitized.replace(/\b[A-Za-z0-9_-]{30,}\b/g, (match) => {
-    // Only redact if it looks like a secret (mixed case with numbers)
-    if (/[A-Z]/.test(match) && /[a-z]/.test(match) && /[0-9]/.test(match)) {
-      return '[REDACTED]';
+  // Use explicit pattern without word boundaries to handle hyphens/underscores correctly
+  sanitized = sanitized.replace(
+    /(?:^|[^A-Za-z0-9_-])([A-Za-z0-9_-]{30,})(?:$|[^A-Za-z0-9_-])/g,
+    (match, captured) => {
+      // Only redact if it looks like a secret (mixed case with numbers)
+      if (/[A-Z]/.test(captured) && /[a-z]/.test(captured) && /[0-9]/.test(captured)) {
+        return match.replace(captured, '[REDACTED]');
+      }
+      return match;
     }
-    return match;
-  });
+  );
 
   return sanitized;
 }
@@ -131,16 +143,18 @@ export function sanitizeErrorMessage(message: string): string {
 export function createErrorContext(error: Error | string, command: string): ErrorContext {
   const errorObj = typeof error === 'string' ? new Error(error) : error;
   const cwd = process.cwd();
+  const homeDir = homedir();
+  const escapedHomeDir = escapeRegex(homeDir);
 
   return {
     timestamp: new Date().toISOString(),
     version: getVersion(),
     nodeVersion: process.version,
     platform: process.platform,
-    command,
+    command: sanitizeErrorMessage(command),
     error: sanitizeErrorMessage(errorObj.message),
     stack: errorObj.stack ? sanitizeErrorMessage(errorObj.stack) : undefined,
-    cwd: cwd.replace(homedir(), '~'),
+    cwd: cwd.replace(new RegExp(escapedHomeDir, 'g'), '~'),
   };
 }
 
