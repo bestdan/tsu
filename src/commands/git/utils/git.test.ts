@@ -5,6 +5,7 @@ import {
   getChangedFiles,
   getAllChangedFiles,
   getCurrentBranch,
+  getRemoteBranch,
   getStagedDiff,
   getBranchDiff,
   isMainBranch,
@@ -1226,6 +1227,328 @@ describe('getFilesToPush', () => {
       rmSync(remoteDir, { recursive: true, force: true });
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it('should only return feature branch changes after merging main (no remote)', () => {
+    const tempDir = realpathSync(mkdtempSync(join(tmpdir(), 'git-test-')));
+    try {
+      execSync('git init', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git config user.email "test@test.com"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git config user.name "Test User"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git checkout -b main', { cwd: tempDir, stdio: 'pipe' });
+
+      // Create initial commit on main
+      writeFileSync(join(tempDir, 'initial.txt'), 'initial');
+      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "initial"', { cwd: tempDir, stdio: 'pipe' });
+
+      // Create feature branch with one commit (no remote)
+      execSync('git checkout -b feature', { cwd: tempDir, stdio: 'pipe' });
+      writeFileSync(join(tempDir, 'feature.txt'), 'feature work');
+      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "feature work"', { cwd: tempDir, stdio: 'pipe' });
+
+      // Add commits to main branch
+      execSync('git checkout main', { cwd: tempDir, stdio: 'pipe' });
+      for (let i = 1; i <= 3; i++) {
+        writeFileSync(join(tempDir, `main${i}.txt`), `main work ${i}`);
+        execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+        execSync(`git commit -m "main work ${i}"`, { cwd: tempDir, stdio: 'pipe' });
+      }
+
+      // Merge main into feature
+      execSync('git checkout feature', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git merge main -m "Merge main"', { cwd: tempDir, stdio: 'pipe' });
+
+      // Without remote, should return all feature branch changes (excluding merge files)
+      const files = getFilesToPush(tempDir);
+      expect(files).toEqual(['feature.txt']);
+      expect(files).not.toContain('main1.txt');
+      expect(files).not.toContain('main2.txt');
+      expect(files).not.toContain('main3.txt');
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it('should handle multiple feature commits with merge (no remote)', () => {
+    const tempDir = realpathSync(mkdtempSync(join(tmpdir(), 'git-test-')));
+    try {
+      execSync('git init', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git config user.email "test@test.com"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git config user.name "Test User"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git checkout -b main', { cwd: tempDir, stdio: 'pipe' });
+
+      // Create initial commit on main
+      writeFileSync(join(tempDir, 'initial.txt'), 'initial');
+      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "initial"', { cwd: tempDir, stdio: 'pipe' });
+
+      // Create feature branch (no remote)
+      execSync('git checkout -b feature', { cwd: tempDir, stdio: 'pipe' });
+      writeFileSync(join(tempDir, 'feature1.txt'), 'feature work 1');
+      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "feature work 1"', { cwd: tempDir, stdio: 'pipe' });
+
+      // Add commits to main
+      execSync('git checkout main', { cwd: tempDir, stdio: 'pipe' });
+      writeFileSync(join(tempDir, 'main1.txt'), 'main work');
+      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "main work"', { cwd: tempDir, stdio: 'pipe' });
+
+      // Merge main into feature and add more feature work
+      execSync('git checkout feature', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git merge main -m "Merge main"', { cwd: tempDir, stdio: 'pipe' });
+      writeFileSync(join(tempDir, 'feature2.txt'), 'feature work 2');
+      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "feature work 2"', { cwd: tempDir, stdio: 'pipe' });
+
+      // Without remote, should show both feature files, not main files
+      const files = getFilesToPush(tempDir);
+      expect(files).toContain('feature1.txt');
+      expect(files).toContain('feature2.txt');
+      expect(files).not.toContain('main1.txt');
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('getRemoteBranch', () => {
+  it('should return null for non-git directory', () => {
+    const tempDir = mkdtempSync(join(tmpdir(), 'not-git-'));
+    try {
+      const result = getRemoteBranch(tempDir);
+      expect(result).toBeNull();
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it('should return null when no remote exists', () => {
+    const tempDir = realpathSync(mkdtempSync(join(tmpdir(), 'git-test-')));
+    try {
+      execSync('git init', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git config user.email "test@test.com"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git config user.name "Test User"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git checkout -b main', { cwd: tempDir, stdio: 'pipe' });
+      writeFileSync(join(tempDir, 'file.txt'), 'content');
+      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "initial"', { cwd: tempDir, stdio: 'pipe' });
+
+      const result = getRemoteBranch(tempDir);
+      expect(result).toBeNull();
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it('should return remote branch when it exists', () => {
+    const tempDir = realpathSync(mkdtempSync(join(tmpdir(), 'git-test-')));
+    const remoteDir = realpathSync(mkdtempSync(join(tmpdir(), 'git-remote-')));
+    try {
+      execSync('git init', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git config user.email "test@test.com"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git config user.name "Test User"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git checkout -b main', { cwd: tempDir, stdio: 'pipe' });
+      writeFileSync(join(tempDir, 'file.txt'), 'content');
+      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "initial"', { cwd: tempDir, stdio: 'pipe' });
+
+      // Create remote and push
+      execSync('git init --bare', { cwd: remoteDir, stdio: 'pipe' });
+      execSync(`git remote add origin "${remoteDir}"`, {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git push -u origin main', { cwd: tempDir, stdio: 'pipe' });
+
+      const result = getRemoteBranch(tempDir);
+      expect(result).toBe('origin/main');
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+      rmSync(remoteDir, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('getFilesToPush with remote', () => {
+  it('should return empty array when remote exists and no unpushed commits', () => {
+    const tempDir = realpathSync(mkdtempSync(join(tmpdir(), 'git-test-')));
+    const remoteDir = realpathSync(mkdtempSync(join(tmpdir(), 'git-remote-')));
+    try {
+      execSync('git init', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git config user.email "test@test.com"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git config user.name "Test User"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git checkout -b main', { cwd: tempDir, stdio: 'pipe' });
+      writeFileSync(join(tempDir, 'initial.txt'), 'initial');
+      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "initial"', { cwd: tempDir, stdio: 'pipe' });
+
+      // Create remote and push main
+      execSync('git init --bare', { cwd: remoteDir, stdio: 'pipe' });
+      execSync(`git remote add origin "${remoteDir}"`, {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git push -u origin main', { cwd: tempDir, stdio: 'pipe' });
+
+      // Create and push feature branch
+      execSync('git checkout -b feature', { cwd: tempDir, stdio: 'pipe' });
+      writeFileSync(join(tempDir, 'feature.txt'), 'feature work');
+      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "feature work"', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git push -u origin feature', { cwd: tempDir, stdio: 'pipe' });
+
+      // Now there are no unpushed commits
+      const files = getFilesToPush(tempDir);
+      expect(files).toEqual([]);
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+      rmSync(remoteDir, { recursive: true, force: true });
+    }
+  });
+
+  it('should return only new unpushed files when remote exists', () => {
+    const tempDir = realpathSync(mkdtempSync(join(tmpdir(), 'git-test-')));
+    const remoteDir = realpathSync(mkdtempSync(join(tmpdir(), 'git-remote-')));
+    try {
+      execSync('git init', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git config user.email "test@test.com"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git config user.name "Test User"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git checkout -b main', { cwd: tempDir, stdio: 'pipe' });
+      writeFileSync(join(tempDir, 'initial.txt'), 'initial');
+      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "initial"', { cwd: tempDir, stdio: 'pipe' });
+
+      // Create remote and push main
+      execSync('git init --bare', { cwd: remoteDir, stdio: 'pipe' });
+      execSync(`git remote add origin "${remoteDir}"`, {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git push -u origin main', { cwd: tempDir, stdio: 'pipe' });
+
+      // Create and push feature branch with one commit
+      execSync('git checkout -b feature', { cwd: tempDir, stdio: 'pipe' });
+      writeFileSync(join(tempDir, 'feature1.txt'), 'feature work 1');
+      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "feature work 1"', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git push -u origin feature', { cwd: tempDir, stdio: 'pipe' });
+
+      // Add another commit locally (not pushed)
+      writeFileSync(join(tempDir, 'feature2.txt'), 'feature work 2');
+      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "feature work 2"', { cwd: tempDir, stdio: 'pipe' });
+
+      // Should return only the new file, not the previously pushed one
+      const files = getFilesToPush(tempDir);
+      expect(files).toEqual(['feature2.txt']);
+      expect(files).not.toContain('feature1.txt');
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+      rmSync(remoteDir, { recursive: true, force: true });
+    }
+  });
+
+  it('should exclude merge commit files when pushing after merge', () => {
+    const tempDir = realpathSync(mkdtempSync(join(tmpdir(), 'git-test-')));
+    const remoteDir = realpathSync(mkdtempSync(join(tmpdir(), 'git-remote-')));
+    try {
+      execSync('git init', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git config user.email "test@test.com"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git config user.name "Test User"', {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git checkout -b main', { cwd: tempDir, stdio: 'pipe' });
+      writeFileSync(join(tempDir, 'initial.txt'), 'initial');
+      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "initial"', { cwd: tempDir, stdio: 'pipe' });
+
+      // Create remote and push main
+      execSync('git init --bare', { cwd: remoteDir, stdio: 'pipe' });
+      execSync(`git remote add origin "${remoteDir}"`, {
+        cwd: tempDir,
+        stdio: 'pipe',
+      });
+      execSync('git push -u origin main', { cwd: tempDir, stdio: 'pipe' });
+
+      // Create and push feature branch
+      execSync('git checkout -b feature', { cwd: tempDir, stdio: 'pipe' });
+      writeFileSync(join(tempDir, 'feature.txt'), 'feature work');
+      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "feature work"', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git push -u origin feature', { cwd: tempDir, stdio: 'pipe' });
+
+      // Add commits to main
+      execSync('git checkout main', { cwd: tempDir, stdio: 'pipe' });
+      for (let i = 1; i <= 3; i++) {
+        writeFileSync(join(tempDir, `main${i}.txt`), `main work ${i}`);
+        execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+        execSync(`git commit -m "main work ${i}"`, { cwd: tempDir, stdio: 'pipe' });
+      }
+      execSync('git push origin main', { cwd: tempDir, stdio: 'pipe' });
+
+      // Merge main into feature (not pushed yet)
+      execSync('git checkout feature', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git merge main -m "Merge main"', { cwd: tempDir, stdio: 'pipe' });
+
+      // Add a new local file after merge
+      writeFileSync(join(tempDir, 'new-feature.txt'), 'new feature work');
+      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "new feature work"', { cwd: tempDir, stdio: 'pipe' });
+
+      // Should return only new-feature.txt, not main files or already-pushed feature.txt
+      const files = getFilesToPush(tempDir);
+      expect(files).toEqual(['new-feature.txt']);
+      expect(files).not.toContain('feature.txt');
+      expect(files).not.toContain('main1.txt');
+      expect(files).not.toContain('main2.txt');
+      expect(files).not.toContain('main3.txt');
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+      rmSync(remoteDir, { recursive: true, force: true });
     }
   });
 });
