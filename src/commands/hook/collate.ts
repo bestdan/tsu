@@ -2,6 +2,7 @@ import { execSync, execFile, ExecException } from 'node:child_process';
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { Listr, type ListrTask } from 'listr2';
 import { isGitRepo, getAllChangedFiles } from '../git/utils/git.js';
 import { isDartPackage } from '../dart/utils/dart.js';
 import { ensureCondition } from '../../utils/command-helpers.js';
@@ -31,11 +32,15 @@ export interface HookCollateOptions extends ChangedFilesOptions {
  * Runs multiple hook checks concurrently and tracks if any fail.
  * Exits with code 1 if any check fails, 0 if all pass.
  *
+ * Uses listr2 to display tasks in a grouped, organized format with inline updates.
+ * In verbose mode, uses the verbose renderer to show all command output.
+ *
  * Steps:
  * 1. Determines which hooks to run based on flags (default: all)
- * 2. Runs each selected hook check concurrently using Promise.allSettled
- * 3. Tracks failures and continues running remaining checks
- * 4. Exits with appropriate code (1 if any failed, 0 if all passed)
+ * 2. Runs each selected hook check concurrently using listr2
+ * 3. Tasks are grouped by command with clear status indicators
+ * 4. Tracks failures and continues running remaining checks
+ * 5. Exits with appropriate code (1 if any failed, 0 if all passed)
  */
 export async function hookCollate(options: HookCollateOptions = {}): Promise<void> {
   const verbose = options.verbose || false;
@@ -88,50 +93,65 @@ export async function hookCollate(options: HookCollateOptions = {}): Promise<voi
     return args;
   };
 
-  // Helper to run a hook command asynchronously
-  const runHook = async (
+  // Helper to create a listr2 task for a hook command
+  const createHookTask = (
     name: string,
     file: string,
     args: string[],
     skipCondition: boolean = false,
     appendChangedFileArgs: boolean = true
-  ): Promise<{ name: string; passed: boolean }> => {
-    if (skipCondition) {
-      logIfVerbose(verbose, `⏭️  Skipping ${name} (no relevant files)`);
-      return { name, passed: true };
-    }
-
-    /* v8 ignore next -- @preserve */
-    try {
-      logIfVerbose(verbose, `\n▶️  Running ${name}...`);
-      const cmdArgs = appendChangedFileArgs ? [...args, ...buildArgs()] : [...args];
-
-      const result = await execFileAsync(file, cmdArgs, { cwd });
-
-      // In verbose mode, output the command results
-      if (verbose && result.stdout) {
-        process.stderr.write(result.stdout);
-      }
-      if (verbose && result.stderr) {
-        process.stderr.write(result.stderr);
-      }
-
-      logIfVerbose(verbose, `✓ ${name} passed`);
-      return { name, passed: true };
-    } catch (error) {
-      // In verbose mode, show error output
-      if (verbose && error && typeof error === 'object') {
-        const execError = error as ExecException & { stdout?: string; stderr?: string };
-        if (execError.stdout) {
-          process.stderr.write(execError.stdout);
+  ) => {
+    return {
+      title: name,
+      skip: () => {
+        if (skipCondition) {
+          return `Skipping ${name} (no relevant files)`;
         }
-        if (execError.stderr) {
-          process.stderr.write(execError.stderr);
+        return false;
+      },
+      task: async (ctx: { failures?: string[] }, task: { output?: string }) => {
+        /* v8 ignore next -- @preserve */
+        try {
+          const cmdArgs = appendChangedFileArgs ? [...args, ...buildArgs()] : [...args];
+
+          const result = await execFileAsync(file, cmdArgs, { cwd });
+
+          // In verbose mode, output the command results using task.output
+          if (verbose) {
+            const output: string[] = [];
+            if (result.stdout) {
+              output.push(result.stdout.trim());
+            }
+            if (result.stderr) {
+              output.push(result.stderr.trim());
+            }
+            if (output.length > 0) {
+              task.output = output.join('\n');
+            }
+          }
+
+          return `✓ ${name} passed`;
+        } catch (error) {
+          // In verbose mode, show error output
+          if (verbose && error && typeof error === 'object') {
+            const execError = error as ExecException & { stdout?: string; stderr?: string };
+            const output: string[] = [];
+            if (execError.stdout) {
+              output.push(execError.stdout.trim());
+            }
+            if (execError.stderr) {
+              output.push(execError.stderr.trim());
+            }
+            if (output.length > 0) {
+              task.output = output.join('\n');
+            }
+          }
+          ctx.failures = ctx.failures || [];
+          ctx.failures.push(name);
+          throw new Error(`${name} failed`);
         }
-      }
-      logIfVerbose(verbose, `✗ ${name} failed`);
-      return { name, passed: false };
-    }
+      },
+    };
   };
 
   // Find the tsu binary path (either from node_modules or global)
@@ -150,12 +170,15 @@ export async function hookCollate(options: HookCollateOptions = {}): Promise<voi
 
   const tsuCmd = getTsuCommand();
 
-  // Collect all hooks to run
-  const hooks: Promise<{ name: string; passed: boolean }>[] = [];
+  // Define context type for listr2 tasks
+  type HookContext = { failures?: string[] };
+
+  // Collect all hook tasks to run
+  const hookTasks: ListrTask<HookContext>[] = [];
 
   if (runDartFormat) {
-    hooks.push(
-      runHook(
+    hookTasks.push(
+      createHookTask(
         'dart format check',
         tsuCmd.file,
         [...tsuCmd.args, 'hook', 'format', 'check'],
@@ -165,8 +188,8 @@ export async function hookCollate(options: HookCollateOptions = {}): Promise<voi
   }
 
   if (runDartAnalysis) {
-    hooks.push(
-      runHook(
+    hookTasks.push(
+      createHookTask(
         'dart analysis check',
         tsuCmd.file,
         [...tsuCmd.args, 'hook', 'analysis', 'check'],
@@ -176,8 +199,8 @@ export async function hookCollate(options: HookCollateOptions = {}): Promise<voi
   }
 
   if (runDcmAnalyze) {
-    hooks.push(
-      runHook(
+    hookTasks.push(
+      createHookTask(
         'DCM analyze check',
         tsuCmd.file,
         [...tsuCmd.args, 'hook', 'dcm', 'analyze', 'check'],
@@ -187,8 +210,8 @@ export async function hookCollate(options: HookCollateOptions = {}): Promise<voi
   }
 
   if (runGraphql) {
-    hooks.push(
-      runHook(
+    hookTasks.push(
+      createHookTask(
         'GraphQL check',
         tsuCmd.file,
         [...tsuCmd.args, 'hook', 'graphql', 'check'],
@@ -202,8 +225,8 @@ export async function hookCollate(options: HookCollateOptions = {}): Promise<voi
     if (verbose) {
       codeownersArgs.push('--verbose');
     }
-    hooks.push(
-      runHook(
+    hookTasks.push(
+      createHookTask(
         'git codeowners check',
         tsuCmd.file,
         codeownersArgs,
@@ -213,36 +236,41 @@ export async function hookCollate(options: HookCollateOptions = {}): Promise<voi
     );
   }
 
-  // Run all hooks concurrently
-  const results = await Promise.allSettled(hooks);
-
-  // Extract failures from results
-  const failures: string[] = [];
-  results.forEach((result, index) => {
-    if (result.status === 'fulfilled' && !result.value.passed) {
-      // Hook completed but failed
-      failures.push(result.value.name);
-    } else if (result.status === 'rejected') {
-      // Hook promise was rejected (unexpected error - should be very rare)
-      const errorMsg =
-        result.reason instanceof Error ? result.reason.message : String(result.reason);
-      failures.push(`Hook execution error: ${errorMsg}`);
-      logIfVerbose(verbose, `✗ Unexpected error in hook ${index + 1}: ${errorMsg}`);
-    }
+  // Run all hooks using listr2
+  const tasks = new Listr(hookTasks, {
+    concurrent: true,
+    exitOnError: false,
+    // Use verbose renderer in verbose mode to see all output
+    renderer: verbose ? 'verbose' : 'default',
+    rendererOptions: {
+      removeEmptyLines: true,
+    },
+    ctx: { failures: [] },
   });
 
-  // Report results
-  if (failures.length > 0) {
-    console.error('');
-    console.error('❌ One or more checks failed:');
-    failures.forEach((check) => {
-      console.error(`  - ${check}`);
-    });
+  /* v8 ignore next -- @preserve */
+  try {
+    const ctx = await tasks.run();
+
+    // Check for failures
+    if (ctx.failures && ctx.failures.length > 0) {
+      console.error('');
+      console.error('❌ One or more checks failed:');
+      ctx.failures.forEach((check: string) => {
+        console.error(`  - ${check}`);
+      });
+      console.error('');
+      console.error('Push aborted.');
+      process.exit(1);
+    }
+
+    logIfVerbose(verbose, '\n✅ All checks passed. Push allowed.');
+    process.exit(0);
+  } catch {
+    // Listr2 throws an error when tasks fail
+    // The error details are already shown in the task output
     console.error('');
     console.error('Push aborted.');
     process.exit(1);
   }
-
-  logIfVerbose(verbose, '\n✅ All checks passed. Push allowed.');
-  process.exit(0);
 }
