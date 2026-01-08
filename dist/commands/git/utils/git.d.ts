@@ -1,6 +1,7 @@
 export { isGitRepo } from './repo/is-git-repo.js';
 export { getGitRoot } from './repo/get-git-root.js';
 export { getCurrentBranch } from './repo/get-current-branch.js';
+export { getRemoteBranch } from './repo/get-remote-branch.js';
 export { getChangedFiles, type ChangeType, type GetChangedFilesOptions, } from './changed-files/get-changed-files.js';
 export { getAllChangedFiles } from './changed-files/get-all-changed-files.js';
 export { getStagedDiff } from './diff/get-staged-diff.js';

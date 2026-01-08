@@ -3,6 +3,7 @@ import { resolve } from 'node:path';
 import { escapeShellArg } from '../../../../utils/shell.js';
 import { isGitRepo } from '../repo/is-git-repo.js';
 import { getCurrentBranch } from '../repo/get-current-branch.js';
+import { getRemoteBranch } from '../repo/get-remote-branch.js';
 import { getFilesInRange } from './get-files-in-range.js';
 export function getFilesToPush(options = {}) {
     const { cwd = process.cwd(), baseBranch = 'main' } = typeof options === 'string' ? { cwd: options } : options;
@@ -26,6 +27,22 @@ export function getFilesToPush(options = {}) {
         }
         catch {
             return [];
+        }
+        const remoteBranch = getRemoteBranch(resolvedCwd);
+        if (remoteBranch) {
+            const featureUniqueFiles = getFilesInRange({
+                range: `${baseBranch}...HEAD`,
+                cwd: resolvedCwd,
+            });
+            const unpushedFiles = getFilesInRange({
+                range: `${remoteBranch}..HEAD`,
+                cwd: resolvedCwd,
+            });
+            if (!featureUniqueFiles || !unpushedFiles) {
+                return [];
+            }
+            const featureUniqueSet = new Set(featureUniqueFiles);
+            return unpushedFiles.filter((file) => featureUniqueSet.has(file));
         }
         const range = `${baseBranch}...HEAD`;
         return getFilesInRange({ range, cwd: resolvedCwd });

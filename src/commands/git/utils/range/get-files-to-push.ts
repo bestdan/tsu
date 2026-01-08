@@ -3,6 +3,7 @@ import { resolve } from 'node:path';
 import { escapeShellArg } from '../../../../utils/shell.js';
 import { isGitRepo } from '../repo/is-git-repo.js';
 import { getCurrentBranch } from '../repo/get-current-branch.js';
+import { getRemoteBranch } from '../repo/get-remote-branch.js';
 import { getFilesInRange } from './get-files-in-range.js';
 
 export interface GetFilesToPushOptions {
@@ -13,21 +14,27 @@ export interface GetFilesToPushOptions {
 }
 
 /**
- * Gets the list of files that have changed uniquely in the current branch.
- * Uses three-dot diff against the base branch to show only files modified in the current branch,
- * excluding files that came from merge commits (e.g., when merging main into a feature branch).
+ * Gets the list of files that would be pushed to the remote.
  *
- * This is specifically designed for pre-push hooks and linting tools where you want to check
- * only the files you've actually modified, not files that were merged in from other branches.
+ * When a remote tracking branch exists (origin/<branch>), returns only files that are:
+ * 1. In unpushed commits (origin/<branch>..HEAD)
+ * 2. Unique to the feature branch (excludes files from merge commits)
+ *
+ * When no remote exists (first push), falls back to comparing against the base branch
+ * using three-dot diff to exclude merged files.
+ *
+ * This is designed for pre-push hooks where you want to check only the files
+ * being pushed, not files already on the remote or merged from other branches.
  *
  * @param options - Configuration options or just the cwd string (for backwards compatibility)
- * @returns Array of file paths unique to the current branch, or null if not in a git repo
+ * @returns Array of file paths to be pushed, or null if not in a git repo
  *
  * @example
- * // On feature branch that merged main:
- * // - feature.txt (your change)
+ * // On feature branch with 1 new local file, after merging main:
+ * // - feature.txt (already pushed)
+ * // - new-feature.txt (local, unpushed)
  * // - main1.txt, main2.txt (merged from main)
- * // Result: ['feature.txt'] - only your changes
+ * // Result: ['new-feature.txt'] - only unpushed feature files
  */
 export function getFilesToPush(options: GetFilesToPushOptions | string = {}): string[] | null {
   // Support legacy string parameter for backwards compatibility
@@ -64,12 +71,37 @@ export function getFilesToPush(options: GetFilesToPushOptions | string = {}): st
       return [];
     }
 
-    // Use three-dot range to compare against base branch
-    // This finds the merge base and shows only changes unique to HEAD
-    // Handles merge commits elegantly by excluding merged files
-    const range = `${baseBranch}...HEAD`;
+    // Check if remote tracking branch exists
+    const remoteBranch = getRemoteBranch(resolvedCwd);
 
-    // Get files in the determined range
+    if (remoteBranch) {
+      // Remote exists - get intersection of unpushed files and feature-unique files
+      // This excludes both already-pushed files AND files from merge commits
+
+      // Files unique to feature branch (excludes merged files from base branch)
+      const featureUniqueFiles = getFilesInRange({
+        range: `${baseBranch}...HEAD`,
+        cwd: resolvedCwd,
+      });
+
+      // Files in unpushed commits
+      const unpushedFiles = getFilesInRange({
+        range: `${remoteBranch}..HEAD`,
+        cwd: resolvedCwd,
+      });
+
+      if (!featureUniqueFiles || !unpushedFiles) {
+        return [];
+      }
+
+      // Return intersection: files that are both unpushed AND unique to feature branch
+      const featureUniqueSet = new Set(featureUniqueFiles);
+      return unpushedFiles.filter((file) => featureUniqueSet.has(file));
+    }
+
+    // No remote exists (first push) - use three-dot range against base branch
+    // This shows only changes unique to HEAD, excluding merged files
+    const range = `${baseBranch}...HEAD`;
     return getFilesInRange({ range, cwd: resolvedCwd });
   } catch {
     return null;
