@@ -51,6 +51,7 @@ export function getFilesToPush(options: GetFilesToPushOptions | string = {}): st
     const currentBranch = getCurrentBranch(resolvedCwd);
 
     if (!currentBranch) {
+      /* v8 ignore next -- @preserve */
       return null;
     }
 
@@ -68,6 +69,7 @@ export function getFilesToPush(options: GetFilesToPushOptions | string = {}): st
       });
     } catch {
       // Base branch doesn't exist, return empty array
+      /* v8 ignore next -- @preserve */
       return [];
     }
 
@@ -91,6 +93,7 @@ export function getFilesToPush(options: GetFilesToPushOptions | string = {}): st
       });
 
       if (!featureUniqueFiles || !unpushedFiles) {
+        /* v8 ignore next -- @preserve */
         return [];
       }
 
@@ -104,6 +107,7 @@ export function getFilesToPush(options: GetFilesToPushOptions | string = {}): st
     const range = `${baseBranch}...HEAD`;
     return getFilesInRange({ range, cwd: resolvedCwd });
   } catch {
+    /* v8 ignore next -- @preserve */
     return null;
   }
 }

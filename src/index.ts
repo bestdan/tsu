@@ -112,3 +112,14 @@ export { dartDcmAnalyze, type DartDcmAnalyzeOptions } from './commands/dart/dcm/
 
 // Check utilities
 export { checkExternals, type CheckExternalsOptions } from './commands/check/externals.js';
+
+// Error logging utilities
+export {
+  logError,
+  getErrorLogPath,
+  isErrorLoggingEnabled,
+  sanitizeErrorMessage,
+  createErrorContext,
+  type ErrorLogConfig,
+  type ErrorContext,
+} from './utils/error-logger.js';

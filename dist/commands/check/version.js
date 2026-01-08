@@ -1,5 +1,6 @@
 import { checkForUpdate } from '../../utils/version.js';
 import { logIfVerbose } from '../../utils/logger.js';
+import { logError } from '../../utils/error-logger.js';
 const GITHUB_OWNER = 'bestdan';
 const GITHUB_REPO = 'tsu';
 export async function checkVersion(options = {}) {
@@ -27,6 +28,7 @@ export async function checkVersion(options = {}) {
         if (error instanceof Error && error.message.startsWith('process.exit(')) {
             throw error;
         }
+        logError(error, 'tsu check version');
         if (verbose) {
             console.error(`❌ Failed to check for updates: ${error}`);
         }

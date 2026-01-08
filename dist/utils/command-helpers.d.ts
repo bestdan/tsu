@@ -3,6 +3,7 @@ export declare function ensureCondition(condition: boolean, errorMessage: string
     verbose?: boolean;
     successMessage?: string;
     exitCode?: number;
+    command?: string;
 }): void;
 export declare function ensureDartInstalled(verbose?: boolean): void;
 export declare function ensureDCMInstalled(verbose?: boolean): void;

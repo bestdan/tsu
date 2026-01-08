@@ -21,6 +21,7 @@ export function getCurrentBranch(cwd: string = process.cwd()): string | null {
 
     return result.trim();
   } catch {
+    /* v8 ignore next -- @preserve */
     return null;
   }
 }

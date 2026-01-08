@@ -1,9 +1,13 @@
 import { getChangedFiles, getFilesToPush, getCurrentBranch, } from '../commands/git/utils/git.js';
 import { isCommandInstalled } from './shell.js';
 import { isVerbose } from './verbose-state.js';
+import { logError } from './error-logger.js';
 export function ensureCondition(condition, errorMessage, options) {
     if (!condition) {
         if (errorMessage) {
+            if ((options?.exitCode ?? 1) !== 0 && options?.command) {
+                logError(new Error(errorMessage), options.command);
+            }
             console.error(errorMessage);
         }
         process.exit(options?.exitCode ?? 1);
