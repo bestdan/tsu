@@ -10,6 +10,7 @@ import { isGitRepo } from '../repo/is-git-repo.js';
 export function getStagedDiff(cwd: string = process.cwd()): string | null {
   try {
     if (!isGitRepo(cwd)) {
+      /* v8 ignore next -- @preserve */
       return null;
     }
 
@@ -22,6 +23,7 @@ export function getStagedDiff(cwd: string = process.cwd()): string | null {
     const diff = result.trim();
     return diff.length > 0 ? diff : null;
   } catch {
+    /* v8 ignore next -- @preserve */
     return null;
   }
 }

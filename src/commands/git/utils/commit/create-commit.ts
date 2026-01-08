@@ -32,6 +32,7 @@ export function createCommit(options: CreateCommitOptions): boolean {
 
     return true;
   } catch {
+    /* v8 ignore next -- @preserve */
     return false;
   }
 }

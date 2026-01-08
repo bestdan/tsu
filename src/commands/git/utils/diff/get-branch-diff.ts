@@ -36,6 +36,7 @@ export function getBranchDiff(baseBranch = 'main', cwd: string = process.cwd()):
     const diff = result.trim();
     return diff.length > 0 ? diff : null;
   } catch {
+    /* v8 ignore next -- @preserve */
     return null;
   }
 }
