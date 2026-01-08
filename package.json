@@ -34,7 +34,8 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "commander": "^14.0.2"
+    "commander": "^14.0.2",
+    "listr2": "^9.0.5"
   },
   "engines": {
     "node": ">=20.19.5"

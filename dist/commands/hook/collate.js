@@ -2,6 +2,7 @@ import { execSync, execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { Listr } from 'listr2';
 import { isGitRepo, getAllChangedFiles } from '../git/utils/git.js';
 import { isDartPackage } from '../dart/utils/dart.js';
 import { ensureCondition } from '../../utils/command-helpers.js';
@@ -48,37 +49,53 @@ export async function hookCollate(options = {}) {
             args.push('--verbose');
         return args;
     };
-    const runHook = async (name, file, args, skipCondition = false, appendChangedFileArgs = true) => {
-        if (skipCondition) {
-            logIfVerbose(verbose, `⏭️  Skipping ${name} (no relevant files)`);
-            return { name, passed: true };
-        }
-        try {
-            logIfVerbose(verbose, `\n▶️  Running ${name}...`);
-            const cmdArgs = appendChangedFileArgs ? [...args, ...buildArgs()] : [...args];
-            const result = await execFileAsync(file, cmdArgs, { cwd });
-            if (verbose && result.stdout) {
-                process.stderr.write(result.stdout);
-            }
-            if (verbose && result.stderr) {
-                process.stderr.write(result.stderr);
-            }
-            logIfVerbose(verbose, `✓ ${name} passed`);
-            return { name, passed: true };
-        }
-        catch (error) {
-            if (verbose && error && typeof error === 'object') {
-                const execError = error;
-                if (execError.stdout) {
-                    process.stderr.write(execError.stdout);
+    const createHookTask = (name, file, args, skipCondition = false, appendChangedFileArgs = true) => {
+        return {
+            title: name,
+            skip: () => {
+                if (skipCondition) {
+                    return `Skipping ${name} (no relevant files)`;
                 }
-                if (execError.stderr) {
-                    process.stderr.write(execError.stderr);
+                return false;
+            },
+            task: async (ctx, task) => {
+                try {
+                    const cmdArgs = appendChangedFileArgs ? [...args, ...buildArgs()] : [...args];
+                    const result = await execFileAsync(file, cmdArgs, { cwd });
+                    if (verbose) {
+                        const output = [];
+                        if (result.stdout) {
+                            output.push(result.stdout.trim());
+                        }
+                        if (result.stderr) {
+                            output.push(result.stderr.trim());
+                        }
+                        if (output.length > 0) {
+                            task.output = output.join('\n');
+                        }
+                    }
+                    return `✓ ${name} passed`;
                 }
-            }
-            logIfVerbose(verbose, `✗ ${name} failed`);
-            return { name, passed: false };
-        }
+                catch (error) {
+                    if (verbose && error && typeof error === 'object') {
+                        const execError = error;
+                        const output = [];
+                        if (execError.stdout) {
+                            output.push(execError.stdout.trim());
+                        }
+                        if (execError.stderr) {
+                            output.push(execError.stderr.trim());
+                        }
+                        if (output.length > 0) {
+                            task.output = output.join('\n');
+                        }
+                    }
+                    ctx.failures = ctx.failures || [];
+                    ctx.failures.push(name);
+                    throw new Error(`${name} failed`);
+                }
+            },
+        };
     };
     const getTsuCommand = () => {
         try {
@@ -91,48 +108,53 @@ export async function hookCollate(options = {}) {
         }
     };
     const tsuCmd = getTsuCommand();
-    const hooks = [];
+    const hookTasks = [];
     if (runDartFormat) {
-        hooks.push(runHook('dart format check', tsuCmd.file, [...tsuCmd.args, 'hook', 'format', 'check'], dartFiles.length === 0));
+        hookTasks.push(createHookTask('dart format check', tsuCmd.file, [...tsuCmd.args, 'hook', 'format', 'check'], dartFiles.length === 0));
     }
     if (runDartAnalysis) {
-        hooks.push(runHook('dart analysis check', tsuCmd.file, [...tsuCmd.args, 'hook', 'analysis', 'check'], dartFiles.length === 0));
+        hookTasks.push(createHookTask('dart analysis check', tsuCmd.file, [...tsuCmd.args, 'hook', 'analysis', 'check'], dartFiles.length === 0));
     }
     if (runDcmAnalyze) {
-        hooks.push(runHook('DCM analyze check', tsuCmd.file, [...tsuCmd.args, 'hook', 'dcm', 'analyze', 'check'], dartFiles.length === 0));
+        hookTasks.push(createHookTask('DCM analyze check', tsuCmd.file, [...tsuCmd.args, 'hook', 'dcm', 'analyze', 'check'], dartFiles.length === 0));
     }
     if (runGraphql) {
-        hooks.push(runHook('GraphQL check', tsuCmd.file, [...tsuCmd.args, 'hook', 'graphql', 'check'], graphqlFiles.length === 0));
+        hookTasks.push(createHookTask('GraphQL check', tsuCmd.file, [...tsuCmd.args, 'hook', 'graphql', 'check'], graphqlFiles.length === 0));
     }
     if (runCodeowners) {
         const codeownersArgs = [...tsuCmd.args, 'git', 'codeowners', 'check'];
         if (verbose) {
             codeownersArgs.push('--verbose');
         }
-        hooks.push(runHook('git codeowners check', tsuCmd.file, codeownersArgs, false, false));
+        hookTasks.push(createHookTask('git codeowners check', tsuCmd.file, codeownersArgs, false, false));
     }
-    const results = await Promise.allSettled(hooks);
-    const failures = [];
-    results.forEach((result, index) => {
-        if (result.status === 'fulfilled' && !result.value.passed) {
-            failures.push(result.value.name);
-        }
-        else if (result.status === 'rejected') {
-            const errorMsg = result.reason instanceof Error ? result.reason.message : String(result.reason);
-            failures.push(`Hook execution error: ${errorMsg}`);
-            logIfVerbose(verbose, `✗ Unexpected error in hook ${index + 1}: ${errorMsg}`);
-        }
+    const tasks = new Listr(hookTasks, {
+        concurrent: true,
+        exitOnError: false,
+        renderer: verbose ? 'verbose' : 'default',
+        rendererOptions: {
+            removeEmptyLines: true,
+        },
+        ctx: { failures: [] },
     });
-    if (failures.length > 0) {
-        console.error('');
-        console.error('❌ One or more checks failed:');
-        failures.forEach((check) => {
-            console.error(`  - ${check}`);
-        });
+    try {
+        const ctx = await tasks.run();
+        if (ctx.failures && ctx.failures.length > 0) {
+            console.error('');
+            console.error('❌ One or more checks failed:');
+            ctx.failures.forEach((check) => {
+                console.error(`  - ${check}`);
+            });
+            console.error('');
+            console.error('Push aborted.');
+            process.exit(1);
+        }
+        logIfVerbose(verbose, '\n✅ All checks passed. Push allowed.');
+        process.exit(0);
+    }
+    catch (error) {
         console.error('');
         console.error('Push aborted.');
         process.exit(1);
     }
-    logIfVerbose(verbose, '\n✅ All checks passed. Push allowed.');
-    process.exit(0);
 }
