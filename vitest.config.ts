@@ -15,6 +15,12 @@ export default defineConfig({
         '**/*.config.*',
         'src/__fixtures__/**',
         'src/gcaim.sh',
+        // Re-export barrel files (only contain export statements, no executable code)
+        'src/commands/dart/utils/dart.ts',
+        'src/commands/git/utils/git.ts',
+        // External tool integration (requires Claude CLI or git operations that are tested via integration)
+        'src/commands/git/utils/claude/**',
+        'src/commands/git/utils/commit/get-git-status.ts',
       ],
       thresholds: {
         // Updated thresholds after using logIfVerbose helper and /* v8 ignore next -- @preserve */
