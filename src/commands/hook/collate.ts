@@ -2,7 +2,7 @@ import { execSync, execFile, ExecException } from 'node:child_process';
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { Listr } from 'listr2';
+import { Listr, type ListrTask } from 'listr2';
 import { isGitRepo, getAllChangedFiles } from '../git/utils/git.js';
 import { isDartPackage } from '../dart/utils/dart.js';
 import { ensureCondition } from '../../utils/command-helpers.js';
@@ -170,13 +170,11 @@ export async function hookCollate(options: HookCollateOptions = {}): Promise<voi
 
   const tsuCmd = getTsuCommand();
 
+  // Define context type for listr2 tasks
+  type HookContext = { failures?: string[] };
+
   // Collect all hook tasks to run
-  interface HookTask {
-    title: string;
-    skip?: () => string | false;
-    task: (ctx: { failures?: string[] }, task: { output?: string }) => Promise<string>;
-  }
-  const hookTasks: HookTask[] = [];
+  const hookTasks: ListrTask<HookContext>[] = [];
 
   if (runDartFormat) {
     hookTasks.push(
