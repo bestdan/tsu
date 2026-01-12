@@ -38,7 +38,7 @@
     "listr2": "^9.0.5"
   },
   "engines": {
-    "node": ">=20.19.5"
+    "node": ">=22.14.0"
   },
   "packageManager": "pnpm@9.0.0",
   "devDependencies": {
