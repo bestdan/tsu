@@ -1,7 +1,7 @@
-name: Create Release
+name: Create Release PR
 
 env:
-  GITHUB_TOKEN: ${{ secrets.TSU_ACTIONS }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 on:
   workflow_dispatch:
@@ -10,14 +10,10 @@ on:
         description: "Version to release (e.g., 1.2.0)"
         required: true
         type: string
-      prerelease:
-        description: "Mark as pre-release"
-        required: false
-        type: boolean
-        default: false
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   release:
@@ -52,56 +48,20 @@ jobs:
       - name: Run tests
         run: pnpm test:run
 
-      - name: Configure Git
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
       - name: Update version in package.json
-        run: |
-          npm version ${{ env.VERSION }} --no-git-tag-version
-          git add package.json
-          git commit -m "chore: release version ${{ env.VERSION }}"
-          git push
+        run: npm version ${{ env.VERSION }} --no-git-tag-version
 
-      - name: Create and push tag
-        run: |
-          git tag "v${{ env.VERSION }}"
-          git push origin "v${{ env.VERSION }}"
-
-      - name: Generate changelog
-        id: changelog
-        run: |
-          # Get the previous tag (most recent tag before HEAD)
-          PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-
-          if [ -z "$PREV_TAG" ]; then
-            # First release - get all commits
-            COMMITS=$(git log --pretty=format:"- %s (%h)" --no-merges)
-          else
-            # Get commits since last tag
-            COMMITS=$(git log ${PREV_TAG}..HEAD \
-              --pretty=format:"- %s (%h)" --no-merges)
-          fi
-
-          # Save changelog to file
-          echo "## What's Changed" > changelog.md
-          echo "" >> changelog.md
-          echo "$COMMITS" >> changelog.md
-
-          # Also save to output for the release
-          {
-            echo 'CHANGELOG<<EOF'
-            cat changelog.md
-            echo EOF
-          } >> $GITHUB_OUTPUT
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@e7a8f85e1c67a31e6ed99a94b41bd0b71bbee6b8 # v2.2.0
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@5e914681df9dc83aa4e4905692ca88beb2f9e91f # v7.0.5
         with:
-          tag_name: v${{ env.VERSION }}
-          name: Release v${{ env.VERSION }}
-          body: ${{ steps.changelog.outputs.CHANGELOG }}
-          draft: false
-          prerelease: ${{ inputs.prerelease }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: release-${{ env.VERSION }}
+          base: main
+          title: "chore: release version ${{ env.VERSION }}"
+          body: |
+            ## Release v${{ env.VERSION }}
+
+            This PR bumps the version to ${{ env.VERSION }}.
+
+            Once merged, a git tag will be created automatically and a GitHub Release will be published.
+          commit-message: "chore: release version ${{ env.VERSION }}"
+          delete-branch: true
