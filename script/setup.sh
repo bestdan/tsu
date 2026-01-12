@@ -22,4 +22,4 @@ pnpm build
 # Link globally for development
 pnpm link --global
 
-echo "✓ Setup complete! 'tsu' command is now available."
+echo "✓ Setup complete! Refresh your terminal and 'tsu' command should be available."
