@@ -12,6 +12,77 @@ import { setVerbose } from '../../utils/verbose-state.js';
 
 const execFileAsync = promisify(execFile);
 
+/**
+ * Details about a failed check, including specific files and error message.
+ */
+interface FailureDetail {
+  name: string;
+  files?: string[];
+  message?: string;
+}
+
+/**
+ * Parses failure output from sub-commands to extract file lists and error messages.
+ * Recognizes output patterns from format, analysis, dcm, graphql, and codeowners checks.
+ */
+function parseFailureOutput(output: string): { files: string[]; message?: string } {
+  const lines = output.split('\n').map((line) => line.trim());
+  const files: string[] = [];
+  let message: string | undefined;
+
+  // Pattern matchers for different check types
+  const patterns = [
+    {
+      marker: 'Please stage and commit these changes:',
+      message: 'Files need formatting',
+    },
+    {
+      marker: 'dart analyze found issues in the following file(s):',
+      message: 'dart analyze found issues',
+    },
+    {
+      marker: 'DCM analyze found issues in the following file(s):',
+      message: 'DCM analyze found issues',
+    },
+    {
+      marker: 'Modified files:',
+      message: 'Files were modified by codegen',
+    },
+    {
+      marker: 'CODEOWNERS files are out of sync!',
+      message: 'CODEOWNERS files are out of sync',
+    },
+    {
+      marker: 'There are unowned files in the repository!',
+      message: 'Unowned files detected',
+    },
+  ];
+
+  for (const pattern of patterns) {
+    const markerIndex = lines.findIndex((line) => line.includes(pattern.marker));
+    if (markerIndex !== -1) {
+      message = pattern.message;
+
+      // Extract file paths from lines after the marker
+      for (let i = markerIndex + 1; i < lines.length; i++) {
+        const line = lines[i];
+        // Stop at empty lines or lines that look like instructions
+        if (!line || line.startsWith('Run ') || line.startsWith('Please ')) {
+          break;
+        }
+        // Clean up file paths (remove leading whitespace, bullets, etc.)
+        const cleanedFile = line.replace(/^[\s-]*/, '').trim();
+        if (cleanedFile && !cleanedFile.startsWith('(') && cleanedFile.includes('.')) {
+          files.push(cleanedFile);
+        }
+      }
+      break;
+    }
+  }
+
+  return { files, message };
+}
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -109,7 +180,7 @@ export async function hookCollate(options: HookCollateOptions = {}): Promise<voi
         }
         return false;
       },
-      task: async (ctx: { failures?: string[] }, task: { output?: string }) => {
+      task: async (ctx: { failures?: FailureDetail[] }, task: { output?: string }) => {
         /* v8 ignore next -- @preserve */
         try {
           const cmdArgs = appendChangedFileArgs ? [...args, ...buildArgs()] : [...args];
@@ -132,9 +203,11 @@ export async function hookCollate(options: HookCollateOptions = {}): Promise<voi
 
           return `✓ ${name} passed`;
         } catch (error) {
+          const execError = error as ExecException & { stdout?: string; stderr?: string };
+          const combinedOutput = [execError.stdout || '', execError.stderr || ''].join('\n');
+
           // In verbose mode, show error output
-          if (verbose && error && typeof error === 'object') {
-            const execError = error as ExecException & { stdout?: string; stderr?: string };
+          if (verbose) {
             const output: string[] = [];
             if (execError.stdout) {
               output.push(execError.stdout.trim());
@@ -146,8 +219,19 @@ export async function hookCollate(options: HookCollateOptions = {}): Promise<voi
               task.output = output.join('\n');
             }
           }
+
+          // Parse the output to extract file details
+          const parsed = parseFailureOutput(combinedOutput);
+          const failureDetail: FailureDetail = { name };
+          if (parsed.files.length > 0) {
+            failureDetail.files = parsed.files;
+          }
+          if (parsed.message) {
+            failureDetail.message = parsed.message;
+          }
+
           ctx.failures = ctx.failures || [];
-          ctx.failures.push(name);
+          ctx.failures.push(failureDetail);
           throw new Error(`${name} failed`);
         }
       },
@@ -171,7 +255,7 @@ export async function hookCollate(options: HookCollateOptions = {}): Promise<voi
   const tsuCmd = getTsuCommand();
 
   // Define context type for listr2 tasks
-  type HookContext = { failures?: string[] };
+  type HookContext = { failures?: FailureDetail[] };
 
   // Collect all hook tasks to run
   const hookTasks: ListrTask<HookContext>[] = [];
@@ -256,8 +340,16 @@ export async function hookCollate(options: HookCollateOptions = {}): Promise<voi
     if (ctx.failures && ctx.failures.length > 0) {
       console.error('');
       console.error('❌ One or more checks failed:');
-      ctx.failures.forEach((check: string) => {
-        console.error(`  - ${check}`);
+      ctx.failures.forEach((failure: FailureDetail) => {
+        console.error(`  - ${failure.name}`);
+        if (failure.message) {
+          console.error(`    ${failure.message}`);
+        }
+        if (failure.files && failure.files.length > 0) {
+          failure.files.forEach((file) => {
+            console.error(`      ${file}`);
+          });
+        }
       });
       console.error('');
       console.error('Push aborted.');

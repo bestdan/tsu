@@ -9,6 +9,55 @@ import { ensureCondition } from '../../utils/command-helpers.js';
 import { logIfVerbose } from '../../utils/logger.js';
 import { setVerbose } from '../../utils/verbose-state.js';
 const execFileAsync = promisify(execFile);
+function parseFailureOutput(output) {
+    const lines = output.split('\n').map((line) => line.trim());
+    const files = [];
+    let message;
+    const patterns = [
+        {
+            marker: 'Please stage and commit these changes:',
+            message: 'Files need formatting',
+        },
+        {
+            marker: 'dart analyze found issues in the following file(s):',
+            message: 'dart analyze found issues',
+        },
+        {
+            marker: 'DCM analyze found issues in the following file(s):',
+            message: 'DCM analyze found issues',
+        },
+        {
+            marker: 'Modified files:',
+            message: 'Files were modified by codegen',
+        },
+        {
+            marker: 'CODEOWNERS files are out of sync!',
+            message: 'CODEOWNERS files are out of sync',
+        },
+        {
+            marker: 'There are unowned files in the repository!',
+            message: 'Unowned files detected',
+        },
+    ];
+    for (const pattern of patterns) {
+        const markerIndex = lines.findIndex((line) => line.includes(pattern.marker));
+        if (markerIndex !== -1) {
+            message = pattern.message;
+            for (let i = markerIndex + 1; i < lines.length; i++) {
+                const line = lines[i];
+                if (!line || line.startsWith('Run ') || line.startsWith('Please ')) {
+                    break;
+                }
+                const cleanedFile = line.replace(/^[\s-]*/, '').trim();
+                if (cleanedFile && !cleanedFile.startsWith('(') && cleanedFile.includes('.')) {
+                    files.push(cleanedFile);
+                }
+            }
+            break;
+        }
+    }
+    return { files, message };
+}
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 export async function hookCollate(options = {}) {
@@ -77,8 +126,9 @@ export async function hookCollate(options = {}) {
                     return `✓ ${name} passed`;
                 }
                 catch (error) {
-                    if (verbose && error && typeof error === 'object') {
-                        const execError = error;
+                    const execError = error;
+                    const combinedOutput = [execError.stdout || '', execError.stderr || ''].join('\n');
+                    if (verbose) {
                         const output = [];
                         if (execError.stdout) {
                             output.push(execError.stdout.trim());
@@ -90,8 +140,16 @@ export async function hookCollate(options = {}) {
                             task.output = output.join('\n');
                         }
                     }
+                    const parsed = parseFailureOutput(combinedOutput);
+                    const failureDetail = { name };
+                    if (parsed.files.length > 0) {
+                        failureDetail.files = parsed.files;
+                    }
+                    if (parsed.message) {
+                        failureDetail.message = parsed.message;
+                    }
                     ctx.failures = ctx.failures || [];
-                    ctx.failures.push(name);
+                    ctx.failures.push(failureDetail);
                     throw new Error(`${name} failed`);
                 }
             },
@@ -142,8 +200,16 @@ export async function hookCollate(options = {}) {
         if (ctx.failures && ctx.failures.length > 0) {
             console.error('');
             console.error('❌ One or more checks failed:');
-            ctx.failures.forEach((check) => {
-                console.error(`  - ${check}`);
+            ctx.failures.forEach((failure) => {
+                console.error(`  - ${failure.name}`);
+                if (failure.message) {
+                    console.error(`    ${failure.message}`);
+                }
+                if (failure.files && failure.files.length > 0) {
+                    failure.files.forEach((file) => {
+                        console.error(`      ${file}`);
+                    });
+                }
             });
             console.error('');
             console.error('Push aborted.');

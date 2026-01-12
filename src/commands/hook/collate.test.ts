@@ -231,6 +231,164 @@ describe('hookCollate', () => {
     mockConsoleError.mockRestore();
   });
 
+  it('should extract and display file details from format check failures', async () => {
+    mockGetAllChangedFiles.mockReturnValue(['lib/main.dart']);
+
+    // Mock which command to succeed
+    mockExecSync.mockReturnValue(Buffer.from('/usr/bin/tsu'));
+
+    // Mock exec to fail with format check output
+    mockExecFile.mockImplementation(
+      (
+        _file: string,
+        args: readonly string[] | null | undefined,
+        _options: any,
+        callback?: ((error: any, stdout: string, stderr: string) => void) | null
+      ) => {
+        const argsArray = args as string[];
+        if (callback) {
+          if (argsArray && argsArray.includes('format')) {
+            const error = new Error('Command failed') as Error & {
+              code: number;
+              stderr: string;
+            };
+            error.code = 1;
+            error.stderr = `
+❌ Push blocked: Files were formatted. Please stage and commit these changes:
+lib/widget.dart
+lib/helper.dart
+`;
+            callback(error, '', error.stderr);
+          } else {
+            callback(null, '', '');
+          }
+        }
+        return {} as any;
+      }
+    );
+
+    const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {}) as never);
+    const errorCalls: string[] = [];
+    const mockConsoleError = vi.spyOn(console, 'error').mockImplementation((msg: string) => {
+      errorCalls.push(msg);
+    });
+
+    await hookCollate({ dartFormat: true, verbose: false });
+
+    // Should show failure details with files
+    expect(errorCalls).toContain('  - dart format check');
+    expect(errorCalls).toContain('    Files need formatting');
+    expect(errorCalls).toContain('      lib/widget.dart');
+    expect(errorCalls).toContain('      lib/helper.dart');
+    expect(mockExit).toHaveBeenCalledWith(1);
+
+    mockExit.mockRestore();
+    mockConsoleError.mockRestore();
+  });
+
+  it('should extract and display file details from analysis check failures', async () => {
+    mockGetAllChangedFiles.mockReturnValue(['lib/main.dart']);
+
+    // Mock which command to succeed
+    mockExecSync.mockReturnValue(Buffer.from('/usr/bin/tsu'));
+
+    // Mock exec to fail with analysis check output
+    mockExecFile.mockImplementation(
+      (
+        _file: string,
+        args: readonly string[] | null | undefined,
+        _options: any,
+        callback?: ((error: any, stdout: string, stderr: string) => void) | null
+      ) => {
+        const argsArray = args as string[];
+        if (callback) {
+          if (argsArray && argsArray.includes('analysis')) {
+            const error = new Error('Command failed') as Error & {
+              code: number;
+              stderr: string;
+            };
+            error.code = 1;
+            error.stderr = `
+❌ Push blocked: dart analyze found issues in the following file(s):
+  lib/api.dart
+  lib/model.dart
+
+Run \`dart fix --apply\` to fix some issues automatically.
+`;
+            callback(error, '', error.stderr);
+          } else {
+            callback(null, '', '');
+          }
+        }
+        return {} as any;
+      }
+    );
+
+    const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {}) as never);
+    const errorCalls: string[] = [];
+    const mockConsoleError = vi.spyOn(console, 'error').mockImplementation((msg: string) => {
+      errorCalls.push(msg);
+    });
+
+    await hookCollate({ dartAnalysis: true, verbose: false });
+
+    // Should show failure details with files
+    expect(errorCalls).toContain('  - dart analysis check');
+    expect(errorCalls).toContain('    dart analyze found issues');
+    expect(errorCalls).toContain('      lib/api.dart');
+    expect(errorCalls).toContain('      lib/model.dart');
+    expect(mockExit).toHaveBeenCalledWith(1);
+
+    mockExit.mockRestore();
+    mockConsoleError.mockRestore();
+  });
+
+  it('should handle failures without parseable output gracefully', async () => {
+    mockGetAllChangedFiles.mockReturnValue(['lib/main.dart']);
+
+    // Mock which command to succeed
+    mockExecSync.mockReturnValue(Buffer.from('/usr/bin/tsu'));
+
+    // Mock exec to fail with unparseable output
+    mockExecFile.mockImplementation(
+      (
+        _file: string,
+        args: readonly string[] | null | undefined,
+        _options: any,
+        callback?: ((error: any, stdout: string, stderr: string) => void) | null
+      ) => {
+        const argsArray = args as string[];
+        if (callback) {
+          if (argsArray && argsArray.includes('format')) {
+            const error = new Error('Some unknown error') as Error & { code: number };
+            error.code = 1;
+            callback(error, '', 'Some unknown error');
+          } else {
+            callback(null, '', '');
+          }
+        }
+        return {} as any;
+      }
+    );
+
+    const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {}) as never);
+    const errorCalls: string[] = [];
+    const mockConsoleError = vi.spyOn(console, 'error').mockImplementation((msg: string) => {
+      errorCalls.push(msg);
+    });
+
+    await hookCollate({ dartFormat: true, verbose: false });
+
+    // Should still show the check name even without parseable details
+    expect(errorCalls).toContain('  - dart format check');
+    // Should not have extra lines for files/message since they couldn't be parsed
+    expect(errorCalls.filter((c) => c.startsWith('    '))).toHaveLength(0);
+    expect(mockExit).toHaveBeenCalledWith(1);
+
+    mockExit.mockRestore();
+    mockConsoleError.mockRestore();
+  });
+
   it('should run GraphQL check when .graphql files are changed', async () => {
     mockGetAllChangedFiles.mockReturnValue(['schema/query.graphql']);
 
