@@ -696,7 +696,10 @@ Run \`dart fix --apply\` to fix some issues automatically.
       const { join } = await import('node:path');
       const { tmpdir } = await import('node:os');
 
-      const testDir = join(tmpdir(), `tsu-test-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+      const testDir = join(
+        tmpdir(),
+        `tsu-test-${Date.now()}-${Math.random().toString(36).slice(2)}`
+      );
       mkdirSync(testDir, { recursive: true });
 
       // Create config file with timeout settings

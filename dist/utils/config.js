@@ -1,12 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { homedir } from 'node:os';
-const CONFIG_FILE_NAMES = [
-    '.tsurc',
-    '.tsurc.json',
-    'tsu.config.json',
-    '.tsu.config.json',
-];
+const CONFIG_FILE_NAMES = ['.tsurc', '.tsurc.json', 'tsu.config.json', '.tsu.config.json'];
 function findConfigFile(startPath) {
     let currentPath = startPath;
     while (currentPath !== dirname(currentPath)) {

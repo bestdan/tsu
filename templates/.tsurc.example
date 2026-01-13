@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json.schemastore.org/base.json",
+  "timeout": 5000,
+  "hook": {
+    "collate": {
+      "timeout": 20000,
+      "checks": {
+        "dart-format": {
+          "timeout": 3000
+        },
+        "dart-analysis": {
+          "timeout": 15000
+        },
+        "dcm-analyze": {
+          "timeout": 10000
+        },
+        "graphql": {
+          "timeout": 30000
+        },
+        "codeowners": {
+          "timeout": 5000
+        }
+      }
+    }
+  }
+}

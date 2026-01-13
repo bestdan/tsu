@@ -10,12 +10,7 @@ import type { TsuConfig } from '../types/config.js';
 /**
  * Possible config file names, in order of preference
  */
-const CONFIG_FILE_NAMES = [
-  '.tsurc',
-  '.tsurc.json',
-  'tsu.config.json',
-  '.tsu.config.json',
-];
+const CONFIG_FILE_NAMES = ['.tsurc', '.tsurc.json', 'tsu.config.json', '.tsu.config.json'];
 
 /**
  * Finds the closest config file by walking up the directory tree
@@ -97,7 +92,8 @@ export function getTimeoutFromConfig(
 
   // Check for per-check timeout first (most specific)
   if (checkName && commandPath[0] === 'hook' && commandPath[1] === 'collate') {
-    const checkTimeout = config.hook?.collate?.checks?.[checkName as keyof typeof config.hook.collate.checks]?.timeout;
+    const checkTimeout =
+      config.hook?.collate?.checks?.[checkName as keyof typeof config.hook.collate.checks]?.timeout;
     if (checkTimeout !== undefined) {
       return checkTimeout;
     }

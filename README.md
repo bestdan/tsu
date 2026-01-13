@@ -32,12 +32,34 @@ cat > .git/hooks/pre-push << 'EOF'
 set -o pipefail
 
 echo "📋 Running pre-push tsu checks"
-tsu hook collate
+tsu hook collate --with-config  # Uses config file for timeout settings
 # tsu hook collate --verbose # If you want verbose output
 EOF
 
 chmod +x .git/hooks/pre-push
 ```
+
+### Configuration File
+
+Create a `.tsurc` file in your project root to customize timeout settings:
+
+```json
+{
+  "timeout": 5000,
+  "hook": {
+    "collate": {
+      "timeout": 20000,
+      "checks": {
+        "dart-format": { "timeout": 3000 },
+        "dart-analysis": { "timeout": 15000 },
+        "dcm-analyze": { "timeout": 10000 }
+      }
+    }
+  }
+}
+```
+
+See `templates/.tsurc.example` for a complete example.
 
 ### Available Namespaces
 
