@@ -8,6 +8,7 @@ import { isDartPackage } from '../dart/utils/dart.js';
 import { ensureCondition } from '../../utils/command-helpers.js';
 import { logIfVerbose } from '../../utils/logger.js';
 import { setVerbose } from '../../utils/verbose-state.js';
+import { loadConfig, getTimeoutFromConfig } from '../../utils/config.js';
 const execFileAsync = promisify(execFile);
 function parseFailureOutput(output) {
     const lines = output.split('\n').map((line) => line.trim());
@@ -64,6 +65,10 @@ export async function hookCollate(options = {}) {
     const verbose = options.verbose || false;
     setVerbose(verbose);
     logIfVerbose(verbose, '📋 Running pre-push checks...');
+    const config = options.withConfig ? loadConfig() : null;
+    if (config && verbose) {
+        logIfVerbose(verbose, '⚙️  Loaded configuration from file');
+    }
     ensureCondition(isGitRepo(), 'Error: Not in a git repository');
     ensureCondition(isDartPackage(), 'Error: Not in a Dart package');
     const cwd = process.cwd();
@@ -98,7 +103,7 @@ export async function hookCollate(options = {}) {
             args.push('--verbose');
         return args;
     };
-    const createHookTask = (name, file, args, skipCondition = false, appendChangedFileArgs = true) => {
+    const createHookTask = (name, file, args, skipCondition = false, appendChangedFileArgs = true, timeoutMs) => {
         return {
             title: name,
             skip: () => {
@@ -110,7 +115,11 @@ export async function hookCollate(options = {}) {
             task: async (ctx, task) => {
                 try {
                     const cmdArgs = appendChangedFileArgs ? [...args, ...buildArgs()] : [...args];
-                    const result = await execFileAsync(file, cmdArgs, { cwd });
+                    const execOptions = { cwd };
+                    if (timeoutMs) {
+                        execOptions.timeout = timeoutMs;
+                    }
+                    const result = await execFileAsync(file, cmdArgs, execOptions);
                     if (verbose) {
                         const output = [];
                         if (result.stdout) {
@@ -168,23 +177,28 @@ export async function hookCollate(options = {}) {
     const tsuCmd = getTsuCommand();
     const hookTasks = [];
     if (runDartFormat) {
-        hookTasks.push(createHookTask('dart format check', tsuCmd.file, [...tsuCmd.args, 'hook', 'format', 'check'], dartFiles.length === 0));
+        const timeout = getTimeoutFromConfig(config, ['hook', 'collate'], 'dart-format');
+        hookTasks.push(createHookTask('dart format check', tsuCmd.file, [...tsuCmd.args, 'hook', 'format', 'check'], dartFiles.length === 0, true, timeout));
     }
     if (runDartAnalysis) {
-        hookTasks.push(createHookTask('dart analysis check', tsuCmd.file, [...tsuCmd.args, 'hook', 'analysis', 'check'], dartFiles.length === 0));
+        const timeout = getTimeoutFromConfig(config, ['hook', 'collate'], 'dart-analysis');
+        hookTasks.push(createHookTask('dart analysis check', tsuCmd.file, [...tsuCmd.args, 'hook', 'analysis', 'check'], dartFiles.length === 0, true, timeout));
     }
     if (runDcmAnalyze) {
-        hookTasks.push(createHookTask('DCM analyze check', tsuCmd.file, [...tsuCmd.args, 'hook', 'dcm', 'analyze', 'check'], dartFiles.length === 0));
+        const timeout = getTimeoutFromConfig(config, ['hook', 'collate'], 'dcm-analyze');
+        hookTasks.push(createHookTask('DCM analyze check', tsuCmd.file, [...tsuCmd.args, 'hook', 'dcm', 'analyze', 'check'], dartFiles.length === 0, true, timeout));
     }
     if (runGraphql) {
-        hookTasks.push(createHookTask('GraphQL check', tsuCmd.file, [...tsuCmd.args, 'hook', 'graphql', 'check'], graphqlFiles.length === 0));
+        const timeout = getTimeoutFromConfig(config, ['hook', 'collate'], 'graphql');
+        hookTasks.push(createHookTask('GraphQL check', tsuCmd.file, [...tsuCmd.args, 'hook', 'graphql', 'check'], graphqlFiles.length === 0, true, timeout));
     }
     if (runCodeowners) {
         const codeownersArgs = [...tsuCmd.args, 'git', 'codeowners', 'check'];
         if (verbose) {
             codeownersArgs.push('--verbose');
         }
-        hookTasks.push(createHookTask('git codeowners check', tsuCmd.file, codeownersArgs, false, false));
+        const timeout = getTimeoutFromConfig(config, ['hook', 'collate'], 'codeowners');
+        hookTasks.push(createHookTask('git codeowners check', tsuCmd.file, codeownersArgs, false, false, timeout));
     }
     const tasks = new Listr(hookTasks, {
         concurrent: true,

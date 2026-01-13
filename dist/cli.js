@@ -296,6 +296,7 @@ hook
     .option('--dcm-analyze', 'run DCM analyze check')
     .option('--graphql', 'run GraphQL check')
     .option('--codeowners', 'run git codeowners check')
+    .option('--with-config', 'load configuration from config file (.tsurc, .tsurc.json, etc.)')
     .option('-v, --verbose', 'show human-readable status messages (output to stderr)')
     .action(async (options) => {
     await hookCollate(options);
