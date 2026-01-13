@@ -92,10 +92,12 @@ export function getTimeoutFromConfig(
 
   // Check for per-check timeout first (most specific)
   if (checkName && commandPath[0] === 'hook' && commandPath[1] === 'collate') {
-    const checkTimeout =
-      config.hook?.collate?.checks?.[checkName as keyof typeof config.hook.collate.checks]?.timeout;
-    if (checkTimeout !== undefined) {
-      return checkTimeout;
+    const checks = config.hook?.collate?.checks;
+    if (checks && checkName in checks) {
+      const checkConfig = checks[checkName as keyof typeof checks];
+      if (checkConfig?.timeout !== undefined) {
+        return checkConfig.timeout;
+      }
     }
   }
 

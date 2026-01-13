@@ -43,9 +43,12 @@ export function getTimeoutFromConfig(config, commandPath, checkName) {
         return undefined;
     }
     if (checkName && commandPath[0] === 'hook' && commandPath[1] === 'collate') {
-        const checkTimeout = config.hook?.collate?.checks?.[checkName]?.timeout;
-        if (checkTimeout !== undefined) {
-            return checkTimeout;
+        const checks = config.hook?.collate?.checks;
+        if (checks && checkName in checks) {
+            const checkConfig = checks[checkName];
+            if (checkConfig?.timeout !== undefined) {
+                return checkConfig.timeout;
+            }
         }
     }
     if (commandPath[0] === 'hook' && commandPath[1] === 'collate') {

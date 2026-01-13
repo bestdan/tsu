@@ -1,5 +1,4 @@
 {
-  "$schema": "https://json.schemastore.org/base.json",
   "timeout": 5000,
   "hook": {
     "collate": {
