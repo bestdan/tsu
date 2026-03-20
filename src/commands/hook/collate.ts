@@ -130,6 +130,12 @@ export async function hookCollate(options: HookCollateOptions = {}): Promise<voi
   // Get files to check based on options (we check once to optimize)
   const allFiles = getAllChangedFiles(options, cwd);
 
+  // Early exit if no changed files at all
+  if (allFiles.length === 0) {
+    logIfVerbose(verbose, '✓ No changed files found, skipping all checks');
+    process.exit(0);
+  }
+
   // Check if there are any files to process
   const dartFiles = allFiles.filter((file) => file.endsWith('.dart'));
   const graphqlFiles = allFiles.filter((file) => file.endsWith('.graphql'));

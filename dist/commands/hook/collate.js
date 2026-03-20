@@ -68,6 +68,10 @@ export async function hookCollate(options = {}) {
     ensureCondition(isDartPackage(), 'Error: Not in a Dart package');
     const cwd = process.cwd();
     const allFiles = getAllChangedFiles(options, cwd);
+    if (allFiles.length === 0) {
+        logIfVerbose(verbose, '✓ No changed files found, skipping all checks');
+        process.exit(0);
+    }
     const dartFiles = allFiles.filter((file) => file.endsWith('.dart'));
     const graphqlFiles = allFiles.filter((file) => file.endsWith('.graphql'));
     const runAll = !options.dartFormat &&
