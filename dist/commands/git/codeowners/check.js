@@ -67,8 +67,19 @@ export function gitCodeownersCheck(options = {}) {
         console.error('');
         console.error('❌ There are unowned files in the repository!');
         console.error('Please add the necessary OWNERSHIP files to appropriately tag owners.');
-        if (verbose && error instanceof Error) {
-            console.error('Error details:', error.message);
+        if (error && typeof error === 'object' && 'stdout' in error) {
+            const stdout = error.stdout?.toString().trim();
+            if (stdout) {
+                console.error('');
+                console.error('Unowned files:');
+                console.error(stdout);
+            }
+        }
+        if (error && typeof error === 'object' && 'stderr' in error) {
+            const stderr = error.stderr?.toString().trim();
+            if (stderr) {
+                console.error(stderr);
+            }
         }
         console.error('');
         process.exit(1);
