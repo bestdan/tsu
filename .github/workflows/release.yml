@@ -52,23 +52,6 @@ jobs:
       - name: Run tests
         run: pnpm test:run
 
-      - name: Configure Git
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-      - name: Update version in package.json
-        run: |
-          npm version ${{ env.VERSION }} --no-git-tag-version
-          git add package.json
-          git commit -m "chore: release version ${{ env.VERSION }}"
-          git push
-
-      - name: Create and push tag
-        run: |
-          git tag "v${{ env.VERSION }}"
-          git push origin "v${{ env.VERSION }}"
-
       - name: Generate changelog
         id: changelog
         run: |
@@ -95,6 +78,11 @@ jobs:
             cat changelog.md
             echo EOF
           } >> $GITHUB_OUTPUT
+
+      - name: Create and push tag
+        run: |
+          git tag "v${{ env.VERSION }}"
+          git push origin "v${{ env.VERSION }}"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@e7a8f85e1c67a31e6ed99a94b41bd0b71bbee6b8 # v2.2.0
