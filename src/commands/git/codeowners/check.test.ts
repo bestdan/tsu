@@ -203,9 +203,7 @@ describe('gitCodeownersCheck', () => {
       'Please add the necessary OWNERSHIP files to appropriately tag owners.'
     );
     expect(consoleErrorSpy).toHaveBeenCalledWith('Unowned files:');
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      'lib/unowned_file.dart\nlib/another_unowned.dart'
-    );
+    expect(consoleErrorSpy).toHaveBeenCalledWith('lib/unowned_file.dart\nlib/another_unowned.dart');
     expect(processExitSpy).toHaveBeenCalledWith(1);
   });
 
