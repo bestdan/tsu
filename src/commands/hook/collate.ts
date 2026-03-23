@@ -53,7 +53,7 @@ function parseFailureOutput(output: string): { files: string[]; message?: string
       message: 'CODEOWNERS files are out of sync',
     },
     {
-      marker: 'There are unowned files in the repository!',
+      marker: 'Unowned files:',
       message: 'Unowned files detected',
     },
   ];

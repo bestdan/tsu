@@ -124,9 +124,23 @@ export function gitCodeownersCheck(options: GitCodeownersCheckOptions = {}): voi
     console.error('');
     console.error('❌ There are unowned files in the repository!');
     console.error('Please add the necessary OWNERSHIP files to appropriately tag owners.');
-    if (verbose && error instanceof Error) {
-      console.error('Error details:', error.message);
+
+    // Show the unowned files from coach output
+    if (error && typeof error === 'object' && 'stdout' in error) {
+      const stdout = (error as { stdout: Buffer | string }).stdout?.toString().trim();
+      if (stdout) {
+        console.error('');
+        console.error('Unowned files:');
+        console.error(stdout);
+      }
     }
+    if (error && typeof error === 'object' && 'stderr' in error) {
+      const stderr = (error as { stderr: Buffer | string }).stderr?.toString().trim();
+      if (stderr) {
+        console.error(stderr);
+      }
+    }
+
     console.error('');
     process.exit(1);
   }

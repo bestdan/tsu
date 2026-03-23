@@ -183,7 +183,13 @@ describe('gitCodeownersCheck', () => {
     // Mock execSync to succeed for generate but fail for unowned check
     vi.mocked(execSync).mockImplementation((command: string) => {
       if (command === 'coach codeowners unowned --check') {
-        throw new Error('Unowned files found');
+        const error = new Error('Unowned files found') as Error & {
+          stdout: Buffer;
+          stderr: Buffer;
+        };
+        error.stdout = Buffer.from('lib/unowned_file.dart\nlib/another_unowned.dart');
+        error.stderr = Buffer.from('');
+        throw error;
       }
       return '' as any;
     });
@@ -196,6 +202,8 @@ describe('gitCodeownersCheck', () => {
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       'Please add the necessary OWNERSHIP files to appropriately tag owners.'
     );
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Unowned files:');
+    expect(consoleErrorSpy).toHaveBeenCalledWith('lib/unowned_file.dart\nlib/another_unowned.dart');
     expect(processExitSpy).toHaveBeenCalledWith(1);
   });
 
