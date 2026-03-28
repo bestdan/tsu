@@ -77,7 +77,7 @@ export function detectPackageManager() {
 function isValidGitHubName(name) {
     return /^[a-zA-Z0-9][a-zA-Z0-9_-]*$/.test(name);
 }
-export function upgradeFromGitHub(owner, repo, packageManager) {
+export function upgradeFromGitHub(owner, repo, ref, packageManager) {
     if (!isValidGitHubName(owner)) {
         throw new Error(`Invalid GitHub owner: "${owner}". Must be alphanumeric with hyphens/underscores.`);
     }
@@ -85,7 +85,7 @@ export function upgradeFromGitHub(owner, repo, packageManager) {
         throw new Error(`Invalid GitHub repo: "${repo}". Must be alphanumeric with hyphens/underscores.`);
     }
     const pm = packageManager || detectPackageManager() || 'pnpm';
-    const githubUrl = `github:${owner}/${repo}`;
+    const githubUrl = ref ? `github:${owner}/${repo}#${ref}` : `github:${owner}/${repo}`;
     let command;
     switch (pm) {
         case 'pnpm':

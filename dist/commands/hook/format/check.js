@@ -41,7 +41,7 @@ export function dartHookFormatCheck(options = {}) {
         }
         process.exit(1);
     }
-    const filesWithChanges = modifiedFiles.filter((file) => hasUnstagedChanges(file, cwd));
+    const filesWithChanges = getFilesWithUnstagedChanges(modifiedFiles, cwd);
     if (filesWithChanges.length > 0) {
         console.error('');
         console.error('❌ Push blocked: Files were formatted. Please stage and commit these changes:');
@@ -52,4 +52,25 @@ export function dartHookFormatCheck(options = {}) {
     }
     logIfVerbose(verbose, '✓ All files properly formatted');
     process.exit(0);
+}
+function getFilesWithUnstagedChanges(files, cwd) {
+    if (files.length === 0) {
+        return [];
+    }
+    try {
+        const fileArgs = files.map(escapeShellArg).join(' ');
+        const result = execSync(`git diff --name-only -- ${fileArgs}`, {
+            cwd,
+            stdio: 'pipe',
+            encoding: 'utf-8',
+        });
+        const changedFiles = new Set(result
+            .split('\n')
+            .map((line) => line.trim())
+            .filter((line) => line.length > 0));
+        return files.filter((file) => changedFiles.has(file));
+    }
+    catch {
+        return files.filter((file) => hasUnstagedChanges(file, cwd));
+    }
 }

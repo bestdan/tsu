@@ -15,7 +15,7 @@ export async function upgrade(options = {}) {
         logIfVerbose(verbose, `📦 Current version: ${currentVersion}`);
         logIfVerbose(verbose, `✨ Latest version: ${latestVersion}`);
         logIfVerbose(verbose, `📥 Upgrading using ${packageManager}...`);
-        upgradeFromGitHub(GITHUB_OWNER, GITHUB_REPO, packageManager);
+        upgradeFromGitHub(GITHUB_OWNER, GITHUB_REPO, `v${latestVersion}`, packageManager);
         logIfVerbose(verbose, `✓ Successfully upgraded to version ${latestVersion}`);
         process.exit(0);
     }
