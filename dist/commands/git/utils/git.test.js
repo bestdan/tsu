@@ -1174,6 +1174,37 @@ describe('getRemoteBranch', () => {
             rmSync(remoteDir, { recursive: true, force: true });
         }
     });
+    it('should return the configured upstream branch even when remote is not origin', () => {
+        const tempDir = realpathSync(mkdtempSync(join(tmpdir(), 'git-test-')));
+        const remoteDir = realpathSync(mkdtempSync(join(tmpdir(), 'git-remote-')));
+        try {
+            execSync('git init', { cwd: tempDir, stdio: 'pipe' });
+            execSync('git config user.email "test@test.com"', {
+                cwd: tempDir,
+                stdio: 'pipe',
+            });
+            execSync('git config user.name "Test User"', {
+                cwd: tempDir,
+                stdio: 'pipe',
+            });
+            execSync('git checkout -b main', { cwd: tempDir, stdio: 'pipe' });
+            writeFileSync(join(tempDir, 'file.txt'), 'content');
+            execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+            execSync('git commit -m "initial"', { cwd: tempDir, stdio: 'pipe' });
+            execSync('git init --bare', { cwd: remoteDir, stdio: 'pipe' });
+            execSync(`git remote add upstream "${remoteDir}"`, {
+                cwd: tempDir,
+                stdio: 'pipe',
+            });
+            execSync('git push -u upstream main', { cwd: tempDir, stdio: 'pipe' });
+            const result = getRemoteBranch(tempDir);
+            expect(result).toBe('upstream/main');
+        }
+        finally {
+            rmSync(tempDir, { recursive: true, force: true });
+            rmSync(remoteDir, { recursive: true, force: true });
+        }
+    });
 });
 describe('getFilesToPush with remote', () => {
     it('should return empty array when remote exists and no unpushed commits', () => {

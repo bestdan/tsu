@@ -133,6 +133,15 @@ function isValidGitHubName(name: string): boolean {
 }
 
 /**
+ * Validates a git ref (tag or branch name).
+ * Allows alphanumeric characters, hyphens, underscores, dots, and forward slashes.
+ */
+/* v8 ignore next -- @preserve */
+function isValidGitRef(ref: string): boolean {
+  return /^[a-zA-Z0-9][a-zA-Z0-9._/-]*$/.test(ref);
+}
+
+/**
  * Upgrade tsutils by installing from GitHub
  * @param owner - GitHub repository owner
  * @param repo - GitHub repository name
@@ -143,6 +152,7 @@ function isValidGitHubName(name: string): boolean {
 export function upgradeFromGitHub(
   owner: string,
   repo: string,
+  ref?: string,
   packageManager?: 'npm' | 'pnpm' | 'yarn'
 ): void {
   // Validate owner and repo to prevent command injection
@@ -156,10 +166,15 @@ export function upgradeFromGitHub(
       `Invalid GitHub repo: "${repo}". Must be alphanumeric with hyphens/underscores.`
     );
   }
+  if (ref && !isValidGitRef(ref)) {
+    throw new Error(
+      `Invalid GitHub ref: "${ref}". Must be alphanumeric with hyphens, underscores, dots, and slashes.`
+    );
+  }
 
   // Auto-detect package manager if not specified, defaulting to pnpm
   const pm = packageManager || detectPackageManager() || 'pnpm';
-  const githubUrl = `github:${owner}/${repo}`;
+  const githubUrl = ref ? `github:${owner}/${repo}#${ref}` : `github:${owner}/${repo}`;
 
   let command: string;
   switch (pm) {

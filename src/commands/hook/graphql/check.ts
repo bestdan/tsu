@@ -4,10 +4,13 @@ import { isDartPackage } from '../../dart/utils/dart.js';
 import { ensureCondition, displayFileList } from '../../../utils/command-helpers.js';
 import { isCommandInstalled } from '../../../utils/shell.js';
 import { logIfVerbose } from '../../../utils/logger.js';
+import { getNewlyChangedFiles } from '../../../utils/git-status.js';
 import type { ChangedFilesOptions } from '../../../types/command-options.js';
 import { setVerbose } from '../../../utils/verbose-state.js';
 
 export type DartHookGraphqlCheckOptions = ChangedFilesOptions;
+
+const GRAPHQL_GENERATED_SUFFIXES = new Set(['.gql.dart', '.fakes.dart']);
 
 /**
  * Checks if GraphQL files are modified and runs code generation to verify fakes are up to date.
@@ -96,39 +99,22 @@ export async function dartHookGraphqlCheck(
   ensureCondition(gitStatusAfter !== null, 'Error: Failed to get git status');
 
   // Compare git status before and after
-  // TypeScript knows these are non-null after ensureCondition checks
-  // Using type guards instead of assertions for better safety
+  // ensureCondition calls process.exit but doesn't narrow types, so add explicit guards
   /* v8 ignore next -- @preserve */
-  if (gitStatusBefore && gitStatusAfter && gitStatusBefore !== gitStatusAfter) {
+  if (gitStatusBefore === null || gitStatusAfter === null) return;
+  /* v8 ignore next -- @preserve */
+  const changedFiles = getNewlyChangedFiles(gitStatusBefore, gitStatusAfter).filter(
+    isGraphqlOwnedFile
+  );
+
+  if (changedFiles.length > 0) {
     console.error('');
     console.error('⚠️  WARNING: GraphQL fakes need regeneration!');
     console.error('   Modified files:');
 
-    // Show what changed by comparing git status outputs
-    /* v8 ignore next -- @preserve */
-    try {
-      // Parse the status outputs to show what changed
-      const beforeLines = new Set(gitStatusBefore.split('\n').filter((line) => line.length > 0));
-      const afterLines = gitStatusAfter.split('\n').filter((line) => line.length > 0);
-
-      // Find files that are new or have different status
-      const changedFiles = afterLines.filter((line) => !beforeLines.has(line));
-
-      if (changedFiles.length > 0) {
-        changedFiles.forEach((line) => {
-          // Extract just the filename from the porcelain format (e.g., "?? file.dart" or "M  file.dart")
-          const match = line.match(/^..\s+(.+)$/);
-          if (match && match[1]) {
-            console.error(`   ${match[1]}`);
-          }
-        });
-      } else {
-        console.error('   (Unable to determine changed files)');
-      }
-    } catch {
-      // If parsing fails, just show a generic message
-      console.error('   (Unable to determine changed files)');
-    }
+    changedFiles.forEach((file) => {
+      console.error(`   ${file}`);
+    });
 
     console.error('');
     console.error(
@@ -139,4 +125,8 @@ export async function dartHookGraphqlCheck(
 
   logIfVerbose(verbose, '✓ GraphQL fakes are up to date');
   process.exit(0);
+}
+
+function isGraphqlOwnedFile(file: string): boolean {
+  return Array.from(GRAPHQL_GENERATED_SUFFIXES).some((suffix) => file.endsWith(suffix));
 }

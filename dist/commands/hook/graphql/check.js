@@ -4,7 +4,9 @@ import { isDartPackage } from '../../dart/utils/dart.js';
 import { ensureCondition, displayFileList } from '../../../utils/command-helpers.js';
 import { isCommandInstalled } from '../../../utils/shell.js';
 import { logIfVerbose } from '../../../utils/logger.js';
+import { getNewlyChangedFiles } from '../../../utils/git-status.js';
 import { setVerbose } from '../../../utils/verbose-state.js';
+const GRAPHQL_GENERATED_SUFFIXES = new Set(['.gql.dart', '.fakes.dart']);
 export async function dartHookGraphqlCheck(options = {}) {
     const verbose = options.verbose || false;
     const codegenCommands = ['melos run codegen:graphql', 'melos run codegen:graphql:test'];
@@ -42,33 +44,23 @@ export async function dartHookGraphqlCheck(options = {}) {
     }
     const gitStatusAfter = getGitStatus(cwd);
     ensureCondition(gitStatusAfter !== null, 'Error: Failed to get git status');
-    if (gitStatusBefore && gitStatusAfter && gitStatusBefore !== gitStatusAfter) {
+    if (gitStatusBefore === null || gitStatusAfter === null)
+        return;
+    const changedFiles = getNewlyChangedFiles(gitStatusBefore, gitStatusAfter).filter(isGraphqlOwnedFile);
+    if (changedFiles.length > 0) {
         console.error('');
         console.error('⚠️  WARNING: GraphQL fakes need regeneration!');
         console.error('   Modified files:');
-        try {
-            const beforeLines = new Set(gitStatusBefore.split('\n').filter((line) => line.length > 0));
-            const afterLines = gitStatusAfter.split('\n').filter((line) => line.length > 0);
-            const changedFiles = afterLines.filter((line) => !beforeLines.has(line));
-            if (changedFiles.length > 0) {
-                changedFiles.forEach((line) => {
-                    const match = line.match(/^..\s+(.+)$/);
-                    if (match && match[1]) {
-                        console.error(`   ${match[1]}`);
-                    }
-                });
-            }
-            else {
-                console.error('   (Unable to determine changed files)');
-            }
-        }
-        catch {
-            console.error('   (Unable to determine changed files)');
-        }
+        changedFiles.forEach((file) => {
+            console.error(`   ${file}`);
+        });
         console.error('');
         console.error(`   Run 'melos run codegen:graphql && melos run codegen:graphql:test' and commit changes`);
         process.exit(1);
     }
     logIfVerbose(verbose, '✓ GraphQL fakes are up to date');
     process.exit(0);
+}
+function isGraphqlOwnedFile(file) {
+    return Array.from(GRAPHQL_GENERATED_SUFFIXES).some((suffix) => file.endsWith(suffix));
 }

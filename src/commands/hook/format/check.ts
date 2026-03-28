@@ -84,7 +84,7 @@ export function dartHookFormatCheck(options: DartHookFormatCheckOptions = {}): v
 
   // Check if formatting created changes in the files we formatted
   /* v8 ignore next -- @preserve */
-  const filesWithChanges = modifiedFiles.filter((file) => hasUnstagedChanges(file, cwd));
+  const filesWithChanges = getFilesWithUnstagedChanges(modifiedFiles, cwd);
 
   /* v8 ignore next -- @preserve */
   if (filesWithChanges.length > 0) {
@@ -98,4 +98,30 @@ export function dartHookFormatCheck(options: DartHookFormatCheckOptions = {}): v
 
   logIfVerbose(verbose, '✓ All files properly formatted');
   process.exit(0);
+}
+
+function getFilesWithUnstagedChanges(files: string[], cwd: string): string[] {
+  if (files.length === 0) {
+    return [];
+  }
+
+  try {
+    const fileArgs = files.map(escapeShellArg).join(' ');
+    const result = execSync(`git diff --name-only -- ${fileArgs}`, {
+      cwd,
+      stdio: 'pipe',
+      encoding: 'utf-8',
+    });
+
+    const changedFiles = new Set(
+      result
+        .split('\n')
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0)
+    );
+
+    return files.filter((file) => changedFiles.has(file));
+  } catch {
+    return files.filter((file) => hasUnstagedChanges(file, cwd));
+  }
 }

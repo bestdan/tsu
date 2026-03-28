@@ -131,6 +131,19 @@ describe('gitCodeownersCheck', () => {
     expect(processExitSpy).toHaveBeenCalledWith(1);
   });
 
+  it('should ignore unrelated file changes when checking CODEOWNERS sync', () => {
+    isGitRepoSpy.mockReturnValue(true);
+    isCommandInstalledSpy.mockReturnValue(true);
+    getGitStatusSpy.mockReturnValueOnce('M  lib/user.dart');
+    getGitStatusSpy.mockReturnValueOnce('M  lib/user.dart\nM  README.md');
+
+    expect(() => {
+      gitCodeownersCheck({ verbose: false });
+    }).toThrow('process.exit(0)');
+
+    expect(processExitSpy).toHaveBeenCalledWith(0);
+  });
+
   it('should handle git status returning null before running coach', () => {
     isGitRepoSpy.mockReturnValue(true);
     isCommandInstalledSpy.mockReturnValue(true);

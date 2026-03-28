@@ -3,6 +3,7 @@ import { isGitRepo, getGitStatus } from '../utils/git.js';
 import { ensureCondition } from '../../../utils/command-helpers.js';
 import { isCommandInstalled } from '../../../utils/shell.js';
 import { logIfVerbose } from '../../../utils/logger.js';
+import { getNewlyChangedFiles } from '../../../utils/git-status.js';
 export function gitCodeownersCheck(options = {}) {
     const verbose = options.verbose || false;
     logIfVerbose(verbose, '🔍 Checking CODEOWNERS files...');
@@ -27,31 +28,18 @@ export function gitCodeownersCheck(options = {}) {
     }
     const gitStatusAfter = getGitStatus(cwd);
     ensureCondition(gitStatusAfter !== null, 'Error: Failed to get git status');
-    if (gitStatusBefore && gitStatusAfter && gitStatusBefore !== gitStatusAfter) {
+    if (gitStatusBefore === null || gitStatusAfter === null)
+        return;
+    const changedFiles = getNewlyChangedFiles(gitStatusBefore, gitStatusAfter).filter(isCodeownersFile);
+    if (changedFiles.length > 0) {
         console.error('');
         console.error('❌ CODEOWNERS files are out of sync!');
         console.error("Please run 'coach codeowners generate' locally and commit the changes to your branch.");
         console.error('');
         console.error('Modified files:');
-        try {
-            const beforeLines = new Set(gitStatusBefore.split('\n').filter((line) => line.length > 0));
-            const afterLines = gitStatusAfter.split('\n').filter((line) => line.length > 0);
-            const changedFiles = afterLines.filter((line) => !beforeLines.has(line));
-            if (changedFiles.length > 0) {
-                changedFiles.forEach((line) => {
-                    const match = line.match(/^..\s+(.+)$/);
-                    if (match && match[1]) {
-                        console.error(`   ${match[1]}`);
-                    }
-                });
-            }
-            else {
-                console.error('   (Unable to determine changed files)');
-            }
-        }
-        catch {
-            console.error('   (Unable to determine changed files)');
-        }
+        changedFiles.forEach((file) => {
+            console.error(`   ${file}`);
+        });
         console.error('');
         process.exit(1);
     }
@@ -86,4 +74,7 @@ export function gitCodeownersCheck(options = {}) {
     }
     logIfVerbose(verbose, '✅ No unowned files detected!');
     process.exit(0);
+}
+function isCodeownersFile(file) {
+    return file.split('/').pop() === 'CODEOWNERS';
 }

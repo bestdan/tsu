@@ -117,4 +117,29 @@ describe('dartHookGraphqlCheck', () => {
         }).rejects.toThrow('process.exit(0)');
         expect(processExitSpy).toHaveBeenCalledWith(0);
     });
+    it('should exit with error when GraphQL-owned generated files change', async () => {
+        isGitRepoSpy.mockReturnValue(true);
+        isDartPackageSpy.mockReturnValue(true);
+        getAllChangedFilesSpy.mockReturnValue(['lib/query.graphql']);
+        isCommandInstalledSpy.mockReturnValue(true);
+        getGitStatusSpy.mockReturnValueOnce('M  lib/query.graphql');
+        getGitStatusSpy.mockReturnValueOnce('M  lib/query.graphql\nM  lib/query.gql.dart');
+        await expect(async () => {
+            await dartHookGraphqlCheck({ verbose: false });
+        }).rejects.toThrow('process.exit(1)');
+        expect(consoleErrorSpy).toHaveBeenCalledWith('⚠️  WARNING: GraphQL fakes need regeneration!');
+        expect(consoleErrorSpy).toHaveBeenCalledWith('   lib/query.gql.dart');
+    });
+    it('should ignore unrelated repo changes made during GraphQL check', async () => {
+        isGitRepoSpy.mockReturnValue(true);
+        isDartPackageSpy.mockReturnValue(true);
+        getAllChangedFilesSpy.mockReturnValue(['lib/query.graphql']);
+        isCommandInstalledSpy.mockReturnValue(true);
+        getGitStatusSpy.mockReturnValueOnce('M  lib/query.graphql');
+        getGitStatusSpy.mockReturnValueOnce('M  lib/query.graphql\nM  README.md');
+        await expect(async () => {
+            await dartHookGraphqlCheck({ verbose: false });
+        }).rejects.toThrow('process.exit(0)');
+        expect(processExitSpy).toHaveBeenCalledWith(0);
+    });
 });
