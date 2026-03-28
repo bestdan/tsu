@@ -74,7 +74,9 @@ function parseGitStatusEntries(status) {
         const [, state, rawPath] = match;
         if (!state || !rawPath)
             return;
-        const normalizedPath = rawPath.includes(' -> ') ? rawPath.split(' -> ').pop() ?? rawPath : rawPath;
+        const normalizedPath = rawPath.includes(' -> ')
+            ? (rawPath.split(' -> ').pop() ?? rawPath)
+            : rawPath;
         if (normalizedPath) {
             entries.set(normalizedPath, state);
         }
