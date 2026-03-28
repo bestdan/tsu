@@ -3,6 +3,7 @@ import { isGitRepo, getGitStatus } from '../utils/git.js';
 import { ensureCondition } from '../../../utils/command-helpers.js';
 import { isCommandInstalled } from '../../../utils/shell.js';
 import { logIfVerbose } from '../../../utils/logger.js';
+import { getNewlyChangedFiles } from '../../../utils/git-status.js';
 export function gitCodeownersCheck(options = {}) {
     const verbose = options.verbose || false;
     logIfVerbose(verbose, '🔍 Checking CODEOWNERS files...');
@@ -73,36 +74,6 @@ export function gitCodeownersCheck(options = {}) {
     }
     logIfVerbose(verbose, '✅ No unowned files detected!');
     process.exit(0);
-}
-function parseGitStatusEntries(status) {
-    const entries = new Map();
-    status
-        .split('\n')
-        .map((line) => line.trimEnd())
-        .filter((line) => line.length > 0)
-        .forEach((line) => {
-        const match = line.match(/^(.{2})\s+(.+)$/);
-        if (!match) {
-            return;
-        }
-        const [, state, rawPath] = match;
-        if (!state || !rawPath)
-            return;
-        const normalizedPath = rawPath.includes(' -> ')
-            ? (rawPath.split(' -> ').pop() ?? rawPath)
-            : rawPath;
-        if (normalizedPath) {
-            entries.set(normalizedPath, state);
-        }
-    });
-    return entries;
-}
-function getNewlyChangedFiles(before, after) {
-    const beforeEntries = parseGitStatusEntries(before);
-    const afterEntries = parseGitStatusEntries(after);
-    return Array.from(afterEntries.entries())
-        .filter(([path, state]) => beforeEntries.get(path) !== state)
-        .map(([path]) => path);
 }
 function isCodeownersFile(file) {
     return file.split('/').pop() === 'CODEOWNERS';

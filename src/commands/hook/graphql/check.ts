@@ -1,19 +1,16 @@
 import { execSync } from 'node:child_process';
 import { isGitRepo, getGitStatus, getAllChangedFiles } from '../../git/utils/git.js';
-import { isDartPackage, COMMON_DART_CODEGEN_SUFFIXES } from '../../dart/utils/dart.js';
+import { isDartPackage } from '../../dart/utils/dart.js';
 import { ensureCondition, displayFileList } from '../../../utils/command-helpers.js';
 import { isCommandInstalled } from '../../../utils/shell.js';
 import { logIfVerbose } from '../../../utils/logger.js';
+import { getNewlyChangedFiles } from '../../../utils/git-status.js';
 import type { ChangedFilesOptions } from '../../../types/command-options.js';
 import { setVerbose } from '../../../utils/verbose-state.js';
 
 export type DartHookGraphqlCheckOptions = ChangedFilesOptions;
 
-const GRAPHQL_GENERATED_SUFFIXES = new Set(
-  COMMON_DART_CODEGEN_SUFFIXES.filter(
-    (suffix) => suffix === '.gql.dart' || suffix === '.fakes.dart'
-  )
-);
+const GRAPHQL_GENERATED_SUFFIXES = new Set(['.gql.dart', '.fakes.dart']);
 
 /**
  * Checks if GraphQL files are modified and runs code generation to verify fakes are up to date.
@@ -128,41 +125,6 @@ export async function dartHookGraphqlCheck(
 
   logIfVerbose(verbose, '✓ GraphQL fakes are up to date');
   process.exit(0);
-}
-
-function parseGitStatusEntries(status: string): Map<string, string> {
-  const entries = new Map<string, string>();
-
-  status
-    .split('\n')
-    .map((line) => line.trimEnd())
-    .filter((line) => line.length > 0)
-    .forEach((line) => {
-      const match = line.match(/^(.{2})\s+(.+)$/);
-      if (!match) {
-        return;
-      }
-
-      const [, state, rawPath] = match;
-      if (!state || !rawPath) return;
-      const normalizedPath = rawPath.includes(' -> ')
-        ? (rawPath.split(' -> ').pop() ?? rawPath)
-        : rawPath;
-      if (normalizedPath) {
-        entries.set(normalizedPath, state);
-      }
-    });
-
-  return entries;
-}
-
-function getNewlyChangedFiles(before: string, after: string): string[] {
-  const beforeEntries = parseGitStatusEntries(before);
-  const afterEntries = parseGitStatusEntries(after);
-
-  return Array.from(afterEntries.entries())
-    .filter(([path, state]) => beforeEntries.get(path) !== state)
-    .map(([path]) => path);
 }
 
 function isGraphqlOwnedFile(file: string): boolean {

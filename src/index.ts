@@ -113,6 +113,9 @@ export { dartDcmAnalyze, type DartDcmAnalyzeOptions } from './commands/dart/dcm/
 // Check utilities
 export { checkExternals, type CheckExternalsOptions } from './commands/check/externals.js';
 
+// Git status utilities
+export { parseGitStatusEntries, getNewlyChangedFiles } from './utils/git-status.js';
+
 // Error logging utilities
 export {
   logError,

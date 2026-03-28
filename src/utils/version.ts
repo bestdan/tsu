@@ -133,6 +133,15 @@ function isValidGitHubName(name: string): boolean {
 }
 
 /**
+ * Validates a git ref (tag or branch name).
+ * Allows alphanumeric characters, hyphens, underscores, dots, and forward slashes.
+ */
+/* v8 ignore next -- @preserve */
+function isValidGitRef(ref: string): boolean {
+  return /^[a-zA-Z0-9][a-zA-Z0-9._/-]*$/.test(ref);
+}
+
+/**
  * Upgrade tsutils by installing from GitHub
  * @param owner - GitHub repository owner
  * @param repo - GitHub repository name
@@ -155,6 +164,11 @@ export function upgradeFromGitHub(
   if (!isValidGitHubName(repo)) {
     throw new Error(
       `Invalid GitHub repo: "${repo}". Must be alphanumeric with hyphens/underscores.`
+    );
+  }
+  if (ref && !isValidGitRef(ref)) {
+    throw new Error(
+      `Invalid GitHub ref: "${ref}". Must be alphanumeric with hyphens, underscores, dots, and slashes.`
     );
   }
 
