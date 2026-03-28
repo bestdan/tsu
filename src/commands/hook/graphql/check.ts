@@ -10,7 +10,9 @@ import { setVerbose } from '../../../utils/verbose-state.js';
 export type DartHookGraphqlCheckOptions = ChangedFilesOptions;
 
 const GRAPHQL_GENERATED_SUFFIXES = new Set(
-  COMMON_DART_CODEGEN_SUFFIXES.filter((suffix) => suffix === '.gql.dart' || suffix === '.fakes.dart')
+  COMMON_DART_CODEGEN_SUFFIXES.filter(
+    (suffix) => suffix === '.gql.dart' || suffix === '.fakes.dart'
+  )
 );
 
 /**
@@ -100,10 +102,13 @@ export async function dartHookGraphqlCheck(
   ensureCondition(gitStatusAfter !== null, 'Error: Failed to get git status');
 
   // Compare git status before and after
-  // TypeScript knows these are non-null after ensureCondition checks
-  // Using type guards instead of assertions for better safety
+  // ensureCondition calls process.exit but doesn't narrow types, so add explicit guards
   /* v8 ignore next -- @preserve */
-  const changedFiles = getNewlyChangedFiles(gitStatusBefore, gitStatusAfter).filter(isGraphqlOwnedFile);
+  if (gitStatusBefore === null || gitStatusAfter === null) return;
+  /* v8 ignore next -- @preserve */
+  const changedFiles = getNewlyChangedFiles(gitStatusBefore, gitStatusAfter).filter(
+    isGraphqlOwnedFile
+  );
 
   if (changedFiles.length > 0) {
     console.error('');
@@ -139,6 +144,7 @@ function parseGitStatusEntries(status: string): Map<string, string> {
       }
 
       const [, state, rawPath] = match;
+      if (!state || !rawPath) return;
       const normalizedPath = rawPath.includes(' -> ') ? rawPath.split(' -> ').pop() : rawPath;
       if (normalizedPath) {
         entries.set(normalizedPath, state);

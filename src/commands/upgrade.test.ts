@@ -49,12 +49,7 @@ describe('upgrade', () => {
 
     await expect(upgrade()).rejects.toThrow('process.exit(0)');
 
-    expect(versionUtils.upgradeFromGitHub).toHaveBeenCalledWith(
-      'bestdan',
-      'tsu',
-      'v0.7.0',
-      'pnpm'
-    );
+    expect(versionUtils.upgradeFromGitHub).toHaveBeenCalledWith('bestdan', 'tsu', 'v0.7.0', 'pnpm');
     expect(exitSpy).toHaveBeenCalledWith(0);
   });
 
@@ -68,12 +63,7 @@ describe('upgrade', () => {
 
     await expect(upgrade({ packageManager: 'pnpm' })).rejects.toThrow('process.exit(0)');
 
-    expect(versionUtils.upgradeFromGitHub).toHaveBeenCalledWith(
-      'bestdan',
-      'tsu',
-      'v0.7.0',
-      'pnpm'
-    );
+    expect(versionUtils.upgradeFromGitHub).toHaveBeenCalledWith('bestdan', 'tsu', 'v0.7.0', 'pnpm');
   });
 
   it('should show verbose output when verbose flag is enabled and up-to-date', async () => {
