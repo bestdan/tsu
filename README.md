@@ -77,6 +77,8 @@ tsutils hook format check
 tsutils git changed | tsutils files filter --suffix .ts
 ```
 
+`tsutils git changed` follows the branch's configured upstream when calculating files to push, so it works with remotes such as `origin/*` and `upstream/*`.
+
 ### Command Design Philosophy
 
 All commands follow a **pipe-friendly** design:

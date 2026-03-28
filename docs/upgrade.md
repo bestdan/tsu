@@ -4,7 +4,7 @@ Self-upgrade tsutils to the latest version from the GitHub repository.
 
 ## upgrade
 
-Upgrades tsutils from GitHub to the latest version. This command first checks if an update is available, then uses your specified package manager to install the latest version from GitHub.
+Upgrades tsutils from GitHub. This command first checks the latest GitHub release, then uses your specified package manager to install that exact release tag.
 
 **Usage:**
 
@@ -84,15 +84,15 @@ fi
 **Notes:**
 
 - The upgrade command uses the same package manager syntax as the initial installation
-- It installs from `github:bestdan/tsu` which always gets the latest code from the main branch
+- It installs the resolved release tag, for example `github:bestdan/tsu#v0.7.0`, rather than a floating branch ref
 - Requires appropriate permissions to install global packages
 - If the upgrade fails, you can manually reinstall:
   ```bash
-  npm install -g github:bestdan/tsu
+  npm install -g github:bestdan/tsu#v0.7.0
   # or
-  pnpm add -g github:bestdan/tsu
+  pnpm add -g github:bestdan/tsu#v0.7.0
   # or
-  yarn global add github:bestdan/tsu
+  yarn global add github:bestdan/tsu#v0.7.0
   ```
 
 ## Related Commands

@@ -83,6 +83,8 @@ Outputs the git root path to stdout. Perfect for `cd "$(tsutils git root)"`.
 
 Outputs filenames (one per line) to stdout. With `--all`, prefixes with type (`committed:`, `staged:`, `unstaged:`).
 
+When used with the default push-oriented behavior, tsutils follows the branch's configured git upstream (for example `origin/feature-x` or `upstream/main`) instead of assuming `origin/<branch>`.
+
 ### `git branch`
 
 Outputs the current git branch name to stdout.
@@ -105,7 +107,7 @@ Generates a GitHub PR description from branch changes using Claude CLI. Outputs 
 
 ### `git codeowners check`
 
-Checks if CODEOWNERS files are in sync by running `coach codeowners generate` and verifying no files changed. Also checks for unowned files using `coach codeowners unowned --check`. Returns exit code only (0=all checks pass, 1=checks fail). Perfect for CI/CD pipelines.
+Checks if CODEOWNERS files are in sync by running `coach codeowners generate` and verifying that no `CODEOWNERS` files changed. Also checks for unowned files using `coach codeowners unowned --check`. Returns exit code only (0=all checks pass, 1=checks fail). Perfect for CI/CD pipelines.
 
 **Requirements**: `coach` CLI must be installed.
 

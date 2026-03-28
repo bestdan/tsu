@@ -143,6 +143,7 @@ function isValidGitHubName(name: string): boolean {
 export function upgradeFromGitHub(
   owner: string,
   repo: string,
+  ref?: string,
   packageManager?: 'npm' | 'pnpm' | 'yarn'
 ): void {
   // Validate owner and repo to prevent command injection
@@ -159,7 +160,7 @@ export function upgradeFromGitHub(
 
   // Auto-detect package manager if not specified, defaulting to pnpm
   const pm = packageManager || detectPackageManager() || 'pnpm';
-  const githubUrl = `github:${owner}/${repo}`;
+  const githubUrl = ref ? `github:${owner}/${repo}#${ref}` : `github:${owner}/${repo}`;
 
   let command: string;
   switch (pm) {

@@ -1,8 +1,6 @@
 import { execSync } from 'node:child_process';
 import { resolve } from 'node:path';
-import { escapeShellArg } from '../../../../utils/shell.js';
 import { isGitRepo } from './is-git-repo.js';
-import { getCurrentBranch } from './get-current-branch.js';
 
 /**
  * Gets the remote tracking branch for the current branch (e.g., "origin/feature-branch").
@@ -16,21 +14,14 @@ export function getRemoteBranch(cwd: string = process.cwd()): string | null {
     }
 
     const resolvedCwd = resolve(cwd);
-    const currentBranch = getCurrentBranch(resolvedCwd);
-
-    if (!currentBranch) {
-      return null;
-    }
-
-    const remoteBranch = `origin/${currentBranch}`;
-
-    // Verify the remote branch exists
-    execSync(`git rev-parse --verify ${escapeShellArg(remoteBranch)}`, {
+    const upstreamBranch = execSync('git rev-parse --abbrev-ref --symbolic-full-name @{upstream}', {
       cwd: resolvedCwd,
       stdio: 'pipe',
+      encoding: 'utf-8',
     });
 
-    return remoteBranch;
+    const remoteBranch = upstreamBranch.trim();
+    return remoteBranch.length > 0 ? remoteBranch : null;
   } catch {
     return null;
   }
