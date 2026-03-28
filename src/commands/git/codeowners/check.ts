@@ -67,10 +67,13 @@ export function gitCodeownersCheck(options: GitCodeownersCheckOptions = {}): voi
   ensureCondition(gitStatusAfter !== null, 'Error: Failed to get git status');
 
   // Compare git status before and after
-  // TypeScript knows these are non-null after ensureCondition checks
-  // Using type guards instead of assertions for better safety
+  // ensureCondition calls process.exit but doesn't narrow types, so add explicit guards
   /* v8 ignore next -- @preserve */
-  const changedFiles = getNewlyChangedFiles(gitStatusBefore, gitStatusAfter).filter(isCodeownersFile);
+  if (gitStatusBefore === null || gitStatusAfter === null) return;
+  /* v8 ignore next -- @preserve */
+  const changedFiles = getNewlyChangedFiles(gitStatusBefore, gitStatusAfter).filter(
+    isCodeownersFile
+  );
 
   if (changedFiles.length > 0) {
     console.error('');
@@ -142,6 +145,7 @@ function parseGitStatusEntries(status: string): Map<string, string> {
       }
 
       const [, state, rawPath] = match;
+      if (!state || !rawPath) return;
       const normalizedPath = rawPath.includes(' -> ') ? rawPath.split(' -> ').pop() : rawPath;
       if (normalizedPath) {
         entries.set(normalizedPath, state);
