@@ -67,10 +67,15 @@ export function gitCodeownersCheck(options: GitCodeownersCheckOptions = {}): voi
   ensureCondition(gitStatusAfter !== null, 'Error: Failed to get git status');
 
   // Compare git status before and after
-  // TypeScript knows these are non-null after ensureCondition checks
-  // Using type guards instead of assertions for better safety
+  // ensureCondition calls process.exit but doesn't narrow types, so add explicit guards
   /* v8 ignore next -- @preserve */
-  if (gitStatusBefore && gitStatusAfter && gitStatusBefore !== gitStatusAfter) {
+  if (gitStatusBefore === null || gitStatusAfter === null) return;
+  /* v8 ignore next -- @preserve */
+  const changedFiles = getNewlyChangedFiles(gitStatusBefore, gitStatusAfter).filter(
+    isCodeownersFile
+  );
+
+  if (changedFiles.length > 0) {
     console.error('');
     console.error('❌ CODEOWNERS files are out of sync!');
     console.error(
@@ -78,32 +83,9 @@ export function gitCodeownersCheck(options: GitCodeownersCheckOptions = {}): voi
     );
     console.error('');
     console.error('Modified files:');
-
-    // Show what changed by comparing git status outputs
-    /* v8 ignore next -- @preserve */
-    try {
-      // Parse the status outputs to show what changed
-      const beforeLines = new Set(gitStatusBefore.split('\n').filter((line) => line.length > 0));
-      const afterLines = gitStatusAfter.split('\n').filter((line) => line.length > 0);
-
-      // Find files that are new or have different status
-      const changedFiles = afterLines.filter((line) => !beforeLines.has(line));
-
-      if (changedFiles.length > 0) {
-        changedFiles.forEach((line) => {
-          // Extract just the filename from the porcelain format (e.g., "?? file" or "M  file")
-          const match = line.match(/^..\s+(.+)$/);
-          if (match && match[1]) {
-            console.error(`   ${match[1]}`);
-          }
-        });
-      } else {
-        console.error('   (Unable to determine changed files)');
-      }
-    } catch {
-      // If parsing fails, just show a generic message
-      console.error('   (Unable to determine changed files)');
-    }
+    changedFiles.forEach((file) => {
+      console.error(`   ${file}`);
+    });
 
     console.error('');
     process.exit(1);
@@ -147,4 +129,41 @@ export function gitCodeownersCheck(options: GitCodeownersCheckOptions = {}): voi
 
   logIfVerbose(verbose, '✅ No unowned files detected!');
   process.exit(0);
+}
+
+function parseGitStatusEntries(status: string): Map<string, string> {
+  const entries = new Map<string, string>();
+
+  status
+    .split('\n')
+    .map((line) => line.trimEnd())
+    .filter((line) => line.length > 0)
+    .forEach((line) => {
+      const match = line.match(/^(.{2})\s+(.+)$/);
+      if (!match) {
+        return;
+      }
+
+      const [, state, rawPath] = match;
+      if (!state || !rawPath) return;
+      const normalizedPath = rawPath.includes(' -> ') ? rawPath.split(' -> ').pop() : rawPath;
+      if (normalizedPath) {
+        entries.set(normalizedPath, state);
+      }
+    });
+
+  return entries;
+}
+
+function getNewlyChangedFiles(before: string, after: string): string[] {
+  const beforeEntries = parseGitStatusEntries(before);
+  const afterEntries = parseGitStatusEntries(after);
+
+  return Array.from(afterEntries.entries())
+    .filter(([path, state]) => beforeEntries.get(path) !== state)
+    .map(([path]) => path);
+}
+
+function isCodeownersFile(file: string): boolean {
+  return file.split('/').pop() === 'CODEOWNERS';
 }
