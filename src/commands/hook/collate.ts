@@ -17,57 +17,74 @@ const execFileAsync = promisify(execFile);
  */
 interface FailureDetail {
   name: string;
+  command: string;
+  exitCode?: number | string | null;
   files?: string[];
-  message?: string;
+  summary?: string;
+  nextStep?: string;
+  outputExcerpt?: string[];
 }
 
 /**
  * Parses failure output from sub-commands to extract file lists and error messages.
  * Recognizes output patterns from format, analysis, dcm, graphql, and codeowners checks.
  */
-function parseFailureOutput(output: string): { files: string[]; message?: string } {
-  const lines = output.split('\n').map((line) => line.trim());
+function parseFailureOutput(output: string): {
+  files: string[];
+  summary?: string;
+  nextStep?: string;
+  outputExcerpt?: string[];
+} {
+  const normalizedOutput = output.replace(/\r\n/g, '\n');
+  const lines = normalizedOutput.split('\n').map((line) => line.trim());
   const files: string[] = [];
-  let message: string | undefined;
+  let summary: string | undefined;
+  let nextStep: string | undefined;
 
   // Pattern matchers for different check types
   const patterns = [
     {
       marker: 'Please stage and commit these changes:',
-      message: 'Files need formatting',
+      summary: 'Files need formatting',
     },
     {
       marker: 'dart analyze found issues in the following file(s):',
-      message: 'dart analyze found issues',
+      summary: 'dart analyze found issues',
     },
     {
       marker: 'DCM analyze found issues in the following file(s):',
-      message: 'DCM analyze found issues',
+      summary: 'DCM analyze found issues',
     },
     {
       marker: 'Modified files:',
-      message: 'Files were modified by codegen',
+      summary: 'Files were modified by codegen',
     },
     {
       marker: 'CODEOWNERS files are out of sync!',
-      message: 'CODEOWNERS files are out of sync',
+      summary: 'CODEOWNERS files are out of sync',
     },
     {
       marker: 'Unowned files:',
-      message: 'Unowned files detected',
+      summary: 'Unowned files detected',
     },
   ];
 
   for (const pattern of patterns) {
     const markerIndex = lines.findIndex((line) => line.includes(pattern.marker));
     if (markerIndex !== -1) {
-      message = pattern.message;
+      summary = pattern.summary;
 
       // Extract file paths from lines after the marker
       for (let i = markerIndex + 1; i < lines.length; i++) {
         const line = lines[i];
+        if (!line) {
+          break;
+        }
         // Stop at empty lines or lines that look like instructions
-        if (!line || line.startsWith('Run ') || line.startsWith('Please ')) {
+        if (line.startsWith('Run ') || line.startsWith('Please ')) {
+          if (line.startsWith('Run ') || line.startsWith('Please ')) {
+            nextStep = line;
+          }
           break;
         }
         // Clean up file paths (remove leading whitespace, bullets, etc.)
@@ -80,7 +97,26 @@ function parseFailureOutput(output: string): { files: string[]; message?: string
     }
   }
 
-  return { files, message };
+  if (!nextStep) {
+    nextStep = lines.find(
+      (line) =>
+        line.startsWith('Run ') ||
+        line.startsWith('Please ') ||
+        line.startsWith('Error: Failed to run ')
+    );
+  }
+
+  const outputExcerpt = lines
+    .filter((line) => line.length > 0)
+    .filter((line) => !line.startsWith('Command failed:'))
+    .slice(0, 8);
+
+  return {
+    files,
+    summary,
+    nextStep,
+    outputExcerpt: outputExcerpt.length > 0 ? outputExcerpt : undefined,
+  };
 }
 
 const __filename = fileURLToPath(import.meta.url);
@@ -228,12 +264,24 @@ export async function hookCollate(options: HookCollateOptions = {}): Promise<voi
 
           // Parse the output to extract file details
           const parsed = parseFailureOutput(combinedOutput);
-          const failureDetail: FailureDetail = { name };
+          const failureDetail: FailureDetail = {
+            name,
+            command: [file, ...(appendChangedFileArgs ? [...args, ...buildArgs()] : [...args])].join(
+              ' '
+            ),
+            exitCode: execError.code,
+          };
           if (parsed.files.length > 0) {
             failureDetail.files = parsed.files;
           }
-          if (parsed.message) {
-            failureDetail.message = parsed.message;
+          if (parsed.summary) {
+            failureDetail.summary = parsed.summary;
+          }
+          if (parsed.nextStep) {
+            failureDetail.nextStep = parsed.nextStep;
+          }
+          if (parsed.outputExcerpt && parsed.outputExcerpt.length > 0) {
+            failureDetail.outputExcerpt = parsed.outputExcerpt;
           }
 
           ctx.failures = ctx.failures || [];
@@ -348,12 +396,26 @@ export async function hookCollate(options: HookCollateOptions = {}): Promise<voi
       console.error('❌ One or more checks failed:');
       ctx.failures.forEach((failure: FailureDetail) => {
         console.error(`  - ${failure.name}`);
-        if (failure.message) {
-          console.error(`    ${failure.message}`);
+        console.error(`    Command: ${failure.command}`);
+        if (failure.exitCode !== undefined) {
+          console.error(`    Exit code: ${String(failure.exitCode)}`);
+        }
+        if (failure.summary) {
+          console.error(`    Summary: ${failure.summary}`);
         }
         if (failure.files && failure.files.length > 0) {
+          console.error('    Files:');
           failure.files.forEach((file) => {
-            console.error(`      ${file}`);
+            console.error(`      - ${file}`);
+          });
+        }
+        if (failure.nextStep) {
+          console.error(`    Next step: ${failure.nextStep}`);
+        }
+        if (failure.outputExcerpt && failure.outputExcerpt.length > 0) {
+          console.error('    Output excerpt:');
+          failure.outputExcerpt.forEach((line) => {
+            console.error(`      ${line}`);
           });
         }
       });

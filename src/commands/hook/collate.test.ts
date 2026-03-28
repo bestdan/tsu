@@ -277,9 +277,18 @@ lib/helper.dart
 
     // Should show failure details with files
     expect(errorCalls).toContain('  - dart format check');
-    expect(errorCalls).toContain('    Files need formatting');
-    expect(errorCalls).toContain('      lib/widget.dart');
-    expect(errorCalls).toContain('      lib/helper.dart');
+    expect(errorCalls).toContain('    Command: tsu hook format check');
+    expect(errorCalls).toContain('    Exit code: 1');
+    expect(errorCalls).toContain('    Summary: Files need formatting');
+    expect(errorCalls).toContain('    Files:');
+    expect(errorCalls).toContain('      - lib/widget.dart');
+    expect(errorCalls).toContain('      - lib/helper.dart');
+    expect(errorCalls).toContain(
+      '    Output excerpt:'
+    );
+    expect(errorCalls).toContain(
+      '      ❌ Push blocked: Files were formatted. Please stage and commit these changes:'
+    );
     expect(mockExit).toHaveBeenCalledWith(1);
 
     mockExit.mockRestore();
@@ -334,9 +343,13 @@ Run \`dart fix --apply\` to fix some issues automatically.
 
     // Should show failure details with files
     expect(errorCalls).toContain('  - dart analysis check');
-    expect(errorCalls).toContain('    dart analyze found issues');
-    expect(errorCalls).toContain('      lib/api.dart');
-    expect(errorCalls).toContain('      lib/model.dart');
+    expect(errorCalls).toContain('    Command: tsu hook analysis check');
+    expect(errorCalls).toContain('    Exit code: 1');
+    expect(errorCalls).toContain('    Summary: dart analyze found issues');
+    expect(errorCalls).toContain('    Files:');
+    expect(errorCalls).toContain('      - lib/api.dart');
+    expect(errorCalls).toContain('      - lib/model.dart');
+    expect(errorCalls).toContain('    Next step: Run `dart fix --apply` to fix some issues automatically.');
     expect(mockExit).toHaveBeenCalledWith(1);
 
     mockExit.mockRestore();
@@ -360,9 +373,13 @@ Run \`dart fix --apply\` to fix some issues automatically.
         const argsArray = args as string[];
         if (callback) {
           if (argsArray && argsArray.includes('format')) {
-            const error = new Error('Some unknown error') as Error & { code: number };
+            const error = new Error('Some unknown error') as Error & {
+              code: number;
+              stderr: string;
+            };
             error.code = 1;
-            callback(error, '', 'Some unknown error');
+            error.stderr = 'Some unknown error';
+            callback(error, '', error.stderr);
           } else {
             callback(null, '', '');
           }
@@ -381,8 +398,10 @@ Run \`dart fix --apply\` to fix some issues automatically.
 
     // Should still show the check name even without parseable details
     expect(errorCalls).toContain('  - dart format check');
-    // Should not have extra lines for files/message since they couldn't be parsed
-    expect(errorCalls.filter((c) => c.startsWith('    '))).toHaveLength(0);
+    expect(errorCalls).toContain('    Command: tsu hook format check');
+    expect(errorCalls).toContain('    Exit code: 1');
+    expect(errorCalls).toContain('    Output excerpt:');
+    expect(errorCalls).toContain('      Some unknown error');
     expect(mockExit).toHaveBeenCalledWith(1);
 
     mockExit.mockRestore();
