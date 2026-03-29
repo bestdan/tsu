@@ -9,6 +9,7 @@ import { ensureCondition } from '../../utils/command-helpers.js';
 import { logIfVerbose } from '../../utils/logger.js';
 import type { ChangedFilesOptions } from '../../types/command-options.js';
 import { setVerbose } from '../../utils/verbose-state.js';
+import { loadConfig, getTimeoutFromConfig } from '../../utils/config.js';
 
 const execFileAsync = promisify(execFile);
 
@@ -97,6 +98,8 @@ export interface HookCollateOptions extends ChangedFilesOptions {
   graphql?: boolean;
   /** Run git codeowners check */
   codeowners?: boolean;
+  /** Load configuration from config file */
+  withConfig?: boolean;
 }
 
 /**
@@ -120,6 +123,12 @@ export async function hookCollate(options: HookCollateOptions = {}): Promise<voi
   setVerbose(verbose);
 
   logIfVerbose(verbose, '📋 Running pre-push checks...');
+
+  // Load config if --with-config flag is set
+  const config = options.withConfig ? loadConfig() : null;
+  if (config && verbose) {
+    logIfVerbose(verbose, '⚙️  Loaded configuration from file');
+  }
 
   // Check we're in both a git repo and a Dart package
   ensureCondition(isGitRepo(), 'Error: Not in a git repository');
@@ -176,7 +185,8 @@ export async function hookCollate(options: HookCollateOptions = {}): Promise<voi
     file: string,
     args: string[],
     skipCondition: boolean = false,
-    appendChangedFileArgs: boolean = true
+    appendChangedFileArgs: boolean = true,
+    timeoutMs?: number
   ) => {
     return {
       title: name,
@@ -191,7 +201,12 @@ export async function hookCollate(options: HookCollateOptions = {}): Promise<voi
         try {
           const cmdArgs = appendChangedFileArgs ? [...args, ...buildArgs()] : [...args];
 
-          const result = await execFileAsync(file, cmdArgs, { cwd });
+          const execOptions: { cwd: string; timeout?: number } = { cwd };
+          if (timeoutMs) {
+            execOptions.timeout = timeoutMs;
+          }
+
+          const result = await execFileAsync(file, cmdArgs, execOptions);
 
           // In verbose mode, output the command results using task.output
           if (verbose) {
@@ -267,45 +282,57 @@ export async function hookCollate(options: HookCollateOptions = {}): Promise<voi
   const hookTasks: ListrTask<HookContext>[] = [];
 
   if (runDartFormat) {
+    const timeout = getTimeoutFromConfig(config, ['hook', 'collate'], 'dart-format');
     hookTasks.push(
       createHookTask(
         'dart format check',
         tsuCmd.file,
         [...tsuCmd.args, 'hook', 'format', 'check'],
-        dartFiles.length === 0
+        dartFiles.length === 0,
+        true,
+        timeout
       )
     );
   }
 
   if (runDartAnalysis) {
+    const timeout = getTimeoutFromConfig(config, ['hook', 'collate'], 'dart-analysis');
     hookTasks.push(
       createHookTask(
         'dart analysis check',
         tsuCmd.file,
         [...tsuCmd.args, 'hook', 'analysis', 'check'],
-        dartFiles.length === 0
+        dartFiles.length === 0,
+        true,
+        timeout
       )
     );
   }
 
   if (runDcmAnalyze) {
+    const timeout = getTimeoutFromConfig(config, ['hook', 'collate'], 'dcm-analyze');
     hookTasks.push(
       createHookTask(
         'DCM analyze check',
         tsuCmd.file,
         [...tsuCmd.args, 'hook', 'dcm', 'analyze', 'check'],
-        dartFiles.length === 0
+        dartFiles.length === 0,
+        true,
+        timeout
       )
     );
   }
 
   if (runGraphql) {
+    const timeout = getTimeoutFromConfig(config, ['hook', 'collate'], 'graphql');
     hookTasks.push(
       createHookTask(
         'GraphQL check',
         tsuCmd.file,
         [...tsuCmd.args, 'hook', 'graphql', 'check'],
-        graphqlFiles.length === 0
+        graphqlFiles.length === 0,
+        true,
+        timeout
       )
     );
   }
@@ -315,13 +342,15 @@ export async function hookCollate(options: HookCollateOptions = {}): Promise<voi
     if (verbose) {
       codeownersArgs.push('--verbose');
     }
+    const timeout = getTimeoutFromConfig(config, ['hook', 'collate'], 'codeowners');
     hookTasks.push(
       createHookTask(
         'git codeowners check',
         tsuCmd.file,
         codeownersArgs,
         false, // skipCondition: always run codeowners check if enabled
-        false // appendChangedFileArgs: codeowners check only accepts --verbose
+        false, // appendChangedFileArgs: codeowners check only accepts --verbose
+        timeout
       )
     );
   }

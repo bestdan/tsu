@@ -407,4 +407,62 @@ Run \`dart fix --apply\` to fix some issues automatically.
         expect(codeownersArgs).not.toContain('develop');
         mockExit.mockRestore();
     });
+    describe('with config file', () => {
+        it('should load and use config when --with-config is set', async () => {
+            const { writeFileSync, mkdirSync, rmSync } = await import('node:fs');
+            const { join } = await import('node:path');
+            const { tmpdir } = await import('node:os');
+            const testDir = join(tmpdir(), `tsu-test-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+            mkdirSync(testDir, { recursive: true });
+            const configData = {
+                timeout: 5000,
+                hook: {
+                    collate: {
+                        timeout: 20000,
+                        checks: {
+                            'dart-format': { timeout: 3000 },
+                        },
+                    },
+                },
+            };
+            writeFileSync(join(testDir, '.tsurc'), JSON.stringify(configData));
+            const originalCwd = process.cwd();
+            process.chdir(testDir);
+            mockGetAllChangedFiles.mockReturnValue(['lib/main.dart']);
+            mockExecSync.mockReturnValue(Buffer.from('/usr/bin/tsu'));
+            let capturedTimeout;
+            mockExecFile.mockImplementation((_file, args, options, callback) => {
+                const argsArray = args;
+                if (argsArray && argsArray.includes('format')) {
+                    capturedTimeout = options?.timeout;
+                }
+                if (callback) {
+                    callback(null, '', '');
+                }
+                return {};
+            });
+            const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => { }));
+            await hookCollate({ dartFormat: true, withConfig: true, verbose: false });
+            expect(capturedTimeout).toBe(3000);
+            mockExit.mockRestore();
+            process.chdir(originalCwd);
+            rmSync(testDir, { recursive: true, force: true });
+        });
+        it('should work without config when --with-config is not set', async () => {
+            mockGetAllChangedFiles.mockReturnValue(['lib/main.dart']);
+            mockExecSync.mockReturnValue(Buffer.from('/usr/bin/tsu'));
+            let capturedTimeout;
+            mockExecFile.mockImplementation((_file, _args, options, callback) => {
+                capturedTimeout = options?.timeout;
+                if (callback) {
+                    callback(null, '', '');
+                }
+                return {};
+            });
+            const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => { }));
+            await hookCollate({ dartFormat: true, verbose: false });
+            expect(capturedTimeout).toBeUndefined();
+            mockExit.mockRestore();
+        });
+    });
 });

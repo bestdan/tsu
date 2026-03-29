@@ -15,6 +15,84 @@ tsutils hook fix check           # Run dart fix on Dart files about to be pushed
 tsutils hook dcm fix check       # Run DCM fix on Dart files about to be pushed (for git hooks)
 tsutils hook dcm analyze check   # Run DCM analyze on Dart files about to be pushed
 tsutils hook graphql check       # Check GraphQL codegen is up to date (for git hooks)
+tsutils hook collate             # Run multiple hook checks concurrently
+```
+
+## Hook Collate Command
+
+The `hook collate` command runs multiple hook checks concurrently and provides a unified summary of all results. This is the recommended way to use multiple hooks in your git workflow.
+
+**Basic usage:**
+```bash
+# Run all checks (default)
+tsutils hook collate
+
+# Run specific checks
+tsutils hook collate --dart-format --dart-analysis
+
+# Use with config file
+tsutils hook collate --with-config
+
+# Verbose output
+tsutils hook collate --verbose
+```
+
+**How it works:**
+1. Determines which hooks to run (default: all applicable hooks)
+2. Runs selected checks concurrently for efficiency
+3. Tracks failures and continues running remaining checks
+4. Provides a unified summary of all results
+5. Exits with code 1 if any check fails, 0 if all pass
+
+**Check selection flags:**
+- `--dart-format` - Run only dart format check
+- `--dart-analysis` - Run only dart analysis check
+- `--dcm-analyze` - Run only DCM analyze check
+- `--graphql` - Run only GraphQL check
+- `--codeowners` - Run only git codeowners check
+
+If no flags are specified, all checks run by default. If any flag is specified, only those checks run.
+
+**Config file support:**
+
+Use the `--with-config` flag to load timeout settings from a config file. Config files are searched in this order:
+1. `.tsurc` (current directory, then parent directories)
+2. `.tsurc.json` (current directory, then parent directories)
+3. `tsu.config.json` (current directory, then parent directories)
+4. `.tsu.config.json` (current directory, then parent directories)
+5. Home directory (`~/.tsurc`, `~/.tsurc.json`, etc.)
+
+**Config file format:**
+```json
+{
+  "timeout": 5000,
+  "hook": {
+    "collate": {
+      "timeout": 20000,
+      "checks": {
+        "dart-format": { "timeout": 3000 },
+        "dart-analysis": { "timeout": 15000 },
+        "dcm-analyze": { "timeout": 10000 },
+        "graphql": { "timeout": 30000 },
+        "codeowners": { "timeout": 5000 }
+      }
+    }
+  }
+}
+```
+
+**Timeout resolution:**
+- Per-check timeout (most specific) > Command timeout > Global timeout
+- Timeouts are in milliseconds
+- If no timeout is specified, commands run without timeout limits
+
+**Example usage in git hooks:**
+```bash
+# In .git/hooks/pre-push
+#!/bin/bash
+set -o pipefail
+echo "📋 Running pre-push tsu checks"
+tsu hook collate --with-config || exit 1
 ```
 
 ## File Filtering Options

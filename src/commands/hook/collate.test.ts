@@ -688,4 +688,102 @@ Run \`dart fix --apply\` to fix some issues automatically.
 
     mockExit.mockRestore();
   });
+
+  describe('with config file', () => {
+    it('should load and use config when --with-config is set', async () => {
+      // Create a temporary config file
+      const { writeFileSync, mkdirSync, rmSync } = await import('node:fs');
+      const { join } = await import('node:path');
+      const { tmpdir } = await import('node:os');
+
+      const testDir = join(
+        tmpdir(),
+        `tsu-test-${Date.now()}-${Math.random().toString(36).slice(2)}`
+      );
+      mkdirSync(testDir, { recursive: true });
+
+      // Create config file with timeout settings
+      const configData = {
+        timeout: 5000,
+        hook: {
+          collate: {
+            timeout: 20000,
+            checks: {
+              'dart-format': { timeout: 3000 },
+            },
+          },
+        },
+      };
+      writeFileSync(join(testDir, '.tsurc'), JSON.stringify(configData));
+
+      // Change cwd to test directory
+      const originalCwd = process.cwd();
+      process.chdir(testDir);
+
+      mockGetAllChangedFiles.mockReturnValue(['lib/main.dart']);
+      mockExecSync.mockReturnValue(Buffer.from('/usr/bin/tsu'));
+
+      // Track the timeout passed to execFile
+      let capturedTimeout: number | undefined;
+      mockExecFile.mockImplementation(
+        (
+          _file: string,
+          args: readonly string[] | null | undefined,
+          options: any,
+          callback?: ((error: any, stdout: string, stderr: string) => void) | null
+        ) => {
+          const argsArray = args as string[];
+          if (argsArray && argsArray.includes('format')) {
+            capturedTimeout = options?.timeout;
+          }
+          if (callback) {
+            callback(null, '', '');
+          }
+          return {} as any;
+        }
+      );
+
+      const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {}) as never);
+
+      await hookCollate({ dartFormat: true, withConfig: true, verbose: false });
+
+      // Should have used timeout from config
+      expect(capturedTimeout).toBe(3000);
+
+      mockExit.mockRestore();
+      process.chdir(originalCwd);
+      rmSync(testDir, { recursive: true, force: true });
+    });
+
+    it('should work without config when --with-config is not set', async () => {
+      mockGetAllChangedFiles.mockReturnValue(['lib/main.dart']);
+      mockExecSync.mockReturnValue(Buffer.from('/usr/bin/tsu'));
+
+      // Track the timeout passed to execFile
+      let capturedTimeout: number | undefined;
+      mockExecFile.mockImplementation(
+        (
+          _file: string,
+          _args: readonly string[] | null | undefined,
+          options: any,
+          callback?: ((error: any, stdout: string, stderr: string) => void) | null
+        ) => {
+          capturedTimeout = options?.timeout;
+          if (callback) {
+            callback(null, '', '');
+          }
+          return {} as any;
+        }
+      );
+
+      const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {}) as never);
+
+      await hookCollate({ dartFormat: true, verbose: false });
+
+      // Should not have timeout set (undefined)
+      expect(capturedTimeout).toBeUndefined();
+
+      mockExit.mockRestore();
+    });
+  });
 });
