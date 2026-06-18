@@ -35,4 +35,16 @@ describe('isCodeownersRelevant', () => {
   it('should be false for an empty change set', () => {
     expect(isCodeownersRelevant([])).toBe(false);
   });
+
+  it('should be false for a deleted non-ownership file', () => {
+    expect(isCodeownersRelevant([{ path: 'lib/old.dart', status: 'D' }])).toBe(false);
+  });
+
+  it('should be true for a deleted OWNERSHIP file (matched by name)', () => {
+    // The gate keys off the file name, so it would correctly flag a deleted
+    // OWNERSHIP file. In practice a deletion never reaches this gate: detection
+    // strips it via `--diff-filter=ACMR` before this runs. See the deletion
+    // case in get-all-changed-files-with-status.test.ts.
+    expect(isCodeownersRelevant([{ path: 'lib/feature/OWNERSHIP', status: 'D' }])).toBe(true);
+  });
 });

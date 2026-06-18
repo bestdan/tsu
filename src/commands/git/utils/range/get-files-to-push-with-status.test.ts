@@ -89,4 +89,71 @@ describe('getFilesToPushWithStatus', () => {
       rmSync(remoteDir, { recursive: true, force: true });
     }
   });
+
+  describe('in a linked worktree', () => {
+    it('reports feature-branch files with status from a worktree (no remote)', () => {
+      const tempDir = initRepo();
+      const worktreeParent = realpathSync(mkdtempSync(join(tmpdir(), 'git-worktree-')));
+      const worktreeDir = join(worktreeParent, 'wt');
+      try {
+        writeFileSync(join(tempDir, 'a.txt'), 'a');
+        execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+        execSync('git commit -m "initial"', { cwd: tempDir, stdio: 'pipe' });
+
+        execSync(`git worktree add -b feature "${worktreeDir}"`, { cwd: tempDir, stdio: 'pipe' });
+        writeFileSync(join(worktreeDir, 'a.txt'), 'changed');
+        writeFileSync(join(worktreeDir, 'b.txt'), 'new');
+        execSync('git add .', { cwd: worktreeDir, stdio: 'pipe' });
+        execSync('git commit -m "feature"', { cwd: worktreeDir, stdio: 'pipe' });
+
+        const result = getFilesToPushWithStatus({
+          cwd: realpathSync(worktreeDir),
+          baseBranch: 'main',
+        });
+        expect(result).toEqual([
+          { path: 'a.txt', status: 'M' },
+          { path: 'b.txt', status: 'A' },
+        ]);
+      } finally {
+        rmSync(tempDir, { recursive: true, force: true });
+        rmSync(worktreeParent, { recursive: true, force: true });
+      }
+    });
+
+    it('reports only unpushed files with status from a worktree (with remote)', () => {
+      const tempDir = initRepo();
+      const remoteDir = realpathSync(mkdtempSync(join(tmpdir(), 'git-remote-')));
+      const worktreeParent = realpathSync(mkdtempSync(join(tmpdir(), 'git-worktree-')));
+      const worktreeDir = join(worktreeParent, 'wt');
+      try {
+        writeFileSync(join(tempDir, 'initial.txt'), 'initial');
+        execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+        execSync('git commit -m "initial"', { cwd: tempDir, stdio: 'pipe' });
+
+        execSync('git init --bare', { cwd: remoteDir, stdio: 'pipe' });
+        execSync(`git remote add origin "${remoteDir}"`, { cwd: tempDir, stdio: 'pipe' });
+        execSync('git push -u origin main', { cwd: tempDir, stdio: 'pipe' });
+
+        execSync(`git worktree add -b feature "${worktreeDir}"`, { cwd: tempDir, stdio: 'pipe' });
+        writeFileSync(join(worktreeDir, 'feature1.txt'), 'work 1');
+        execSync('git add .', { cwd: worktreeDir, stdio: 'pipe' });
+        execSync('git commit -m "work 1"', { cwd: worktreeDir, stdio: 'pipe' });
+        execSync('git push -u origin feature', { cwd: worktreeDir, stdio: 'pipe' });
+
+        writeFileSync(join(worktreeDir, 'feature2.txt'), 'work 2');
+        execSync('git add .', { cwd: worktreeDir, stdio: 'pipe' });
+        execSync('git commit -m "work 2"', { cwd: worktreeDir, stdio: 'pipe' });
+
+        const result = getFilesToPushWithStatus({
+          cwd: realpathSync(worktreeDir),
+          baseBranch: 'main',
+        });
+        expect(result).toEqual([{ path: 'feature2.txt', status: 'A' }]);
+      } finally {
+        rmSync(tempDir, { recursive: true, force: true });
+        rmSync(remoteDir, { recursive: true, force: true });
+        rmSync(worktreeParent, { recursive: true, force: true });
+      }
+    });
+  });
 });
