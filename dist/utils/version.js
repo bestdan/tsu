@@ -30,7 +30,9 @@ export async function getLatestGitHubVersion(owner, repo) {
         return data.tag_name.replace(/^v/, '');
     }
     catch (error) {
-        throw new Error(`Failed to fetch latest version from GitHub: ${error}`);
+        throw new Error(`Failed to fetch latest version from GitHub: ${error}`, {
+            cause: error,
+        });
     }
 }
 export function compareVersions(current, latest) {
@@ -103,6 +105,6 @@ export function upgradeFromGitHub(owner, repo, packageManager) {
         execSync(command, { stdio: 'inherit' });
     }
     catch (error) {
-        throw new Error(`Failed to upgrade using ${pm}: ${error}`);
+        throw new Error(`Failed to upgrade using ${pm}: ${error}`, { cause: error });
     }
 }
