@@ -3,7 +3,8 @@ import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { Listr, type ListrTask } from 'listr2';
-import { isGitRepo, getAllChangedFiles } from '../git/utils/git.js';
+import { isGitRepo, getAllChangedFilesWithStatus } from '../git/utils/git.js';
+import { isCodeownersRelevant } from '../git/utils/changed-files/is-codeowners-relevant.js';
 import { isDartPackage } from '../dart/utils/dart.js';
 import { ensureCondition } from '../../utils/command-helpers.js';
 import { logIfVerbose } from '../../utils/logger.js';
@@ -127,8 +128,10 @@ export async function hookCollate(options: HookCollateOptions = {}): Promise<voi
 
   const cwd = process.cwd();
 
-  // Get files to check based on options (we check once to optimize)
-  const allFiles = getAllChangedFiles(options, cwd);
+  // Get files to check based on options (we check once to optimize). We capture
+  // each file's change type so we can decide whether ownership can be affected.
+  const changedFiles = getAllChangedFilesWithStatus(options, cwd);
+  const allFiles = changedFiles.map((entry) => entry.path);
 
   // Early exit if no changed files at all
   if (allFiles.length === 0) {
@@ -153,9 +156,16 @@ export async function hookCollate(options: HookCollateOptions = {}): Promise<voi
   const runGraphql = runAll || options.graphql;
   const runCodeowners = runAll || options.codeowners;
 
-  // Exit early if no relevant files and codeowners check is not enabled
-  if (dartFiles.length === 0 && graphqlFiles.length === 0 && !runCodeowners) {
-    logIfVerbose(verbose, '✓ No Dart or GraphQL files modified');
+  // Codeowners only needs to run when the change can affect path-based
+  // ownership (a file was added/renamed, or an OWNERSHIP/CODEOWNERS file was
+  // modified). An explicit --codeowners forces it regardless.
+  const codeownersShouldRun =
+    runCodeowners && (options.codeowners === true || isCodeownersRelevant(changedFiles));
+
+  // Exit early if there is nothing relevant to check: no Dart or GraphQL files
+  // and no reason to run codeowners.
+  if (dartFiles.length === 0 && graphqlFiles.length === 0 && !codeownersShouldRun) {
+    logIfVerbose(verbose, '✓ No Dart or GraphQL files and no ownership-affecting changes');
     process.exit(0);
   }
 
@@ -320,7 +330,7 @@ export async function hookCollate(options: HookCollateOptions = {}): Promise<voi
         'git codeowners check',
         tsuCmd.file,
         codeownersArgs,
-        false, // skipCondition: always run codeowners check if enabled
+        !codeownersShouldRun, // skip when the change can't affect ownership
         false // appendChangedFileArgs: codeowners check only accepts --verbose
       )
     );

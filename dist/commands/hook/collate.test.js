@@ -25,38 +25,94 @@ vi.mock('node:util', () => ({
 }));
 vi.mock('../git/utils/git.js', () => ({
     isGitRepo: vi.fn(),
-    getAllChangedFiles: vi.fn(),
+    getAllChangedFilesWithStatus: vi.fn(),
 }));
+vi.mock('../git/utils/changed-files/is-codeowners-relevant.js', async (importOriginal) => {
+    return await importOriginal();
+});
 vi.mock('../dart/utils/dart.js', () => ({
     isDartPackage: vi.fn(),
 }));
+function successfulExecFile(track) {
+    return (_file, args, _options, callback) => {
+        if (track && args) {
+            track([...args]);
+        }
+        if (callback) {
+            callback(null, '', '');
+        }
+        return {};
+    };
+}
 describe('hookCollate', () => {
     const mockExecSync = vi.mocked(execSync);
     const mockExecFile = vi.mocked(execFile);
     const mockIsGitRepo = vi.mocked(gitUtils.isGitRepo);
     const mockIsDartPackage = vi.mocked(dartUtils.isDartPackage);
-    const mockGetAllChangedFiles = vi.mocked(gitUtils.getAllChangedFiles);
+    const mockGetChangedFiles = vi.mocked(gitUtils.getAllChangedFilesWithStatus);
+    const setChangedFiles = (entries) => {
+        mockGetChangedFiles.mockReturnValue(entries);
+    };
     beforeEach(() => {
         vi.clearAllMocks();
         mockIsGitRepo.mockReturnValue(true);
         mockIsDartPackage.mockReturnValue(true);
-        mockGetAllChangedFiles.mockReturnValue([]);
+        mockGetChangedFiles.mockReturnValue([]);
+        mockExecSync.mockReturnValue(Buffer.from('/usr/bin/tsu'));
     });
     afterEach(() => {
         vi.restoreAllMocks();
     });
-    it('should exit with code 0 when no files are changed', async () => {
-        mockGetAllChangedFiles.mockReturnValue([]);
-        mockExecSync.mockReturnValue(Buffer.from('/usr/bin/tsu'));
-        mockExecFile.mockImplementation((_file, _args, _options, callback) => {
-            if (callback) {
-                callback(null, '', '');
-            }
-            return {};
-        });
+    it('should exit early and skip all checks when no files are changed', async () => {
+        setChangedFiles([]);
+        mockExecFile.mockImplementation(successfulExecFile());
         const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => { }));
         await hookCollate({ verbose: false });
+        expect(mockExecFile).toHaveBeenCalledTimes(0);
+        expect(mockExit).toHaveBeenCalledWith(0);
+        mockExit.mockRestore();
+    });
+    it('should exit early and skip codeowners when only existing files are modified', async () => {
+        setChangedFiles([
+            { path: 'pubspec.yaml', status: 'M' },
+            { path: 'config/app.json', status: 'M' },
+        ]);
+        mockExecFile.mockImplementation(successfulExecFile());
+        const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => { }));
+        await hookCollate({ verbose: false });
+        expect(mockExecFile).toHaveBeenCalledTimes(0);
+        expect(mockExit).toHaveBeenCalledWith(0);
+        mockExit.mockRestore();
+    });
+    it('should run codeowners when a non-dart file is added', async () => {
+        setChangedFiles([{ path: 'assets/logo.png', status: 'A' }]);
+        const calledCommands = [];
+        mockExecFile.mockImplementation(successfulExecFile((args) => calledCommands.push(args.join(' '))));
+        const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => { }));
+        await hookCollate({ verbose: false });
+        expect(calledCommands.some((cmd) => cmd.includes('git codeowners check'))).toBe(true);
         expect(mockExecFile).toHaveBeenCalledTimes(1);
+        expect(mockExit).toHaveBeenCalledWith(0);
+        mockExit.mockRestore();
+    });
+    it('should run codeowners when an OWNERSHIP file is modified', async () => {
+        setChangedFiles([{ path: 'lib/feature/OWNERSHIP', status: 'M' }]);
+        const calledCommands = [];
+        mockExecFile.mockImplementation(successfulExecFile((args) => calledCommands.push(args.join(' '))));
+        const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => { }));
+        await hookCollate({ verbose: false });
+        expect(calledCommands.some((cmd) => cmd.includes('git codeowners check'))).toBe(true);
+        expect(mockExit).toHaveBeenCalledWith(0);
+        mockExit.mockRestore();
+    });
+    it('should run dart hooks but skip codeowners when only existing dart files are modified', async () => {
+        setChangedFiles([{ path: 'lib/main.dart', status: 'M' }]);
+        const calledCommands = [];
+        mockExecFile.mockImplementation(successfulExecFile((args) => calledCommands.push(args.join(' '))));
+        const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => { }));
+        await hookCollate({ verbose: false });
+        expect(calledCommands.some((cmd) => cmd.includes('git codeowners check'))).toBe(false);
+        expect(mockExecFile).toHaveBeenCalledTimes(3);
         expect(mockExit).toHaveBeenCalledWith(0);
         mockExit.mockRestore();
     });
@@ -84,15 +140,12 @@ describe('hookCollate', () => {
         mockExit.mockRestore();
         mockConsoleError.mockRestore();
     });
-    it('should run all hooks by default when Dart files are changed', async () => {
-        mockGetAllChangedFiles.mockReturnValue(['lib/main.dart', 'lib/utils.dart']);
-        mockExecSync.mockReturnValue(Buffer.from('/usr/bin/tsu'));
-        mockExecFile.mockImplementation((_file, _args, _options, callback) => {
-            if (callback) {
-                callback(null, '', '');
-            }
-            return {};
-        });
+    it('should run all hooks by default when Dart files are added', async () => {
+        setChangedFiles([
+            { path: 'lib/main.dart', status: 'A' },
+            { path: 'lib/utils.dart', status: 'A' },
+        ]);
+        mockExecFile.mockImplementation(successfulExecFile());
         const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => { }));
         await hookCollate({ verbose: false });
         expect(mockExecFile).toHaveBeenCalledTimes(4);
@@ -100,14 +153,8 @@ describe('hookCollate', () => {
         mockExit.mockRestore();
     });
     it('should only run dart-format when specified', async () => {
-        mockGetAllChangedFiles.mockReturnValue(['lib/main.dart']);
-        mockExecSync.mockReturnValue(Buffer.from('/usr/bin/tsu'));
-        mockExecFile.mockImplementation((_file, _args, _options, callback) => {
-            if (callback) {
-                callback(null, '', '');
-            }
-            return {};
-        });
+        setChangedFiles([{ path: 'lib/main.dart', status: 'M' }]);
+        mockExecFile.mockImplementation(successfulExecFile());
         const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => { }));
         await hookCollate({ dartFormat: true, verbose: false });
         expect(mockExecFile).toHaveBeenCalledTimes(1);
@@ -115,8 +162,7 @@ describe('hookCollate', () => {
         mockExit.mockRestore();
     });
     it('should track and report failures when hooks fail', async () => {
-        mockGetAllChangedFiles.mockReturnValue(['lib/main.dart']);
-        mockExecSync.mockReturnValue(Buffer.from('/usr/bin/tsu'));
+        setChangedFiles([{ path: 'lib/main.dart', status: 'A' }]);
         let callCount = 0;
         mockExecFile.mockImplementation((_file, _args, _options, callback) => {
             callCount++;
@@ -141,8 +187,7 @@ describe('hookCollate', () => {
         mockConsoleError.mockRestore();
     });
     it('should extract and display file details from format check failures', async () => {
-        mockGetAllChangedFiles.mockReturnValue(['lib/main.dart']);
-        mockExecSync.mockReturnValue(Buffer.from('/usr/bin/tsu'));
+        setChangedFiles([{ path: 'lib/main.dart', status: 'M' }]);
         mockExecFile.mockImplementation((_file, args, _options, callback) => {
             const argsArray = args;
             if (callback) {
@@ -177,8 +222,7 @@ lib/helper.dart
         mockConsoleError.mockRestore();
     });
     it('should extract and display file details from analysis check failures', async () => {
-        mockGetAllChangedFiles.mockReturnValue(['lib/main.dart']);
-        mockExecSync.mockReturnValue(Buffer.from('/usr/bin/tsu'));
+        setChangedFiles([{ path: 'lib/main.dart', status: 'M' }]);
         mockExecFile.mockImplementation((_file, args, _options, callback) => {
             const argsArray = args;
             if (callback) {
@@ -215,8 +259,7 @@ Run \`dart fix --apply\` to fix some issues automatically.
         mockConsoleError.mockRestore();
     });
     it('should handle failures without parseable output gracefully', async () => {
-        mockGetAllChangedFiles.mockReturnValue(['lib/main.dart']);
-        mockExecSync.mockReturnValue(Buffer.from('/usr/bin/tsu'));
+        setChangedFiles([{ path: 'lib/main.dart', status: 'M' }]);
         mockExecFile.mockImplementation((_file, args, _options, callback) => {
             const argsArray = args;
             if (callback) {
@@ -243,15 +286,9 @@ Run \`dart fix --apply\` to fix some issues automatically.
         mockExit.mockRestore();
         mockConsoleError.mockRestore();
     });
-    it('should run GraphQL check when .graphql files are changed', async () => {
-        mockGetAllChangedFiles.mockReturnValue(['schema/query.graphql']);
-        mockExecSync.mockReturnValue(Buffer.from('/usr/bin/tsu'));
-        mockExecFile.mockImplementation((_file, _args, _options, callback) => {
-            if (callback) {
-                callback(null, '', '');
-            }
-            return {};
-        });
+    it('should run GraphQL check when .graphql files are added', async () => {
+        setChangedFiles([{ path: 'schema/query.graphql', status: 'A' }]);
+        mockExecFile.mockImplementation(successfulExecFile());
         const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => { }));
         await hookCollate({ verbose: false });
         expect(mockExecFile).toHaveBeenCalledTimes(2);
@@ -259,23 +296,13 @@ Run \`dart fix --apply\` to fix some issues automatically.
         mockExit.mockRestore();
     });
     it('should pass changed file options to hook commands', async () => {
-        mockGetAllChangedFiles.mockReturnValue(['lib/main.dart']);
-        mockExecSync.mockReturnValue(Buffer.from('/usr/bin/tsu'));
-        mockExecFile.mockImplementation((_file, _args, _options, callback) => {
-            if (callback) {
-                callback(null, '', '');
-            }
-            return {};
-        });
+        setChangedFiles([{ path: 'lib/main.dart', status: 'A' }]);
+        const commandArgs = [];
+        mockExecFile.mockImplementation(successfulExecFile((args) => commandArgs.push(args)));
         const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => { }));
         await hookCollate({ staged: true, baseBranch: 'develop', verbose: true });
-        const calls = mockExecFile.mock.calls;
-        const hookCalls = calls.filter((call) => {
-            const args = call[1];
-            return args && args.includes('hook');
-        });
-        hookCalls.forEach((call) => {
-            const args = call[1];
+        const hookCalls = commandArgs.filter((args) => args.includes('hook'));
+        hookCalls.forEach((args) => {
             expect(args).toContain('--staged');
             expect(args).toContain('--base-branch');
             expect(args).toContain('develop');
@@ -284,8 +311,10 @@ Run \`dart fix --apply\` to fix some issues automatically.
         mockExit.mockRestore();
     });
     it('should run hooks concurrently, not sequentially', async () => {
-        mockGetAllChangedFiles.mockReturnValue(['lib/main.dart', 'schema/query.graphql']);
-        mockExecSync.mockReturnValue(Buffer.from('/usr/bin/tsu'));
+        setChangedFiles([
+            { path: 'lib/main.dart', status: 'A' },
+            { path: 'schema/query.graphql', status: 'A' },
+        ]);
         const executionOrder = [];
         mockExecFile.mockImplementation((_file, args, _options, callback) => {
             const argsArray = args;
@@ -318,21 +347,10 @@ Run \`dart fix --apply\` to fix some issues automatically.
         expect(mockExit).toHaveBeenCalledWith(0);
         mockExit.mockRestore();
     });
-    it('should run codeowners check by default when Dart files are changed', async () => {
-        mockGetAllChangedFiles.mockReturnValue(['lib/main.dart']);
-        mockExecSync.mockReturnValue(Buffer.from('/usr/bin/tsu'));
+    it('should run codeowners check by default when Dart files are added', async () => {
+        setChangedFiles([{ path: 'lib/main.dart', status: 'A' }]);
         const calledCommands = [];
-        mockExecFile.mockImplementation((_file, args, _options, callback) => {
-            const argsArray = args;
-            if (argsArray) {
-                const commandPath = argsArray.join(' ');
-                calledCommands.push(commandPath);
-            }
-            if (callback) {
-                callback(null, '', '');
-            }
-            return {};
-        });
+        mockExecFile.mockImplementation(successfulExecFile((args) => calledCommands.push(args.join(' '))));
         const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => { }));
         await hookCollate({ verbose: false });
         expect(calledCommands.some((cmd) => cmd.includes('git codeowners check'))).toBe(true);
@@ -341,20 +359,9 @@ Run \`dart fix --apply\` to fix some issues automatically.
         mockExit.mockRestore();
     });
     it('should skip codeowners check when explicitly disabled with other flags', async () => {
-        mockGetAllChangedFiles.mockReturnValue(['lib/main.dart']);
-        mockExecSync.mockReturnValue(Buffer.from('/usr/bin/tsu'));
+        setChangedFiles([{ path: 'lib/main.dart', status: 'A' }]);
         const calledCommands = [];
-        mockExecFile.mockImplementation((_file, args, _options, callback) => {
-            const argsArray = args;
-            if (argsArray) {
-                const commandPath = argsArray.join(' ');
-                calledCommands.push(commandPath);
-            }
-            if (callback) {
-                callback(null, '', '');
-            }
-            return {};
-        });
+        mockExecFile.mockImplementation(successfulExecFile((args) => calledCommands.push(args.join(' '))));
         const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => { }));
         await hookCollate({ dartFormat: true, verbose: false });
         expect(calledCommands.some((cmd) => cmd.includes('git codeowners check'))).toBe(false);
@@ -362,21 +369,10 @@ Run \`dart fix --apply\` to fix some issues automatically.
         expect(mockExit).toHaveBeenCalledWith(0);
         mockExit.mockRestore();
     });
-    it('should run only codeowners check when specified', async () => {
-        mockGetAllChangedFiles.mockReturnValue([]);
-        mockExecSync.mockReturnValue(Buffer.from('/usr/bin/tsu'));
+    it('should run codeowners when explicitly requested even without relevant changes', async () => {
+        setChangedFiles([{ path: 'pubspec.yaml', status: 'M' }]);
         const calledCommands = [];
-        mockExecFile.mockImplementation((_file, args, _options, callback) => {
-            const argsArray = args;
-            if (argsArray) {
-                const commandPath = argsArray.join(' ');
-                calledCommands.push(commandPath);
-            }
-            if (callback) {
-                callback(null, '', '');
-            }
-            return {};
-        });
+        mockExecFile.mockImplementation(successfulExecFile((args) => calledCommands.push(args.join(' '))));
         const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => { }));
         await hookCollate({ codeowners: true, verbose: false });
         expect(calledCommands.some((cmd) => cmd.includes('git codeowners check'))).toBe(true);
@@ -385,19 +381,9 @@ Run \`dart fix --apply\` to fix some issues automatically.
         mockExit.mockRestore();
     });
     it('should not pass changed file args to codeowners check', async () => {
-        mockGetAllChangedFiles.mockReturnValue(['lib/main.dart']);
-        mockExecSync.mockReturnValue(Buffer.from('/usr/bin/tsu'));
+        setChangedFiles([{ path: 'lib/main.dart', status: 'A' }]);
         const commandArgs = [];
-        mockExecFile.mockImplementation((_file, args, _options, callback) => {
-            const argsArray = args;
-            if (argsArray) {
-                commandArgs.push([...argsArray]);
-            }
-            if (callback) {
-                callback(null, '', '');
-            }
-            return {};
-        });
+        mockExecFile.mockImplementation(successfulExecFile((args) => commandArgs.push(args)));
         const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => { }));
         await hookCollate({ staged: true, baseBranch: 'develop', verbose: false });
         const codeownersArgs = commandArgs.find((args) => args.includes('codeowners'));
