@@ -1,16 +1,11 @@
 import { execSync } from 'node:child_process';
 import { resolve } from 'node:path';
 import { escapeShellArg } from '../../../../utils/shell.js';
-import { isGitRepo } from '../repo/is-git-repo.js';
 import { getCurrentBranch } from '../repo/get-current-branch.js';
-import { getRemoteBranch } from '../repo/get-remote-branch.js';
 import { getFilesInRange } from './get-files-in-range.js';
 export function getFilesToPush(options = {}) {
     const { cwd = process.cwd(), baseBranch = 'main' } = typeof options === 'string' ? { cwd: options } : options;
     try {
-        if (!isGitRepo(cwd)) {
-            return null;
-        }
         const resolvedCwd = resolve(cwd);
         const currentBranch = getCurrentBranch(resolvedCwd);
         if (!currentBranch) {
@@ -28,8 +23,18 @@ export function getFilesToPush(options = {}) {
         catch {
             return [];
         }
-        const remoteBranch = getRemoteBranch(resolvedCwd);
-        if (remoteBranch) {
+        const remoteBranch = `origin/${currentBranch}`;
+        let hasRemote = true;
+        try {
+            execSync(`git rev-parse --verify ${escapeShellArg(remoteBranch)}`, {
+                cwd: resolvedCwd,
+                stdio: 'pipe',
+            });
+        }
+        catch {
+            hasRemote = false;
+        }
+        if (hasRemote) {
             const featureUniqueFiles = getFilesInRange({
                 range: `${baseBranch}...HEAD`,
                 cwd: resolvedCwd,

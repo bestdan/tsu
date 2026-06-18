@@ -1,9 +1,7 @@
 import { execSync } from 'node:child_process';
 import { resolve } from 'node:path';
 import { escapeShellArg } from '../../../../utils/shell.js';
-import { isGitRepo } from '../repo/is-git-repo.js';
 import { getCurrentBranch } from '../repo/get-current-branch.js';
-import { getRemoteBranch } from '../repo/get-remote-branch.js';
 import { getFilesInRange } from './get-files-in-range.js';
 
 export interface GetFilesToPushOptions {
@@ -41,17 +39,14 @@ export function getFilesToPush(options: GetFilesToPushOptions | string = {}): st
   const { cwd = process.cwd(), baseBranch = 'main' } =
     typeof options === 'string' ? { cwd: options } : options;
   try {
-    if (!isGitRepo(cwd)) {
-      return null;
-    }
-
     const resolvedCwd = resolve(cwd);
 
-    // Get current branch name
+    // getCurrentBranch is the single repo gate for this path: it returns null
+    // when this isn't a git repo, so a separate isGitRepo check would just be a
+    // redundant subprocess.
     const currentBranch = getCurrentBranch(resolvedCwd);
 
     if (!currentBranch) {
-      /* v8 ignore next -- @preserve */
       return null;
     }
 
@@ -73,10 +68,20 @@ export function getFilesToPush(options: GetFilesToPushOptions | string = {}): st
       return [];
     }
 
-    // Check if remote tracking branch exists
-    const remoteBranch = getRemoteBranch(resolvedCwd);
+    // Check for a remote tracking branch inline, reusing the branch we already
+    // resolved (getRemoteBranch would re-derive it via another getCurrentBranch).
+    const remoteBranch = `origin/${currentBranch}`;
+    let hasRemote = true;
+    try {
+      execSync(`git rev-parse --verify ${escapeShellArg(remoteBranch)}`, {
+        cwd: resolvedCwd,
+        stdio: 'pipe',
+      });
+    } catch {
+      hasRemote = false;
+    }
 
-    if (remoteBranch) {
+    if (hasRemote) {
       // Remote exists - get intersection of unpushed files and feature-unique files
       // This excludes both already-pushed files AND files from merge commits
 

@@ -1,17 +1,12 @@
 import { execSync } from 'node:child_process';
 import { resolve } from 'node:path';
 import { escapeShellArg } from '../../../../utils/shell.js';
-import { isGitRepo } from '../repo/is-git-repo.js';
 import { getCurrentBranch } from '../repo/get-current-branch.js';
-import { getRemoteBranch } from '../repo/get-remote-branch.js';
 import { getFilesInRange } from './get-files-in-range.js';
 import { getFilesInRangeWithStatus } from './get-files-in-range-with-status.js';
 export function getFilesToPushWithStatus(options = {}) {
     const { cwd = process.cwd(), baseBranch = 'main' } = options;
     try {
-        if (!isGitRepo(cwd)) {
-            return null;
-        }
         const resolvedCwd = resolve(cwd);
         const currentBranch = getCurrentBranch(resolvedCwd);
         if (!currentBranch) {
@@ -29,7 +24,6 @@ export function getFilesToPushWithStatus(options = {}) {
         catch {
             return [];
         }
-        const remoteBranch = getRemoteBranch(resolvedCwd);
         const featureUniqueFiles = getFilesInRangeWithStatus({
             range: `${baseBranch}...HEAD`,
             cwd: resolvedCwd,
@@ -37,7 +31,14 @@ export function getFilesToPushWithStatus(options = {}) {
         if (!featureUniqueFiles) {
             return [];
         }
-        if (!remoteBranch) {
+        const remoteBranch = `origin/${currentBranch}`;
+        try {
+            execSync(`git rev-parse --verify ${escapeShellArg(remoteBranch)}`, {
+                cwd: resolvedCwd,
+                stdio: 'pipe',
+            });
+        }
+        catch {
             return featureUniqueFiles;
         }
         const unpushedFiles = getFilesInRange({
