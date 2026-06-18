@@ -11,13 +11,16 @@ const OWNERSHIP_FILE_NAMES = new Set(['OWNERSHIP', 'CODEOWNERS']);
  * Ownership is path-based, so editing the contents of an existing file can
  * never change ownership or create unowned files. A change is relevant only
  * when it:
- * - adds or renames a file (`A`/`R`) — may create newly-unowned files or shift
- *   coverage, or
+ * - adds, copies, or renames a file (`A`/`C`/`R`) — introduces a new path that
+ *   may be unowned or shift coverage, or
  * - modifies an OWNERSHIP/CODEOWNERS file — changes the ownership mapping.
  */
 export function isCodeownersRelevant(entries: ChangedFileEntry[]): boolean {
   return entries.some(
     (entry) =>
-      entry.status === 'A' || entry.status === 'R' || OWNERSHIP_FILE_NAMES.has(basename(entry.path))
+      entry.status === 'A' ||
+      entry.status === 'C' ||
+      entry.status === 'R' ||
+      OWNERSHIP_FILE_NAMES.has(basename(entry.path))
   );
 }

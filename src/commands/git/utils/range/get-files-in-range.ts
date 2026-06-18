@@ -25,7 +25,8 @@ export function getFilesInRange(options: GetFilesInRangeOptions): string[] | nul
 
     // git itself errors (caught below) when this isn't a repo, so no separate
     // isGitRepo check is needed — that would just be an extra subprocess.
-    // Use git diff with --name-only and --diff-filter=ACMR to get only added/modified/renamed files
+    // Use git diff with --name-only and --diff-filter=ACMR to get only
+    // added/copied/modified/renamed files (deletions excluded)
     const command = `git diff --name-only --diff-filter=ACMR ${escapeShellArg(range)}`;
 
     const result = execSync(command, {

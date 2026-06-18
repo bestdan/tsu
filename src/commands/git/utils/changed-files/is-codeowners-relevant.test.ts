@@ -19,6 +19,11 @@ describe('isCodeownersRelevant', () => {
     expect(isCodeownersRelevant([{ path: 'lib/renamed.dart', status: 'R' }])).toBe(true);
   });
 
+  it('should be true when a file was copied', () => {
+    // A copy introduces a new path that may be unowned, like an add.
+    expect(isCodeownersRelevant([{ path: 'lib/copied.dart', status: 'C' }])).toBe(true);
+  });
+
   it('should be true when an OWNERSHIP file was modified', () => {
     expect(isCodeownersRelevant([{ path: 'lib/feature/OWNERSHIP', status: 'M' }])).toBe(true);
   });
