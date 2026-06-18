@@ -75,4 +75,53 @@ describe('getAllChangedFilesWithStatus', () => {
       rmSync(tempDir, { recursive: true, force: true });
     }
   });
+
+  it('should ignore untracked files in push mode', () => {
+    const tempDir = initRepo();
+    try {
+      writeFileSync(join(tempDir, 'a.txt'), 'a');
+      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "initial"', { cwd: tempDir, stdio: 'pipe' });
+
+      execSync('git checkout -b feature', { cwd: tempDir, stdio: 'pipe' });
+      writeFileSync(join(tempDir, 'tracked.txt'), 'new');
+      execSync('git add tracked.txt', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "add tracked"', { cwd: tempDir, stdio: 'pipe' });
+      // Untracked working-tree clutter (e.g. generated files, scratch dirs)
+      // must not influence what the pre-push hook considers changed.
+      writeFileSync(join(tempDir, 'untracked.txt'), 'junk');
+
+      const result = getAllChangedFilesWithStatus({ baseBranch: 'main' }, tempDir);
+      expect(result).toEqual([{ path: 'tracked.txt', status: 'A' }]);
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it('should exclude a committed OWNERSHIP deletion (--diff-filter=ACMR)', () => {
+    // Documents a known gap: removing an OWNERSHIP file can orphan a directory,
+    // but the deletion is stripped by `--diff-filter=ACMR`, so it never reaches
+    // isCodeownersRelevant and the codeowners check is skipped for that push.
+    const tempDir = initRepo();
+    try {
+      writeFileSync(join(tempDir, 'OWNERSHIP'), 'team: x\n');
+      writeFileSync(join(tempDir, 'a.txt'), 'a');
+      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "initial"', { cwd: tempDir, stdio: 'pipe' });
+
+      execSync('git checkout -b feature', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git rm OWNERSHIP', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "remove ownership"', { cwd: tempDir, stdio: 'pipe' });
+
+      const result = getAllChangedFilesWithStatus({ baseBranch: 'main' }, tempDir);
+      expect(result).toEqual([]);
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  // The deletion above is silently dropped, so codeowners never re-validates a
+  // directory whose OWNERSHIP file was removed. Closing this needs a detection
+  // change (surface ownership-file deletions); see PR #193 review discussion.
+  it.todo('should surface deleted OWNERSHIP/CODEOWNERS files so codeowners can re-validate');
 });
