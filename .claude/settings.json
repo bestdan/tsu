@@ -32,12 +32,16 @@
       "Bash(pnpm test:coverage)"
     ],
     "deny": [
-      "Bash(rm -rf:*)",
-      "Bash(git push:*)",
-      "Bash(git push --force:*)",
+      "Bash(rm -rf:*)"
+    ],
+    "ask": [
+      "Bash(git push *--force*)",
+      "Bash(git push -f)",
+      "Bash(git push -f *)",
+      "Bash(git push * -f)",
+      "Bash(git push * -f *)",
       "Bash(npm publish:*)",
       "Bash(pnpm publish:*)"
-    ],
-    "ask": []
+    ]
   }
 }
