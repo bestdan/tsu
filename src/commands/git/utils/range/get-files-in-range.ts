@@ -1,7 +1,6 @@
 import { execSync } from 'node:child_process';
 import { resolve } from 'node:path';
 import { escapeShellArg } from '../../../../utils/shell.js';
-import { isGitRepo } from '../repo/is-git-repo.js';
 
 export interface GetFilesInRangeOptions {
   /** The commit range to check (e.g., 'origin/main..HEAD', 'abc123..def456') */
@@ -22,13 +21,12 @@ export function getFilesInRange(options: GetFilesInRangeOptions): string[] | nul
   const { range, cwd = process.cwd(), filter } = options;
 
   try {
-    if (!isGitRepo(cwd)) {
-      return null;
-    }
-
     const resolvedCwd = resolve(cwd);
 
-    // Use git diff with --name-only and --diff-filter=ACMR to get only added/modified/renamed files
+    // git itself errors (caught below) when this isn't a repo, so no separate
+    // isGitRepo check is needed — that would just be an extra subprocess.
+    // Use git diff with --name-only and --diff-filter=ACMR to get only
+    // added/copied/modified/renamed files (deletions excluded)
     const command = `git diff --name-only --diff-filter=ACMR ${escapeShellArg(range)}`;
 
     const result = execSync(command, {

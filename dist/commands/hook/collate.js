@@ -3,7 +3,8 @@ import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { Listr } from 'listr2';
-import { isGitRepo, getAllChangedFiles } from '../git/utils/git.js';
+import { isGitRepo, getAllChangedFilesWithStatus } from '../git/utils/git.js';
+import { isCodeownersRelevant } from '../git/utils/changed-files/is-codeowners-relevant.js';
 import { isDartPackage } from '../dart/utils/dart.js';
 import { ensureCondition } from '../../utils/command-helpers.js';
 import { logIfVerbose } from '../../utils/logger.js';
@@ -67,7 +68,8 @@ export async function hookCollate(options = {}) {
     ensureCondition(isGitRepo(), 'Error: Not in a git repository');
     ensureCondition(isDartPackage(), 'Error: Not in a Dart package');
     const cwd = process.cwd();
-    const allFiles = getAllChangedFiles(options, cwd);
+    const changedFiles = getAllChangedFilesWithStatus(options, cwd);
+    const allFiles = changedFiles.map((entry) => entry.path);
     if (allFiles.length === 0) {
         logIfVerbose(verbose, '✓ No changed files found, skipping all checks');
         process.exit(0);
@@ -84,8 +86,9 @@ export async function hookCollate(options = {}) {
     const runDcmAnalyze = runAll || options.dcmAnalyze;
     const runGraphql = runAll || options.graphql;
     const runCodeowners = runAll || options.codeowners;
-    if (dartFiles.length === 0 && graphqlFiles.length === 0 && !runCodeowners) {
-        logIfVerbose(verbose, '✓ No Dart or GraphQL files modified');
+    const codeownersShouldRun = runCodeowners && (options.codeowners === true || isCodeownersRelevant(changedFiles));
+    if (dartFiles.length === 0 && graphqlFiles.length === 0 && !codeownersShouldRun) {
+        logIfVerbose(verbose, '✓ No Dart or GraphQL files and no ownership-affecting changes');
         process.exit(0);
     }
     const buildArgs = () => {
@@ -188,7 +191,7 @@ export async function hookCollate(options = {}) {
         if (verbose) {
             codeownersArgs.push('--verbose');
         }
-        hookTasks.push(createHookTask('git codeowners check', tsuCmd.file, codeownersArgs, false, false));
+        hookTasks.push(createHookTask('git codeowners check', tsuCmd.file, codeownersArgs, !codeownersShouldRun, false));
     }
     const tasks = new Listr(hookTasks, {
         concurrent: true,
