@@ -36,7 +36,8 @@ export function callClaude(options: CallClaudeOptions): string {
   } catch (error) {
     if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
       throw new Error(
-        'Claude CLI not found. Please install it from https://github.com/anthropics/claude-cli'
+        'Claude CLI not found. Please install it from https://github.com/anthropics/claude-cli',
+        { cause: error }
       );
     }
     throw error;

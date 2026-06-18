@@ -157,7 +157,7 @@ export async function hookCollate(options = {}) {
                     }
                     ctx.failures = ctx.failures || [];
                     ctx.failures.push(failureDetail);
-                    throw new Error(`${name} failed`);
+                    throw new Error(`${name} failed`, { cause: error });
                 }
             },
         };

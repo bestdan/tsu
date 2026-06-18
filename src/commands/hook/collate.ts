@@ -248,7 +248,7 @@ export async function hookCollate(options: HookCollateOptions = {}): Promise<voi
 
           ctx.failures = ctx.failures || [];
           ctx.failures.push(failureDetail);
-          throw new Error(`${name} failed`);
+          throw new Error(`${name} failed`, { cause: error });
         }
       },
     };
