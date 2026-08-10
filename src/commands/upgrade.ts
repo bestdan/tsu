@@ -10,7 +10,7 @@ const GITHUB_OWNER = 'bestdan';
 const GITHUB_REPO = 'tsu';
 
 /**
- * Upgrade tsutils from GitHub to the latest version.
+ * Upgrade tsu from GitHub to the latest version.
  * First checks if an update is available, then uses the specified package manager
  * to install from GitHub.
  * In verbose mode, outputs progress messages to stderr.

@@ -5,7 +5,7 @@ File-related utilities for filtering and processing files.
 ## Available Commands
 
 ```bash
-tsutils files filter [options]        # Filter files by suffix/extension
+tsu files filter [options]        # Filter files by suffix/extension
 ```
 
 ## Command Details
@@ -21,13 +21,13 @@ Filter files by suffix or extension. Reads file paths from stdin and outputs fil
 **Example usage:**
 ```bash
 # Filter only TypeScript files from changed files
-tsutils git changed | tsutils files filter --suffix .ts
+tsu git changed | tsu files filter --suffix .ts
 
 # Filter Dart and TypeScript files
-tsutils git changed | tsutils files filter --suffix .dart --suffix .ts
+tsu git changed | tsu files filter --suffix .dart --suffix .ts
 
 # Combine with other commands
-tsutils git changed --all | tsutils files filter --suffix .json | xargs cat
+tsu git changed --all | tsu files filter --suffix .json | xargs cat
 ```
 
 ## Pipe-Friendly Output

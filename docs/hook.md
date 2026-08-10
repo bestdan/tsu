@@ -9,12 +9,12 @@ Git / Claude hook utilities for Dart/Flutter projects.
 ## Available Commands
 
 ```bash
-tsutils hook format check        # Format Dart files about to be pushed (for git hooks)
-tsutils hook analysis check      # Run dart analyze on Dart files about to be pushed
-tsutils hook fix check           # Run dart fix on Dart files about to be pushed
-tsutils hook dcm fix check       # Run DCM fix on Dart files about to be pushed (for git hooks)
-tsutils hook dcm analyze check   # Run DCM analyze on Dart files about to be pushed
-tsutils hook graphql check       # Check GraphQL codegen is up to date (for git hooks)
+tsu hook format check        # Format Dart files about to be pushed (for git hooks)
+tsu hook analysis check      # Run dart analyze on Dart files about to be pushed
+tsu hook fix check           # Run dart fix on Dart files about to be pushed
+tsu hook dcm fix check       # Run DCM fix on Dart files about to be pushed (for git hooks)
+tsu hook dcm analyze check   # Run DCM analyze on Dart files about to be pushed
+tsu hook graphql check       # Check GraphQL codegen is up to date (for git hooks)
 ```
 
 ## File Filtering Options
@@ -29,16 +29,16 @@ By default, all hook commands check **files that would be pushed** (commits on y
 **Examples:**
 ```bash
 # Check files to be pushed (default)
-tsutils hook format check
+tsu hook format check
 
 # Check only staged files
-tsutils hook format check --staged
+tsu hook format check --staged
 
 # Check all changes including unstaged
-tsutils hook format check --all
+tsu hook format check --all
 
 # Compare against develop branch instead of main
-tsutils hook format check --base-branch develop
+tsu hook format check --base-branch develop
 ```
 
 ## Command Details
@@ -63,7 +63,7 @@ Formats Dart files about to be pushed (excluding generated files) and exits with
 **Example usage in git hooks:**
 ```bash
 # In .git/hooks/pre-push or lefthook.yml
-tsutils hook format check || exit 1
+tsu hook format check || exit 1
 ```
 
 ### `hook analysis check`
@@ -85,7 +85,7 @@ Runs dart analyze on Dart files about to be pushed (excluding generated files) a
 **Example usage in git hooks:**
 ```bash
 # In .git/hooks/pre-push or lefthook.yml
-tsutils hook analysis check || exit 1
+tsu hook analysis check || exit 1
 ```
 
 ### `hook fix check`
@@ -108,7 +108,7 @@ Runs dart fix on Dart files about to be pushed (excluding generated files) and e
 **Example usage in git hooks:**
 ```bash
 # In .git/hooks/pre-push or lefthook.yml
-tsutils hook fix check || exit 1
+tsu hook fix check || exit 1
 ```
 
 ### `hook dcm fix check`
@@ -132,7 +132,7 @@ Runs DCM fix on Dart files about to be pushed (excluding generated files) and ex
 **Example usage in git hooks:**
 ```bash
 # In .git/hooks/pre-push or lefthook.yml
-tsutils hook dcm fix check || exit 1
+tsu hook dcm fix check || exit 1
 ```
 
 ### `hook dcm analyze check`
@@ -154,7 +154,7 @@ Runs DCM analyze on Dart files about to be pushed (excluding generated files) an
 **Example usage in git hooks:**
 ```bash
 # In .git/hooks/pre-push or lefthook.yml
-tsutils hook dcm analyze check || exit 1
+tsu hook dcm analyze check || exit 1
 ```
 
 ### `hook graphql check`
@@ -178,7 +178,7 @@ Checks if GraphQL files have been modified and runs code generation (`melos run 
 **Example usage in git hooks:**
 ```bash
 # In .git/hooks/pre-push or lefthook.yml
-tsutils hook graphql check || exit 1
+tsu hook graphql check || exit 1
 ```
 
 ## Verbose Mode

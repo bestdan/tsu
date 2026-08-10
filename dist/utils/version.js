@@ -20,7 +20,7 @@ export async function getLatestGitHubVersion(owner, repo) {
         const response = await fetch(url, {
             headers: {
                 Accept: 'application/vnd.github.v3+json',
-                'User-Agent': 'tsutils-cli',
+                'User-Agent': 'tsu-cli',
             },
         });
         if (!response.ok) {

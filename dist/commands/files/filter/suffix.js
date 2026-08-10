@@ -35,7 +35,7 @@ export function filesFilter(suffixPatterns, options = {}) {
         const error = new Error('This command expects input from stdin (pipe)');
         logError(error, `tsu files filter suffix ${suffixPatterns.join(' ')}`);
         console.error('Error: This command expects input from stdin (pipe)');
-        console.error('Usage: tsutils git changed | tsutils files filter suffix .g.dart');
+        console.error('Usage: tsu git changed | tsu files filter suffix .g.dart');
         process.exit(1);
     }
 }

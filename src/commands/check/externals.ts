@@ -6,7 +6,7 @@ export interface CheckExternalsOptions {
 }
 
 /**
- * External dependencies that the tsutils package may use
+ * External dependencies that the tsu package may use
  */
 interface ExternalDependency {
   command: string;

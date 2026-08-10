@@ -33,10 +33,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const packageJson = JSON.parse(readFileSync(join(__dirname, '../package.json'), 'utf-8'));
 const program = new Command();
-program
-    .name('tsutils')
-    .description('TypeScript command line utilities')
-    .version(packageJson.version);
+program.name('tsu').description('TypeScript command line utilities').version(packageJson.version);
 const check = program.command('check').description('Check system dependencies and environment');
 check
     .command('externals')
@@ -47,14 +44,14 @@ check
 });
 check
     .command('version')
-    .description('Check if tsutils is on the most recent version')
+    .description('Check if tsu is on the most recent version')
     .option('-v, --verbose', 'show human-readable status messages (output to stderr)')
     .action(async (options) => {
     await checkVersion(options);
 });
 program
     .command('upgrade')
-    .description('Upgrade tsutils to the latest version from GitHub')
+    .description('Upgrade tsu to the latest version from GitHub')
     .option('-v, --verbose', 'show progress messages (output to stderr)')
     .option('-p, --package-manager <manager>', 'package manager to use (npm, pnpm, or yarn)', 'npm')
     .action(async (options) => {

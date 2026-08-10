@@ -1,4 +1,4 @@
-# tsutils
+# tsu
 
 TypeScript command line utilities package.
 
@@ -54,27 +54,27 @@ chmod +x .git/hooks/pre-push
 # Run all checks concurrently, collate results
 tsu hook format --verbose
 
-# Check and upgrade tsutils
-tsutils check version --verbose
-tsutils upgrade --verbose
+# Check and upgrade tsu
+tsu check version --verbose
+tsu upgrade --verbose
 
 # Check external dependencies
-tsutils check externals --verbose
+tsu check externals --verbose
 
 # Check if in a git repository
-tsutils git check && echo "In a git repo"
+tsu git check && echo "In a git repo"
 
 # Get git root path
-cd "$(tsutils git root)"
+cd "$(tsu git root)"
 
 # Show changed files
-tsutils git changed
+tsu git changed
 
 # Format check for Dart files (git hook)
-tsutils hook format check
+tsu hook format check
 
 # Filter files by extension
-tsutils git changed | tsutils files filter --suffix .ts
+tsu git changed | tsu files filter --suffix .ts
 ```
 
 ### Command Design Philosophy
@@ -124,7 +124,7 @@ src/
 
 ## Error Logging and Diagnostics
 
-tsutils includes a **privacy-focused local error logging system** to help diagnose issues:
+tsu includes a **privacy-focused local error logging system** to help diagnose issues:
 
 - 🔒 **Local-only**: All error logs stay on your machine
 - 🛡️ **Privacy-first**: Automatically sanitizes sensitive data

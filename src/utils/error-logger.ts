@@ -28,7 +28,7 @@ export interface ErrorContext {
    */
   timestamp: string;
   /**
-   * Version of tsutils
+   * Version of tsu
    */
   version: string;
   /**

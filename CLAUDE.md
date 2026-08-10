@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-`tsutils` (aliased as `tsu`) is a TypeScript CLI utilities package focused on git operations and file manipulation. The package is designed with pipe-friendliness in mind, following Unix philosophy of composable, single-purpose tools. It can be used both as a CLI tool and as a library for programmatic use.
+`tsu` is a TypeScript CLI utilities package focused on git operations and file manipulation. The package is designed with pipe-friendliness in mind, following Unix philosophy of composable, single-purpose tools. It can be used both as a CLI tool and as a library for programmatic use.
 
 ## Key Architecture Principles
 
@@ -207,4 +207,4 @@ All functions handle errors gracefully and work from any subdirectory within a g
 
 - **CLI binary**: `src/cli.ts` → compiled to `dist/cli.js` (shebang included)
 - **Library exports**: `src/index.ts` → compiled to `dist/index.js`
-- **Package bins**: Both `tsutils` and `tsu` aliases point to `dist/cli.js`
+- **Package bin**: `tsu` points to `dist/cli.js`
