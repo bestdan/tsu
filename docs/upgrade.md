@@ -1,10 +1,10 @@
 # Upgrade Command
 
-Self-upgrade tsutils to the latest version from the GitHub repository.
+Self-upgrade tsu to the latest version from the GitHub repository.
 
 ## upgrade
 
-Upgrades tsutils from GitHub to the latest version. This command first checks if an update is available, then uses your specified package manager to install the latest version from GitHub.
+Upgrades tsu from GitHub to the latest version. This command first checks if an update is available, then uses your specified package manager to install the latest version from GitHub.
 
 **Usage:**
 
@@ -76,7 +76,7 @@ Automatic upgrade in script:
 #!/bin/bash
 # Ensure we're on the latest version
 if tsu check version | grep -q "update_available: true"; then
-  echo "Upgrading tsutils..."
+  echo "Upgrading tsu..."
   tsu upgrade --package-manager pnpm --verbose
 fi
 ```
@@ -97,5 +97,5 @@ fi
 
 ## Related Commands
 
-- [`check version`](./check.md#check-version) - Check if tsutils is on the most recent version
+- [`check version`](./check.md#check-version) - Check if tsu is on the most recent version
 - [`check externals`](./check.md#check-externals) - Check if external dependencies are installed

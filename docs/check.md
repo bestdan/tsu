@@ -4,7 +4,7 @@ Commands for checking system dependencies and environment.
 
 ## check externals
 
-Check if external dependencies are installed. This command verifies the presence of optional external tools used by various tsutils commands.
+Check if external dependencies are installed. This command verifies the presence of optional external tools used by various tsu commands.
 
 **Usage:**
 
@@ -85,7 +85,7 @@ tsu check externals --verbose || echo "Please install missing dependencies"
 
 ## check version
 
-Check if tsutils is on the most recent version by comparing against the latest GitHub release.
+Check if tsu is on the most recent version by comparing against the latest GitHub release.
 
 **Usage:**
 

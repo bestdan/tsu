@@ -10,7 +10,7 @@ const GITHUB_OWNER = 'bestdan';
 const GITHUB_REPO = 'tsu';
 
 /**
- * Check if tsutils is on the most recent version.
+ * Check if tsu is on the most recent version.
  * Compares the current installed version against the latest GitHub release.
  * Outputs version information to stdout in a parseable format.
  * In verbose mode, also outputs human-readable messages to stderr.

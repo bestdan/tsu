@@ -37,10 +37,7 @@ const packageJson = JSON.parse(readFileSync(join(__dirname, '../package.json'), 
 
 const program = new Command();
 
-program
-  .name('tsutils')
-  .description('TypeScript command line utilities')
-  .version(packageJson.version);
+program.name('tsu').description('TypeScript command line utilities').version(packageJson.version);
 
 // Check subcommand namespace
 const check = program.command('check').description('Check system dependencies and environment');
@@ -55,7 +52,7 @@ check
 
 check
   .command('version')
-  .description('Check if tsutils is on the most recent version')
+  .description('Check if tsu is on the most recent version')
   .option('-v, --verbose', 'show human-readable status messages (output to stderr)')
   .action(async (options: { verbose?: boolean }) => {
     await checkVersion(options);
@@ -64,7 +61,7 @@ check
 // Upgrade command
 program
   .command('upgrade')
-  .description('Upgrade tsutils to the latest version from GitHub')
+  .description('Upgrade tsu to the latest version from GitHub')
   .option('-v, --verbose', 'show progress messages (output to stderr)')
   .option('-p, --package-manager <manager>', 'package manager to use (npm, pnpm, or yarn)', 'npm')
   .action(async (options: { verbose?: boolean; packageManager?: 'npm' | 'pnpm' | 'yarn' }) => {

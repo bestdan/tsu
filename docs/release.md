@@ -1,6 +1,6 @@
 # Release Management
 
-This document describes the automated build and release tracking system for tsutils.
+This document describes the automated build and release tracking system for tsu.
 
 ## Overview
 

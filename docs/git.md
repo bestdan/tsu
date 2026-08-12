@@ -5,16 +5,16 @@ Git-related utilities for working with git repositories.
 ## Available Commands
 
 ```bash
-tsutils git check              # Check if in a git repository (exit code only)
-tsutils git root               # Get git root path
-tsutils git changed            # Show changed files
-tsutils git changed --staged   # Show only staged files
-tsutils git changed --all      # Show all changes with status prefix
-tsutils git branch             # Get current branch name
-tsutils git is-main            # Check if on main branch
-tsutils git commit-msg         # Generate commit message using Claude CLI
-tsutils git pr-description     # Generate PR description using Claude CLI
-tsutils git codeowners check   # Check if CODEOWNERS files are in sync
+tsu git check              # Check if in a git repository (exit code only)
+tsu git root               # Get git root path
+tsu git changed            # Show changed files
+tsu git changed --staged   # Show only staged files
+tsu git changed --all      # Show all changes with status prefix
+tsu git branch             # Get current branch name
+tsu git is-main            # Check if on main branch
+tsu git commit-msg         # Generate commit message using Claude CLI
+tsu git pr-description     # Generate PR description using Claude CLI
+tsu git codeowners check   # Check if CODEOWNERS files are in sync
 ```
 
 ## Pipe-Friendly Output
@@ -23,50 +23,50 @@ All git commands output clean, parseable data to **stdout** by default, making t
 
 ```bash
 # Boolean checks with git check (exit code only, no output)
-if tsutils git check; then
+if tsu git check; then
   echo "This is a git repository"
 fi
 
-tsutils git check && echo "In a git repo" || echo "Not a git repo"
+tsu git check && echo "In a git repo" || echo "Not a git repo"
 
 # Get git root and cd into it
-cd "$(tsutils git root)"
+cd "$(tsu git root)"
 
 # Count changed files
-tsutils git changed | wc -l
+tsu git changed | wc -l
 
 # Filter only staged files from all changes
-tsutils git changed --all | grep "^staged:" | cut -d: -f2
+tsu git changed --all | grep "^staged:" | cut -d: -f2
 
 # Process each changed file
-tsutils git changed | xargs -I {} echo "Processing: {}"
+tsu git changed | xargs -I {} echo "Processing: {}"
 
 # Get just the file extensions of changed files
-tsutils git changed | xargs -n1 basename | grep -o '\.[^.]*$' | sort | uniq
+tsu git changed | xargs -n1 basename | grep -o '\.[^.]*$' | sort | uniq
 
 # Use with other git commands
-tsutils git changed --staged | xargs git reset
+tsu git changed --staged | xargs git reset
 
 # Pipe to other tools
-tsutils git changed | fzf | xargs code
+tsu git changed | fzf | xargs code
 
 # Combine git check and git root
-tsutils git check && cd "$(tsutils git root)" && echo "Moved to $(pwd)"
+tsu git check && cd "$(tsu git root)" && echo "Moved to $(pwd)"
 
 # Generate commit message and pipe to git commit
-tsutils git commit-msg | git commit -F -
+tsu git commit-msg | git commit -F -
 
 # Generate commit message and review in editor before committing
-tsutils git commit-msg > /tmp/commit-msg.txt && vim /tmp/commit-msg.txt && git commit -F /tmp/commit-msg.txt
+tsu git commit-msg > /tmp/commit-msg.txt && vim /tmp/commit-msg.txt && git commit -F /tmp/commit-msg.txt
 
 # Generate PR description and copy to clipboard (macOS)
-tsutils git pr-description | pbcopy
+tsu git pr-description | pbcopy
 
 # Generate PR description and save to file
-tsutils git pr-description > pr-description.md
+tsu git pr-description > pr-description.md
 
 # Use PR description with gh CLI to create PR
-gh pr create --title "Feature: $(git branch --show-current)" --body "$(tsutils git pr-description)"
+gh pr create --title "Feature: $(git branch --show-current)" --body "$(tsu git pr-description)"
 ```
 
 ## Command Details
@@ -77,7 +77,7 @@ Returns exit code only (0=is git repo, 1=not). No stdout output. Perfect for con
 
 ### `git root`
 
-Outputs the git root path to stdout. Perfect for `cd "$(tsutils git root)"`.
+Outputs the git root path to stdout. Perfect for `cd "$(tsu git root)"`.
 
 ### `git changed`
 

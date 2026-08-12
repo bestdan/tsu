@@ -5,9 +5,9 @@ Dart-related utilities for working with Dart/Flutter projects.
 ## Available Commands
 
 ```bash
-tsutils dart check                    # Check if in a Dart package
-tsutils dart root                     # Get Dart package root
-tsutils dart changed                  # Show changed Dart files
+tsu dart check                    # Check if in a Dart package
+tsu dart root                     # Get Dart package root
+tsu dart changed                  # Show changed Dart files
 ```
 
 For git / claude hook commands (format, analyze, dcm, graphql), see the [hook documentation](hook.md).

@@ -4,7 +4,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 /**
- * Get the current installed version of tsutils from package.json
+ * Get the current installed version of tsu from package.json
  * @returns The current version string
  */
 export function getCurrentVersion(): string {
@@ -34,7 +34,7 @@ export async function getLatestGitHubVersion(owner: string, repo: string): Promi
     const response = await fetch(url, {
       headers: {
         Accept: 'application/vnd.github.v3+json',
-        'User-Agent': 'tsutils-cli',
+        'User-Agent': 'tsu-cli',
       },
     });
 
@@ -99,13 +99,13 @@ export async function checkForUpdate(
 }
 
 /**
- * Detect which package manager was used to install tsutils globally
+ * Detect which package manager was used to install tsu globally
  * @returns The detected package manager or null if not found
  */
 /* v8 ignore next -- @preserve */
 export function detectPackageManager(): 'npm' | 'pnpm' | 'yarn' | null {
   try {
-    // Check which package manager has tsutils installed
+    // Check which package manager has tsu installed
     const whichTsu = execSync('which tsu', { encoding: 'utf-8' }).trim();
 
     if (whichTsu.includes('/Library/pnpm/') || whichTsu.includes('/.local/share/pnpm/')) {
@@ -135,7 +135,7 @@ function isValidGitHubName(name: string): boolean {
 }
 
 /**
- * Upgrade tsutils by installing from GitHub
+ * Upgrade tsu by installing from GitHub
  * @param owner - GitHub repository owner
  * @param repo - GitHub repository name
  * @param packageManager - Package manager to use (npm, pnpm, or yarn). If not provided, will try to detect, defaulting to pnpm.

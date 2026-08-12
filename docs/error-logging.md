@@ -2,7 +2,7 @@
 
 ## Overview
 
-tsutils includes a local error logging system designed for open-source CLI tools. This system helps users and maintainers diagnose issues while respecting user privacy.
+tsu includes a local error logging system designed for open-source CLI tools. This system helps users and maintainers diagnose issues while respecting user privacy.
 
 ## Key Features
 
@@ -40,7 +40,7 @@ export TSU_LOG_DIR=/path/to/custom/logs
 When an error occurs, the following information is recorded in `~/.tsu/logs/errors.log`:
 
 - **Timestamp**: When the error occurred
-- **Version**: The version of tsutils you're running
+- **Version**: The version of tsu you're running
 - **Node Version**: Your Node.js version
 - **Platform**: Your operating system (linux, darwin, win32, etc.)
 - **Command**: The command that was executed
@@ -180,7 +180,7 @@ rm ~/.tsu/logs/errors.log
 
 ## For Contributors
 
-If you're contributing to tsutils and want to add error logging to new commands:
+If you're contributing to tsu and want to add error logging to new commands:
 
 ```typescript
 import { logError } from '../utils/error-logger.js';

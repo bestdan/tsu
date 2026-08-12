@@ -1,6 +1,6 @@
 # Security Best Practices
 
-This document outlines security best practices for both contributors and users of tsutils.
+This document outlines security best practices for both contributors and users of tsu.
 
 ## For Contributors
 
@@ -208,7 +208,7 @@ npm install -g github:bestdan/tsu
 
 ### 2. Update Regularly
 
-Keep tsutils updated to receive security patches:
+Keep tsu updated to receive security patches:
 
 ```bash
 # Check current version against latest
@@ -228,7 +228,7 @@ Review what permissions the tool requires:
 
 ### 4. Trust Boundary
 
-Understand that tsutils executes:
+Understand that tsu executes:
 - Git commands
 - Dart SDK commands (if installed)
 - DCM (if installed)

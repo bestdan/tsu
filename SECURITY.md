@@ -11,7 +11,7 @@ We release patches for security vulnerabilities. Currently supported versions:
 
 ## Reporting a Vulnerability
 
-We take the security of tsutils seriously. If you believe you have found a security vulnerability, please report it to us privately.
+We take the security of tsu seriously. If you believe you have found a security vulnerability, please report it to us privately.
 
 **Please do not report security vulnerabilities through public GitHub issues.**
 
@@ -58,7 +58,7 @@ When contributing to this project:
 
 ### For Users
 
-When using tsutils:
+When using tsu:
 
 1. **Keep updated**: Always use the latest stable version
 2. **Review permissions**: Understand what permissions the tool requires
