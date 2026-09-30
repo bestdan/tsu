@@ -1,4 +1,4 @@
-import { isGitRepo, getAllChangedFiles } from '../../../git/utils/git.js';
+import { isGitRepo, getAllChangedFiles, getGitRoot } from '../../../git/utils/git.js';
 import { isDartPackage, COMMON_DART_CODEGEN_SUFFIXES } from '../../../dart/utils/dart.js';
 import { filterFilesBySuffix } from '../../../files/utils/files.js';
 import { ensureCondition, ensureDCMInstalled, displayFileList, } from '../../../../utils/command-helpers.js';
@@ -30,7 +30,8 @@ export function dartHookDcmAnalyzeCheck(options = {}) {
     const timeout = options.timeout ?? DEFAULT_HOOK_DCM_TIMEOUT_MS;
     let result;
     try {
-        result = dcmAnalyze({ cwd, timeout, files: modifiedFiles });
+        const runCwd = getGitRoot(cwd) ?? cwd;
+        result = dcmAnalyze({ cwd: runCwd, timeout, files: modifiedFiles });
     }
     catch (error) {
         const message = error instanceof Error ? error.message : String(error);

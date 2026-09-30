@@ -1,4 +1,4 @@
-import { isGitRepo, getAllChangedFiles } from '../../../git/utils/git.js';
+import { isGitRepo, getAllChangedFiles, getGitRoot } from '../../../git/utils/git.js';
 import { isDartPackage, COMMON_DART_CODEGEN_SUFFIXES } from '../../../dart/utils/dart.js';
 import { filterFilesBySuffix } from '../../../files/utils/files.js';
 import {
@@ -75,7 +75,9 @@ export function dartHookDcmAnalyzeCheck(options: DartHookDcmAnalyzeCheckOptions 
 
   let result: ReturnType<typeof dcmAnalyze>;
   try {
-    result = dcmAnalyze({ cwd, timeout, files: modifiedFiles });
+    // Changed-file paths are relative to the repo root, so DCM must run from there
+    const runCwd = getGitRoot(cwd) ?? cwd;
+    result = dcmAnalyze({ cwd: runCwd, timeout, files: modifiedFiles });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
     if (error instanceof DcmTimeoutError) {

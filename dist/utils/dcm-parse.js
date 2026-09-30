@@ -67,7 +67,7 @@ function runDcm(cwd, timeout, files) {
 }
 function processDcmError(error, cwd, timeout) {
     const err = error;
-    if (err.code === 'ETIMEDOUT' || err.signal === 'SIGTERM') {
+    if (err.code === 'ETIMEDOUT') {
         throw new DcmTimeoutError(cwd, timeout);
     }
     const stdout = err.stdout?.toString() || '';

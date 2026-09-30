@@ -150,13 +150,15 @@ describe('dcmAnalyze', () => {
         };
         expect(() => dcmAnalyze({ cwd: '/test/pkg' }, mockRunner)).toThrow('DCM analyze timed out in /test/pkg after 7000ms');
     });
-    it('should throw error on SIGTERM', () => {
+    it('should treat an external SIGTERM as a failure, not a timeout', () => {
         const mockRunner = () => {
             const error = new Error('Terminated');
             error.signal = 'SIGTERM';
+            error.stdout = '';
+            error.stderr = '';
             throw error;
         };
-        expect(() => dcmAnalyze({ cwd: '/test/pkg' }, mockRunner)).toThrow('DCM analyze timed out in /test/pkg after 7000ms');
+        expect(() => dcmAnalyze({ cwd: '/test/pkg' }, mockRunner)).toThrow('DCM analyze failed in /test/pkg: No output from DCM');
     });
     it('should throw error when DCM fails with no output', () => {
         const mockRunner = () => {

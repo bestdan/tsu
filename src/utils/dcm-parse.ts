@@ -181,8 +181,8 @@ function processDcmError(error: unknown, cwd: string, timeout: number): DcmRunRe
     stderr?: Buffer | string;
   };
 
-  // Distinguish between timeout/execution errors and DCM finding issues
-  if (err.code === 'ETIMEDOUT' || err.signal === 'SIGTERM') {
+  // Only execSync's own timeout sets ETIMEDOUT; a bare SIGTERM came from outside and must not pass the check
+  if (err.code === 'ETIMEDOUT') {
     throw new DcmTimeoutError(cwd, timeout);
   }
 
