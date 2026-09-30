@@ -27,7 +27,7 @@ fi
 # Set --latest explicitly: left unset, GitHub marks every new release latest,
 # so backfilling an old tag would take over releases/latest.
 highest=$(gh api "repos/$repo/tags" --paginate --jq '.[].name' |
-  grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1)
+  grep --extended-regexp '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort --version-sort | tail --lines=1)
 if [[ "$tag" == "$highest" ]]; then
   latest_flag=--latest
 else
