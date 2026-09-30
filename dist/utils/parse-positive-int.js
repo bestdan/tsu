@@ -1,7 +1,8 @@
 import { InvalidArgumentError } from 'commander';
 export function parsePositiveInt(value) {
-    if (!/^\d+$/.test(value) || Number(value) <= 0) {
+    const parsed = Number(value);
+    if (!/^\d+$/.test(value) || !Number.isSafeInteger(parsed) || parsed <= 0) {
         throw new InvalidArgumentError('Must be a positive integer.');
     }
-    return Number(value);
+    return parsed;
 }
