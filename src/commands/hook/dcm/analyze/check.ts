@@ -7,14 +7,18 @@ import {
   displayFileList,
 } from '../../../../utils/command-helpers.js';
 import { logIfVerbose } from '../../../../utils/logger.js';
-import { dcmAnalyze } from '../../../../utils/dcm-parse.js';
+import { dcmAnalyze, DcmTimeoutError } from '../../../../utils/dcm-parse.js';
 import type { ChangedFilesOptions } from '../../../../types/command-options.js';
 import { setVerbose } from '../../../../utils/verbose-state.js';
 
 export interface DartHookDcmAnalyzeCheckOptions extends ChangedFilesOptions {
   /** Suffixes to exclude from DCM checks. Defaults to COMMON_DART_CODEGEN_SUFFIXES */
   excludeSuffixes?: string[];
+  /** Milliseconds to wait for DCM before giving up. Defaults to DEFAULT_HOOK_DCM_TIMEOUT_MS */
+  timeout?: number;
 }
+
+export const DEFAULT_HOOK_DCM_TIMEOUT_MS = 20000;
 
 /**
  * Runs DCM analyze on Dart files and checks for issues.
@@ -24,7 +28,9 @@ export interface DartHookDcmAnalyzeCheckOptions extends ChangedFilesOptions {
  * 1. Checks if DCM is installed
  * 2. Gets modified Dart files (excluding generated files)
  * 3. Runs dcm analyze on them
- * 4. Exits with error if DCM analyze reports any issues
+ * 4. Exits with error if DCM analyze reports any issues or fails to run
+ *
+ * A timeout warns without blocking, since it says nothing about the code.
  */
 export function dartHookDcmAnalyzeCheck(options: DartHookDcmAnalyzeCheckOptions = {}): void {
   const verbose = options.verbose || false;
@@ -65,8 +71,21 @@ export function dartHookDcmAnalyzeCheck(options: DartHookDcmAnalyzeCheckOptions 
     message: 'Running DCM analyze on',
   });
 
-  // Run dcm analyze on the files
-  const result = dcmAnalyze({ cwd, timeout: 20000, files: modifiedFiles });
+  const timeout = options.timeout ?? DEFAULT_HOOK_DCM_TIMEOUT_MS;
+
+  let result: ReturnType<typeof dcmAnalyze>;
+  try {
+    result = dcmAnalyze({ cwd, timeout, files: modifiedFiles });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (error instanceof DcmTimeoutError) {
+      console.error(`⚠️  ${message}; skipping DCM analyze check.`);
+      console.error('Raise the limit with --timeout <ms>.');
+      process.exit(0);
+    }
+    console.error(`❌ Push blocked: ${message}`);
+    process.exit(1);
+  }
 
   if (!result.success) {
     const filesWithIssues = result.filesWithIssues;
