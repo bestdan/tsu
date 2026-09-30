@@ -8,6 +8,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: tag-version
+  cancel-in-progress: false
+
 jobs:
   create-tag:
     if: |
@@ -61,3 +65,8 @@ jobs:
           
           git tag "$TAG_NAME"
           git push origin "$TAG_NAME"
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: scripts/create-release.sh "v${{ steps.get_version.outputs.version }}" "${{ github.repository }}"
