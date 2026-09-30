@@ -15,7 +15,7 @@ tsu upgrade [options]
 **Options:**
 
 - `-v, --verbose` - Show progress messages (output to stderr)
-- `-p, --package-manager <manager>` - Package manager to use: npm, pnpm, or yarn (default: npm)
+- `-p, --package-manager <manager>` - Package manager to use: npm, pnpm, or yarn. By default, tsu uses the package manager that installed the `tsu` on your `PATH`, and falls back to pnpm when it can't tell.
 
 **Exit codes:**
 
@@ -39,20 +39,20 @@ When upgrading:
 🔍 Checking for updates...
 📦 Current version: 0.6.0
 ✨ Latest version: 0.7.0
-📥 Upgrading using npm...
-[npm output...]
+📥 Upgrading using pnpm...
+[pnpm output...]
 ✓ Successfully upgraded to version 0.7.0
 ```
 
 **Examples:**
 
-Upgrade using default package manager (npm):
+Upgrade using the package manager that installed tsu:
 
 ```bash
 tsu upgrade --verbose
 ```
 
-Upgrade using pnpm:
+Upgrade using pnpm, whichever package manager installed tsu:
 
 ```bash
 tsu upgrade --package-manager pnpm --verbose
