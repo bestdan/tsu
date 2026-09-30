@@ -24,10 +24,21 @@ if gh release view "$tag" --repo "$repo" >/dev/null 2>&1; then
   exit 0
 fi
 
+# Set --latest explicitly: left unset, GitHub marks every new release latest,
+# so backfilling an old tag would take over releases/latest.
+highest=$(gh api "repos/$repo/tags" --paginate --jq '.[].name' |
+  grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1)
+if [[ "$tag" == "$highest" ]]; then
+  latest_flag=--latest
+else
+  latest_flag=--latest=false
+fi
+
 gh release create "$tag" \
   --repo "$repo" \
   --verify-tag \
   --title "Release $tag" \
-  --generate-notes
+  --generate-notes \
+  "$latest_flag"
 
 echo "Created release $tag."
