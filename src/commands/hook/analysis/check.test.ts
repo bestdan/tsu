@@ -15,6 +15,7 @@ describe('dartHookAnalysisCheck', () => {
   let isCommandInstalledSpy: any;
   let getGitRootSpy: any;
   let findUnresolvedPackageRootsSpy: any;
+  let findDartPackageRootSpy: any;
 
   beforeEach(() => {
     // Reset verbose state before each test
@@ -37,6 +38,10 @@ describe('dartHookAnalysisCheck', () => {
     findUnresolvedPackageRootsSpy = vi
       .spyOn(dartUtils, 'findUnresolvedPackageRoots')
       .mockReturnValue([]);
+    // Default: every changed file is inside a package
+    findDartPackageRootSpy = vi
+      .spyOn(dartUtils, 'findDartPackageRoot')
+      .mockReturnValue(process.cwd());
   });
 
   afterEach(() => {
@@ -48,6 +53,7 @@ describe('dartHookAnalysisCheck', () => {
     isCommandInstalledSpy.mockRestore();
     getGitRootSpy.mockRestore();
     findUnresolvedPackageRootsSpy.mockRestore();
+    findDartPackageRootSpy.mockRestore();
     vi.clearAllMocks();
   });
 
@@ -102,6 +108,54 @@ describe('dartHookAnalysisCheck', () => {
 
     expect(consoleErrorSpy).toHaveBeenCalledWith('✓ No Dart source files modified');
     expect(processExitSpy).toHaveBeenCalledWith(0);
+  });
+
+  it('should skip dart analyze when no modified file is inside a Dart package', () => {
+    isGitRepoSpy.mockReturnValue(true);
+    isDartPackageSpy.mockReturnValue(true);
+    getGitRootSpy.mockReturnValue('/repo');
+    getAllChangedFilesSpy.mockReturnValue(['tool/release.dart']);
+    findDartPackageRootSpy.mockReturnValue(null);
+
+    const dartAnalyzeSpy = vi.spyOn(dartAnalyzeParse, 'dartAnalyze');
+
+    expect(() => {
+      dartHookAnalysisCheck({ verbose: true });
+    }).toThrow('process.exit(0)');
+
+    expect(findDartPackageRootSpy).toHaveBeenCalledWith('/repo/tool');
+    expect(dartAnalyzeSpy).not.toHaveBeenCalled();
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      '✓ No modified Dart files are inside a Dart package'
+    );
+
+    dartAnalyzeSpy.mockRestore();
+  });
+
+  it('should analyze only the modified files that are inside a Dart package', () => {
+    isGitRepoSpy.mockReturnValue(true);
+    isDartPackageSpy.mockReturnValue(true);
+    getGitRootSpy.mockReturnValue('/repo');
+    getAllChangedFilesSpy.mockReturnValue(['tool/release.dart', 'packages/core/lib/utils.dart']);
+    findDartPackageRootSpy.mockImplementation((dir: string) =>
+      dir.startsWith('/repo/packages/core') ? '/repo/packages/core' : null
+    );
+
+    const dartAnalyzeSpy = vi.spyOn(dartAnalyzeParse, 'dartAnalyze').mockReturnValue({
+      success: true,
+      filesWithIssues: [],
+      issues: [],
+    });
+
+    expect(() => {
+      dartHookAnalysisCheck({});
+    }).toThrow('process.exit(0)');
+
+    expect(dartAnalyzeSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ cwd: '/repo', files: ['packages/core/lib/utils.dart'] })
+    );
+
+    dartAnalyzeSpy.mockRestore();
   });
 
   it('should use provided files when files option is given', () => {

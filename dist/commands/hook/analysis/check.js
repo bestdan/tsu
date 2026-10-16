@@ -1,5 +1,6 @@
+import { dirname, resolve } from 'node:path';
 import { isGitRepo, getAllChangedFiles, getGitRoot } from '../../git/utils/git.js';
-import { isDartPackage, COMMON_DART_CODEGEN_SUFFIXES } from '../../dart/utils/dart.js';
+import { isDartPackage, findDartPackageRoot, COMMON_DART_CODEGEN_SUFFIXES, } from '../../dart/utils/dart.js';
 import { filterFilesBySuffix } from '../../files/utils/files.js';
 import { ensureCondition, ensureDartInstalled, ensurePackagesResolved, displayFileList, } from '../../../utils/command-helpers.js';
 import { logIfVerbose } from '../../../utils/logger.js';
@@ -17,9 +18,15 @@ export function dartHookAnalysisCheck(options = {}) {
     const cwd = process.cwd();
     const allFiles = getAllChangedFiles(options, cwd);
     const dartFiles = allFiles.filter((file) => file.endsWith('.dart'));
-    const modifiedFiles = filterFilesBySuffix(dartFiles, excludeSuffixes);
-    if (modifiedFiles.length === 0) {
+    const repoRoot = getGitRoot(cwd) ?? cwd;
+    const sourceFiles = filterFilesBySuffix(dartFiles, excludeSuffixes);
+    if (sourceFiles.length === 0) {
         logIfVerbose(verbose, '✓ No Dart source files modified');
+        process.exit(0);
+    }
+    const modifiedFiles = sourceFiles.filter((file) => findDartPackageRoot(dirname(resolve(repoRoot, file))) !== null);
+    if (modifiedFiles.length === 0) {
+        logIfVerbose(verbose, '✓ No modified Dart files are inside a Dart package');
         process.exit(0);
     }
     displayFileList({
@@ -27,7 +34,6 @@ export function dartHookAnalysisCheck(options = {}) {
         verbose,
         message: 'Running dart analyze on',
     });
-    const repoRoot = getGitRoot(cwd) ?? cwd;
     ensurePackagesResolved(modifiedFiles, repoRoot, repoRoot, 'dart analyze');
     const timeout = options.timeout ?? DEFAULT_HOOK_ANALYSIS_TIMEOUT_MS;
     let result;

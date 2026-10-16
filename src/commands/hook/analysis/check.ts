@@ -1,5 +1,10 @@
+import { dirname, resolve } from 'node:path';
 import { isGitRepo, getAllChangedFiles, getGitRoot } from '../../git/utils/git.js';
-import { isDartPackage, COMMON_DART_CODEGEN_SUFFIXES } from '../../dart/utils/dart.js';
+import {
+  isDartPackage,
+  findDartPackageRoot,
+  COMMON_DART_CODEGEN_SUFFIXES,
+} from '../../dart/utils/dart.js';
 import { filterFilesBySuffix } from '../../files/utils/files.js';
 import {
   ensureCondition,
@@ -27,7 +32,7 @@ export const DEFAULT_HOOK_ANALYSIS_TIMEOUT_MS = 20000;
  *
  * Steps:
  * 1. Gets modified Dart files (excluding generated files)
- * 2. Maps files to their package roots
+ * 2. Maps files to their package roots, skipping files outside any package
  * 3. Runs dart analyze on each unique package
  * 4. Exits with error if dart analyze reports any issues or fails to run.
  *    A timeout prints a warning and exits 0 instead, since it says nothing about the code.
@@ -56,11 +61,26 @@ export function dartHookAnalysisCheck(options: DartHookAnalysisCheckOptions = {}
   // Filter to only Dart files
   const dartFiles = allFiles.filter((file) => file.endsWith('.dart'));
 
+  // Changed-file paths are relative to the repo root, wherever the check runs from,
+  // so the package lookup, the package guard and dart analyze all resolve them from there
+  const repoRoot = getGitRoot(cwd) ?? cwd;
+
   // Filter out generated files
-  const modifiedFiles = filterFilesBySuffix(dartFiles, excludeSuffixes);
+  const sourceFiles = filterFilesBySuffix(dartFiles, excludeSuffixes);
+
+  if (sourceFiles.length === 0) {
+    logIfVerbose(verbose, '✓ No Dart source files modified');
+    process.exit(0);
+  }
+
+  // dart analyze can only check files inside a package. With none left, dartAnalyze would
+  // fall back to analyzing all of repoRoot, which in a monorepo is every package in it.
+  const modifiedFiles = sourceFiles.filter(
+    (file) => findDartPackageRoot(dirname(resolve(repoRoot, file))) !== null
+  );
 
   if (modifiedFiles.length === 0) {
-    logIfVerbose(verbose, '✓ No Dart source files modified');
+    logIfVerbose(verbose, '✓ No modified Dart files are inside a Dart package');
     process.exit(0);
   }
 
@@ -70,9 +90,6 @@ export function dartHookAnalysisCheck(options: DartHookAnalysisCheckOptions = {}
     verbose,
     message: 'Running dart analyze on',
   });
-  // Changed-file paths are relative to the repo root, wherever the check runs from,
-  // so both the package guard and dart analyze resolve them from there
-  const repoRoot = getGitRoot(cwd) ?? cwd;
   ensurePackagesResolved(modifiedFiles, repoRoot, repoRoot, 'dart analyze');
 
   const timeout = options.timeout ?? DEFAULT_HOOK_ANALYSIS_TIMEOUT_MS;

@@ -77,7 +77,7 @@ Runs dart analyze on Dart files about to be pushed (excluding generated files) a
 **How it works:**
 1. Gets Dart files about to be pushed (or based on `--staged`, `--unstaged`, `--all` options)
 2. Filters out generated files
-3. Maps files to their package roots, resolving their paths from the repository root so the check works from any package directory
+3. Maps files to their package roots, resolving their paths from the repository root so the check works from any package directory. Files outside any package are skipped, and if none are left the check exits 0
 4. Runs `dart analyze` on each unique package
 5. Exits with error if dart analyze reports any issues or fails to run
 
