@@ -13,6 +13,8 @@ describe('dartHookDcmAnalyzeCheck', () => {
   let isDartPackageSpy: any;
   let getAllChangedFilesSpy: any;
   let isCommandInstalledSpy: any;
+  let getGitRootSpy: any;
+  let findUnresolvedPackageRootsSpy: any;
 
   beforeEach(() => {
     // Reset verbose state before each test
@@ -29,6 +31,12 @@ describe('dartHookDcmAnalyzeCheck', () => {
 
     // Default: DCM is installed
     isCommandInstalledSpy.mockReturnValue(true);
+    // Default: the repo root is the working directory and every package is resolved,
+    // so tests never walk the real filesystem for package configs
+    getGitRootSpy = vi.spyOn(gitUtils, 'getGitRoot').mockReturnValue(process.cwd());
+    findUnresolvedPackageRootsSpy = vi
+      .spyOn(dartUtils, 'findUnresolvedPackageRoots')
+      .mockReturnValue([]);
   });
 
   afterEach(() => {
@@ -38,6 +46,8 @@ describe('dartHookDcmAnalyzeCheck', () => {
     isDartPackageSpy.mockRestore();
     getAllChangedFilesSpy.mockRestore();
     isCommandInstalledSpy.mockRestore();
+    getGitRootSpy.mockRestore();
+    findUnresolvedPackageRootsSpy.mockRestore();
     vi.clearAllMocks();
   });
 
@@ -196,6 +206,30 @@ describe('dartHookDcmAnalyzeCheck', () => {
 
     expect(dcmAnalyzeSpy).toHaveBeenCalledWith(expect.objectContaining({ timeout: 60000 }));
 
+    dcmAnalyzeSpy.mockRestore();
+  });
+
+  it('should block without running DCM when a package is unresolved', () => {
+    isGitRepoSpy.mockReturnValue(true);
+    isDartPackageSpy.mockReturnValue(true);
+    getAllChangedFilesSpy.mockReturnValue(['lib/main.dart']);
+
+    const getGitRootSpy = vi.spyOn(gitUtils, 'getGitRoot').mockReturnValue('/repo');
+    const unresolvedSpy = vi
+      .spyOn(dartUtils, 'findUnresolvedPackageRoots')
+      .mockReturnValue(['/repo']);
+    const dcmAnalyzeSpy = vi.spyOn(dcmParse, 'dcmAnalyze');
+
+    expect(() => {
+      dartHookDcmAnalyzeCheck({});
+    }).toThrow('process.exit(1)');
+
+    expect(unresolvedSpy).toHaveBeenCalledWith(['lib/main.dart'], '/repo', '/repo');
+    expect(dcmAnalyzeSpy).not.toHaveBeenCalled();
+    expect(consoleErrorSpy).toHaveBeenCalledWith('  .');
+
+    getGitRootSpy.mockRestore();
+    unresolvedSpy.mockRestore();
     dcmAnalyzeSpy.mockRestore();
   });
 

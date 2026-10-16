@@ -12,6 +12,8 @@ describe('dartHookAnalysisCheck', () => {
     let isDartPackageSpy;
     let getAllChangedFilesSpy;
     let isCommandInstalledSpy;
+    let getGitRootSpy;
+    let findUnresolvedPackageRootsSpy;
     beforeEach(() => {
         resetVerbose();
         consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => { });
@@ -23,6 +25,10 @@ describe('dartHookAnalysisCheck', () => {
         getAllChangedFilesSpy = vi.spyOn(gitUtils, 'getAllChangedFiles');
         isCommandInstalledSpy = vi.spyOn(shellUtils, 'isCommandInstalled');
         isCommandInstalledSpy.mockReturnValue(true);
+        getGitRootSpy = vi.spyOn(gitUtils, 'getGitRoot').mockReturnValue(process.cwd());
+        findUnresolvedPackageRootsSpy = vi
+            .spyOn(dartUtils, 'findUnresolvedPackageRoots')
+            .mockReturnValue([]);
     });
     afterEach(() => {
         consoleErrorSpy.mockRestore();
@@ -31,6 +37,8 @@ describe('dartHookAnalysisCheck', () => {
         isDartPackageSpy.mockRestore();
         getAllChangedFilesSpy.mockRestore();
         isCommandInstalledSpy.mockRestore();
+        getGitRootSpy.mockRestore();
+        findUnresolvedPackageRootsSpy.mockRestore();
         vi.clearAllMocks();
     });
     it('should exit with error if not in a git repository', () => {
@@ -178,6 +186,26 @@ describe('dartHookAnalysisCheck', () => {
         }).toThrow('process.exit(0)');
         expect(consoleErrorSpy).toHaveBeenCalledWith('Running dart analyze on 1 file(s):');
         expect(consoleErrorSpy).toHaveBeenCalledWith('  lib/main.dart');
+        dartAnalyzeSpy.mockRestore();
+    });
+    it('should block without running dart analyze when a package is unresolved', () => {
+        isGitRepoSpy.mockReturnValue(true);
+        isDartPackageSpy.mockReturnValue(true);
+        getAllChangedFilesSpy.mockReturnValue(['features/lib/main.dart']);
+        const getGitRootSpy = vi.spyOn(gitUtils, 'getGitRoot').mockReturnValue('/repo');
+        const unresolvedSpy = vi
+            .spyOn(dartUtils, 'findUnresolvedPackageRoots')
+            .mockReturnValue(['/repo/features']);
+        const dartAnalyzeSpy = vi.spyOn(dartAnalyzeParse, 'dartAnalyze');
+        expect(() => {
+            dartHookAnalysisCheck({});
+        }).toThrow('process.exit(1)');
+        expect(unresolvedSpy).toHaveBeenCalledWith(['features/lib/main.dart'], '/repo', '/repo');
+        expect(dartAnalyzeSpy).not.toHaveBeenCalled();
+        expect(consoleErrorSpy).toHaveBeenCalledWith('  features');
+        expect(consoleErrorSpy).toHaveBeenCalledWith('Run `flutter pub get` (or `dart pub get`), then push again.');
+        getGitRootSpy.mockRestore();
+        unresolvedSpy.mockRestore();
         dartAnalyzeSpy.mockRestore();
     });
     it('should exit with error when dart analyze finds issues', () => {

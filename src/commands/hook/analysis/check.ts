@@ -1,9 +1,10 @@
-import { isGitRepo, getAllChangedFiles } from '../../git/utils/git.js';
+import { isGitRepo, getAllChangedFiles, getGitRoot } from '../../git/utils/git.js';
 import { isDartPackage, COMMON_DART_CODEGEN_SUFFIXES } from '../../dart/utils/dart.js';
 import { filterFilesBySuffix } from '../../files/utils/files.js';
 import {
   ensureCondition,
   ensureDartInstalled,
+  ensurePackagesResolved,
   displayFileList,
 } from '../../../utils/command-helpers.js';
 import { logIfVerbose } from '../../../utils/logger.js';
@@ -69,6 +70,9 @@ export function dartHookAnalysisCheck(options: DartHookAnalysisCheckOptions = {}
     verbose,
     message: 'Running dart analyze on',
   });
+  // Changed-file paths are relative to the repo root, wherever the check runs from
+  const repoRoot = getGitRoot(cwd) ?? cwd;
+  ensurePackagesResolved(modifiedFiles, repoRoot, repoRoot, 'dart analyze');
 
   const timeout = options.timeout ?? DEFAULT_HOOK_ANALYSIS_TIMEOUT_MS;
 

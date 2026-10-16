@@ -12,6 +12,8 @@ describe('dartHookDcmAnalyzeCheck', () => {
     let isDartPackageSpy;
     let getAllChangedFilesSpy;
     let isCommandInstalledSpy;
+    let getGitRootSpy;
+    let findUnresolvedPackageRootsSpy;
     beforeEach(() => {
         resetVerbose();
         consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => { });
@@ -23,6 +25,10 @@ describe('dartHookDcmAnalyzeCheck', () => {
         getAllChangedFilesSpy = vi.spyOn(gitUtils, 'getAllChangedFiles');
         isCommandInstalledSpy = vi.spyOn(shellUtils, 'isCommandInstalled');
         isCommandInstalledSpy.mockReturnValue(true);
+        getGitRootSpy = vi.spyOn(gitUtils, 'getGitRoot').mockReturnValue(process.cwd());
+        findUnresolvedPackageRootsSpy = vi
+            .spyOn(dartUtils, 'findUnresolvedPackageRoots')
+            .mockReturnValue([]);
     });
     afterEach(() => {
         consoleErrorSpy.mockRestore();
@@ -31,6 +37,8 @@ describe('dartHookDcmAnalyzeCheck', () => {
         isDartPackageSpy.mockRestore();
         getAllChangedFilesSpy.mockRestore();
         isCommandInstalledSpy.mockRestore();
+        getGitRootSpy.mockRestore();
+        findUnresolvedPackageRootsSpy.mockRestore();
         vi.clearAllMocks();
     });
     it('should exit with error if not in a git repository', () => {
@@ -151,6 +159,25 @@ describe('dartHookDcmAnalyzeCheck', () => {
             dartHookDcmAnalyzeCheck({ timeout: 60000 });
         }).toThrow('process.exit(0)');
         expect(dcmAnalyzeSpy).toHaveBeenCalledWith(expect.objectContaining({ timeout: 60000 }));
+        dcmAnalyzeSpy.mockRestore();
+    });
+    it('should block without running DCM when a package is unresolved', () => {
+        isGitRepoSpy.mockReturnValue(true);
+        isDartPackageSpy.mockReturnValue(true);
+        getAllChangedFilesSpy.mockReturnValue(['lib/main.dart']);
+        const getGitRootSpy = vi.spyOn(gitUtils, 'getGitRoot').mockReturnValue('/repo');
+        const unresolvedSpy = vi
+            .spyOn(dartUtils, 'findUnresolvedPackageRoots')
+            .mockReturnValue(['/repo']);
+        const dcmAnalyzeSpy = vi.spyOn(dcmParse, 'dcmAnalyze');
+        expect(() => {
+            dartHookDcmAnalyzeCheck({});
+        }).toThrow('process.exit(1)');
+        expect(unresolvedSpy).toHaveBeenCalledWith(['lib/main.dart'], '/repo', '/repo');
+        expect(dcmAnalyzeSpy).not.toHaveBeenCalled();
+        expect(consoleErrorSpy).toHaveBeenCalledWith('  .');
+        getGitRootSpy.mockRestore();
+        unresolvedSpy.mockRestore();
         dcmAnalyzeSpy.mockRestore();
     });
     it('should warn without blocking when dcm analyze times out', () => {
