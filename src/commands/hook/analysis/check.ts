@@ -70,7 +70,8 @@ export function dartHookAnalysisCheck(options: DartHookAnalysisCheckOptions = {}
     verbose,
     message: 'Running dart analyze on',
   });
-  // Changed-file paths are relative to the repo root, wherever the check runs from
+  // Changed-file paths are relative to the repo root, wherever the check runs from,
+  // so both the package guard and dart analyze resolve them from there
   const repoRoot = getGitRoot(cwd) ?? cwd;
   ensurePackagesResolved(modifiedFiles, repoRoot, repoRoot, 'dart analyze');
 
@@ -78,7 +79,7 @@ export function dartHookAnalysisCheck(options: DartHookAnalysisCheckOptions = {}
 
   let result: ReturnType<typeof dartAnalyze>;
   try {
-    result = dartAnalyze({ cwd, timeout, files: modifiedFiles });
+    result = dartAnalyze({ cwd: repoRoot, timeout, files: modifiedFiles });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
     if (error instanceof DartAnalyzeTimeoutError) {

@@ -112,6 +112,22 @@ describe('dartHookAnalysisCheck', () => {
         expect(consoleErrorSpy).toHaveBeenCalledWith('✓ All files pass dart analyze');
         dartAnalyzeSpy.mockRestore();
     });
+    it('should run dart analyze from the repo root, since changed-file paths are relative to it', () => {
+        isGitRepoSpy.mockReturnValue(true);
+        isDartPackageSpy.mockReturnValue(true);
+        getAllChangedFilesSpy.mockReturnValue(['packages/core/lib/utils.dart']);
+        getGitRootSpy.mockReturnValue('/repo');
+        const dartAnalyzeSpy = vi.spyOn(dartAnalyzeParse, 'dartAnalyze').mockReturnValue({
+            success: true,
+            filesWithIssues: [],
+            issues: [],
+        });
+        expect(() => {
+            dartHookAnalysisCheck({});
+        }).toThrow('process.exit(0)');
+        expect(dartAnalyzeSpy).toHaveBeenCalledWith(expect.objectContaining({ cwd: '/repo', files: ['packages/core/lib/utils.dart'] }));
+        dartAnalyzeSpy.mockRestore();
+    });
     it('should pass a custom timeout to dart analyze', () => {
         isGitRepoSpy.mockReturnValue(true);
         isDartPackageSpy.mockReturnValue(true);

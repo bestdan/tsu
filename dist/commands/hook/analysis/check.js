@@ -32,7 +32,7 @@ export function dartHookAnalysisCheck(options = {}) {
     const timeout = options.timeout ?? DEFAULT_HOOK_ANALYSIS_TIMEOUT_MS;
     let result;
     try {
-        result = dartAnalyze({ cwd, timeout, files: modifiedFiles });
+        result = dartAnalyze({ cwd: repoRoot, timeout, files: modifiedFiles });
     }
     catch (error) {
         const message = error instanceof Error ? error.message : String(error);
