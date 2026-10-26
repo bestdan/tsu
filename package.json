@@ -34,7 +34,7 @@
   "license": "MIT",
   "dependencies": {
     "commander": "^15.0.0",
-    "listr2": "^11.2.0"
+    "listr2": "^11.4.0"
   },
   "engines": {
     "node": ">=22.14.0"
