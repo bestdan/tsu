@@ -11,6 +11,9 @@ updates:
       day: "monday"
       time: "09:00"
     open-pull-requests-limit: 10
+    # Only propose versions that have been published for at least 5 days
+    cooldown:
+      default-days: 5
     reviewers:
       - "bestdan"
     labels:
@@ -39,6 +42,9 @@ updates:
       day: "monday"
       time: "09:00"
     open-pull-requests-limit: 5
+    # Only propose versions that have been published for at least 5 days
+    cooldown:
+      default-days: 5
     reviewers:
       - "bestdan"
     labels:
